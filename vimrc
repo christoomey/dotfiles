@@ -63,7 +63,7 @@
 "---- GUI SETTING ----
     if has('gui')
         "TODO Chillout the highlighting of the todo notes
-        colorscheme wombatMine
+        colorscheme wombat_mine
         set guioptions-=r "Hide the right side scrollbar
         set guioptions-=L "Hide the left side scrollbar
         set guioptions-=T "Hide toolbars...this is vim for craps sake
