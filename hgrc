@@ -1,0 +1,22 @@
+[ui]
+username = Chris Toomey
+
+[defaults]
+addremove = --similarity 100
+
+[alias]
+ar = addremove -s 100
+l5 = log -l 5
+cm = commit -m
+rnb = revert --all --no-backup
+
+[extensions]
+fetch =
+purge =
+color =
+graphlog =
+#extdiff #need to get vim in there
+
+[merge-tools]
+kdiff3.executable = /Applications/kdiff3.app/Contents/MacOS/kdiff3
+kdiff3.args = $base $local $other -o $output
