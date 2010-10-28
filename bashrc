@@ -4,6 +4,7 @@ alias ls='ls -FG' #Colorize and show folders, symlinks, etc
 alias so='source' # Like vim
 alias nose='nosetests'
 alias rmpyc='rm *.pyc'
+alias ..='cd ..'
 
 #Configure multi-line prompt
 PS1='
