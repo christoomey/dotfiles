@@ -1,3 +1,9 @@
 [submodule "dotvim/bundle/nerdcommenter"]
 	path = dotvim/bundle/nerdcommenter
 	url = git://github.com/scrooloose/nerdcommenter.git
+[submodule "dotvim/bundle/nerdtree"]
+	path = dotvim/bundle/nerdtree
+	url = git://github.com/scrooloose/nerdtree.git
+[submodule "dotvim/bundle/snipmate"]
+	path = dotvim/bundle/snipmate
+	url = git://github.com/msanders/snipmate.vim.git
