@@ -28,3 +28,6 @@
 [submodule "dotvim/bundle/kwbdi"]
 	path = dotvim/bundle/kwbdi
 	url = git://github.com/vim-scripts/kwbdi.vim.git
+[submodule "dotvim/bundle/YankRing"]
+	path = dotvim/bundle/YankRing
+	url = git://github.com/vim-scripts/YankRing.vim.git
