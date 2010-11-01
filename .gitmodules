@@ -13,3 +13,9 @@
 [submodule "dotvim/bundle/IndexedSearch"]
 	path = dotvim/bundle/IndexedSearch
 	url = git://github.com/vim-scripts/IndexedSearch.git
+[submodule "dotvim/bundle/TaskList"]
+	path = dotvim/bundle/TaskList
+	url = git://github.com/vim-scripts/TaskList.vim.git
+[submodule "dotvim/bundle/ScrollColors"]
+	path = dotvim/bundle/ScrollColors
+	url = git://github.com/vim-scripts/ScrollColors.git
