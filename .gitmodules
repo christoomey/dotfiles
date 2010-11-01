@@ -31,3 +31,6 @@
 [submodule "dotvim/bundle/YankRing"]
 	path = dotvim/bundle/YankRing
 	url = git://github.com/vim-scripts/YankRing.vim.git
+[submodule "dotvim/bundle/ack"]
+	path = dotvim/bundle/ack
+	url = git://github.com/mileszs/ack.vim.git
