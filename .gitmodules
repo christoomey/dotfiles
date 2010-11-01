@@ -34,3 +34,6 @@
 [submodule "dotvim/bundle/ack"]
 	path = dotvim/bundle/ack
 	url = git://github.com/mileszs/ack.vim.git
+[submodule "dotvim/bundle/supertab"]
+	path = dotvim/bundle/supertab
+	url = git://github.com/ervandew/supertab.git
