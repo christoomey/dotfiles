@@ -25,3 +25,6 @@
 [submodule "dotvim/bundle/vim-trailing-whitespace"]
 	path = dotvim/bundle/vim-trailing-whitespace
 	url = git://github.com/bronson/vim-trailing-whitespace.git
+[submodule "dotvim/bundle/kwbdi"]
+	path = dotvim/bundle/kwbdi
+	url = git://github.com/vim-scripts/kwbdi.vim.git
