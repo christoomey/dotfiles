@@ -109,6 +109,8 @@
     " Use +/- directly to resize a window
     nnoremap - <C-w>-
     nnoremap = <C-w>+
+    " Easy access to maximizing
+    nnoremap <C-_> <C-w>_
 
 "---- SPEEDUP ----
     "Keep the leader close for many custom maps
@@ -183,6 +185,10 @@
     " Shell `Open` the WORD under the cursor. Mostly for URLs
     nnoremap <LEADER>op :silent !open <cWORD><CR>
     "TODO wrap the open map above in a function to handle windows
+    "
+    " Thesaurus lookup for the |word| under the cursor
+    nnoremap <LEADER>th :silent !open
+        \http://thesaurus.com/browse/<cword><CR>
 
     " Vertical movement, at various rates
         " Move one line at a time, aka 'fine ajdustment'
@@ -302,6 +308,8 @@
         " TODO remap the keys for better motion in the tree (space=>fold)
 
     " BUNDLE: git://github.com/msanders/snipmate.vim.git
+        let g:snips_author = 'Chris Toomey'
+
 
     " BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
 
