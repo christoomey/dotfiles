@@ -310,10 +310,9 @@
     " BUNDLE: git://github.com/msanders/snipmate.vim.git
         let g:snips_author = 'Chris Toomey'
 
-
     " BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
 
-    " BUNDLE: git://github.com/bronson/vim-scrollcolors.git
+    " BUNDLE: git://github.com/vim-scripts/ScrollColors.git
 
     " BUNDLE: git://github.com/edsono/vim-bufexplorer.git
         nmap <LEADER>be :BufExplorer<CR>
@@ -342,14 +341,15 @@
     " BUNDLE: git://github.com/tpope/vim-surround.git
 
     " BUNDLE: git://github.com/vim-scripts/IndexedSearch.git
-    "
+
     " BUNDLE: git://github.com/scrooloose/vim-space.git
+        " TODO Need to reclaim the ; normal map from this
 
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
     " #BUNDLE: git://github.com/vim-scripts/MRU.git
-        nmap <LEADER>mru :MRU<SPACE>
+        " nmap <LEADER>mru :MRU<SPACE>
 
 
     " For me to try
@@ -360,8 +360,9 @@
     " TODO LustyExplorer or CommandT for quick file open
     "
     " TODO create a plugin that combines LustyJuggler with BufExplorer
-    " --Display in Ctrl-D windlmenu style, not new buffer
+    " --Display in Ctrl-D windlmenu style, not new buffer (ref snipmate)
     " --Display very similar to BufExplorer (columns, path, etc)
+    " --Use asdfghjkl lusty style selection (with color confirm)
     " --http://www.vim.org/scripts/script.php?script_id=2050
     "
     " TODO try out this updated version of rainbow parens
