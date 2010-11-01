@@ -22,3 +22,6 @@
 [submodule "dotvim/bundle/vim-bufexplorer"]
 	path = dotvim/bundle/vim-bufexplorer
 	url = git://github.com/edsono/vim-bufexplorer.git
+[submodule "dotvim/bundle/vim-trailing-whitespace"]
+	path = dotvim/bundle/vim-trailing-whitespace
+	url = git://github.com/bronson/vim-trailing-whitespace.git
