@@ -10,3 +10,6 @@
 [submodule "dotvim/bundle/vim-space"]
 	path = dotvim/bundle/vim-space
 	url = git://github.com/scrooloose/vim-space.git
+[submodule "dotvim/bundle/IndexedSearch"]
+	path = dotvim/bundle/IndexedSearch
+	url = git://github.com/vim-scripts/IndexedSearch.git
