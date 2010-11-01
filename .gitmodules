@@ -37,3 +37,6 @@
 [submodule "dotvim/bundle/supertab"]
 	path = dotvim/bundle/supertab
 	url = git://github.com/ervandew/supertab.git
+[submodule "dotvim/bundle/vim-surround"]
+	path = dotvim/bundle/vim-surround
+	url = git://github.com/tpope/vim-surround.git
