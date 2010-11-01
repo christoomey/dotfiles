@@ -7,3 +7,6 @@
 [submodule "dotvim/bundle/snipmate"]
 	path = dotvim/bundle/snipmate
 	url = git://github.com/msanders/snipmate.vim.git
+[submodule "dotvim/bundle/vim-space"]
+	path = dotvim/bundle/vim-space
+	url = git://github.com/scrooloose/vim-space.git
