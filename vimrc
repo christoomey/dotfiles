@@ -344,6 +344,8 @@
 
     " BUNDLE: git://github.com/scrooloose/vim-space.git
         " TODO Need to reclaim the ; normal map from this
+        " Unfortunately I have to unhook ';' in the plugin itself
+        " to avoid conflict with how I `nnoremap ; :`
 
 
     " Can't figure out the issue here. Had to load the old
