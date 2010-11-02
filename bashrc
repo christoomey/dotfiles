@@ -24,6 +24,15 @@ function mkcd
     mkdir -p $dir && cd $dir;
 }
 
+function gitd {
+    vim -d $1 <(git show HEAD:$1);
+    cols 80
+}
+
+function mgitd {
+    mvim -d $1 <(git show HEAD:$1);
+}
+
 # Vim split diff view function for modified hg file
 # Additional settings applied in the vimrc
 function hgd {
