@@ -5,3 +5,5 @@
 	status = auto
 [alias]
 	st = status
+[core]
+	editor = /usr/bin/vim
