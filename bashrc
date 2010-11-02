@@ -11,6 +11,13 @@ PS1='
 $PWD
 $=>'
 
+# Some fun with switching the foreground terminal process
+# Use Ctrl-z to kill current fg process (ie vim), do something else
+# in the shell, ie manpage lookup, then use Ctrl-g to get back to vim
+# ref: http://oinopa.com/2010/10/24/laptop-driven-development.html
+export HISTIGNORE="fg*"
+bind '"\C-g": "fg %-\n"'
+
 function mkcd
 {
     dir=$1;
