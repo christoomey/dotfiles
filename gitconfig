@@ -7,3 +7,4 @@
 	st = status
 [core]
 	editor = /usr/bin/vim
+	excludesfile = /Users/nation/.gitignore
