@@ -150,9 +150,9 @@
     au filetype help nnoremap <buffer><bs> <c-T>
     au filetype help nnoremap <buffer>q :q<CR>
     au filetype help set nonumber
-    set splitbelow " Split windows, ie Help, make more senset to me below
-    " TODO Get help buffers to maximize on open
-    " au filetype help resize 999
+    set splitbelow " Split windows, ie Help, make more sense to me below
+    au filetype help wincmd _ " Maximze the help on open
+
     " Mappings for quick maximizing or equaling btwn windows
     nmap <LEADER>max <C-w>_
     nmap <LEADER>eq <C-w>=
