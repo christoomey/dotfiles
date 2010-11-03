@@ -346,6 +346,8 @@
         " Unfortunately I have to unhook ';' in the plugin itself
         " to avoid conflict with how I `nnoremap ; :`
 
+    " BUNDLE: git://github.com/tpope/vim-fugitive.git
+
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
