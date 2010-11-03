@@ -62,8 +62,7 @@
 
 "---- GUI SETTING ----
     if has('gui')
-        "TODO Chillout the highlighting of the todo notes
-        colorscheme wombat_mine
+        colorscheme wombatMine
         set guioptions-=r "Hide the right side scrollbar
         set guioptions-=L "Hide the left side scrollbar
         set guioptions-=T "Hide toolbars...this is vim for craps sake
@@ -190,13 +189,13 @@
     nnoremap <LEADER>th :silent !open
         \http://thesaurus.com/browse/<cword><CR>
 
-    " Vertical movement, at various rates
-        " Move one line at a time, aka 'fine ajdustment'
-        nmap j gj
-        nmap k gk
-        " Move four lines at a time, 'medium adjustment'
-        nnoremap <C-e> 4j
-        nnoremap <C-y> 4k
+    " Move one line at a time, aka 'fine ajdustment'
+    nmap j gj
+    nmap k gk
+
+    " Move four lines at a time, 'medium adjustment'
+    nnoremap <C-j> 10j
+    nnoremap <C-k> 10k
 
     " Better visual indentation control (reslect region after shift)
     vnoremap > >gv
@@ -371,6 +370,9 @@
     " http://bitbucket.org/sjl/dotfiles/src/tip/vim/bundle/rainbow/
     "
     " TODO pyflakes for code checking. Needs vim:Python == sys:Python
+    "
+    " TODO get scrooloses's syntastic checking in there for statusline
+    " git://github.com/scrooloose/syntastic.git
     "
     " TODO pep8.vim or pylint
     "
