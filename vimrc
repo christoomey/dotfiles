@@ -405,23 +405,9 @@
     " Custom statusline format, and always show it
     " TODO setup a truly snazy statusline per scroolose (NERDTree)
     " http://got-ravings.blogspot.com/2008/08/vim-pr0n-making-statuslines-that-own.html
-    set stl=\ %{HasPaste()}%t%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L\ \ \ Col:%c
-    set laststatus=2
 
     " TODO Create a plugin to launch http version of git bundle <cword>
 
-    function! CurDir()
-        let curdir = substitute(getcwd(), '/Users/nation/', "~/", "g")
-        return curdir
-    endfunction
-
-    function! HasPaste()
-        if &paste
-            return 'PASTE MODE  '
-        else
-            return ''
-        endif
-    endfunction
 
     function! ListMapShaddows()
          silent! redir @a
@@ -440,7 +426,74 @@
         " for line in lines
     endfunction
 
-"---- REFERENCE ----
+"---- STATUSLINE ----
+    " For general info on statusline, start with the :h, then see
+    " http://got-ravings.blogspot.com/2008/08/vim-pr0n-making-statuslines-that-own.html
+    " NOTE: NSFW, but very good overview of statusling configuration
+
+    set laststatus=2 " Always show the statusline
+
+    "define 3 custom highlight groups
+    hi User1 ctermbg=white ctermfg=red   guibg=green guifg=red
+    hi User2 ctermbg=red   ctermfg=blue  guibg=red   guifg=blue
+    hi User3 ctermbg=gray ctermfg=blue guibg=blue  guifg=green
+    hi User4 ctermbg=blue guibg=green
+
+    set statusline= " Clear the statusline for vimrc reloads
+
+    set stl=%*                       " Normal statusline highlight
+    set stl+=%{InsertSpace()}        " Put a leading space in
+    set stl+=%2* 				     " Red highlight
+    set stl+=%{HasPaste()}           " Red show paste
+
+    set stl+=%*                      " Return to normal stl hilight
+    set stl+=%t                      " Filename
+
+    set stl+=%2* 				     " Red highlight
+    set stl+=%m                      " Modified flag
+
+    set stl+=%*                      " Return to normal stl hilight
+    set stl+=%r                      " Readonly flag
+    set stl+=%h                      " Help file flag
+
+    set stl+=%*                      " Set to 3rd highlight
+    set stl+=\ %y                    " Filetype
+
+    set stl+=\ \ CWD:%{CurDir()}     " Semi-smart CWD display
+
+    set stl+=%=                      " Right align from here on
+    set statusline+=%{SlSpace()}     " Vim-space plugin current setting
+    set stl+=\ \ Col:%c              " Column number
+    set stl+=\ \ Line:%l/%L          " Line # / total lines
+    set stl+=\ \ %P%{InsertSpace()}  " Single space buffer
+
+    function! SlSpace()
+        if exists("*GetSpaceMovement")
+            return "[" . GetSpaceMovement() . "]"
+        else
+            return ""
+        endif
+    endfunc
+
+    function! InsertSpace()
+        " For adding trailing spaces onto statusline
+        return ' '
+    endfunction
+
+    function! HasPaste()
+        if &paste
+            return '[PASTE]'
+        else
+            return ''
+        endif
+    endfunction
+
+    function! CurDir()
+        let curdir = substitute(getcwd(), '/Users/nation/', "~/", "g")
+        return curdir
+    endfunction
+
+"---- REFERENCES ----
     " A number of sources I used when compiling my vimrc
 
     " Swaroop's great, free, intro to vim. Where I started
