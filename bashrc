@@ -6,13 +6,26 @@ alias nose='nosetests'
 alias rmpyc='rm *.pyc'
 alias ..='cd ..'
 
-#Configure multi-line prompt
+# Git bash completion
+source ~/.git-completion.bash
+
+# Colorized prompt, with git integration
 PS1='
-$PWD
-$=>'
+\e[33;1m\]$PWD\e[31;1m\]$(jobcount) \e[36;1m\]$(__git_ps1 "[%s]")
+\[\e[0m\]$=>'
+
+# List the number of background jobs. See next section for details
+function jobcount {
+    count=`jobs | wc -l | awk '{print $1}'`
+    if [ $count -eq "0" ]; then
+        echo ""
+    else
+        echo " (+$count)"
+    fi
+}
 
 # Some fun with switching the foreground terminal process
-# Use Ctrl-z to kill current fg process (ie vim), do something else
+# Use Ctrl-z to freeze current fg process (ie vim), do something else
 # in the shell, ie manpage lookup, then use Ctrl-g to get back to vim
 # ref: http://oinopa.com/2010/10/24/laptop-driven-development.html
 export HISTIGNORE="fg*"
