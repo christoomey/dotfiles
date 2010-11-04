@@ -204,6 +204,9 @@
     " Reselect pasted text. Mnem: 'Get pasted'
     nnoremap gp `[v`]
 
+    " Go to position of last edit. Mnem: 'Go to Edit'
+    nnoremap ge `.
+
     " Quick insertion of a datetime stamp for daily log
     nnoremap <LEADER>dt :r! date +"\%Y-\%m-\%d \%H:\%M:\%S"
 
@@ -270,8 +273,10 @@
     set foldenable
     set fdm=indent
 
-    "Set space to toggle a fold
-    "TODO can we get recursive toggle?
+    " So I never use s, and I want a single key map to toggle folds, thus
+    " lower s = toggle <=> upper S = toggle recursive
+    nnoremap s za
+    nnoremap S zA
 
     "Maps for folding, unfolding all
     nnoremap <LEADER>fu zM<CR>
