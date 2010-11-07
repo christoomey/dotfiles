@@ -118,7 +118,6 @@
     " I have almost no need for semicolons, but the colon, I love
     nnoremap ; :
     vnoremap ; :
-    inoremap ; :
     cnoremap ; :
 
     " Do not use <Ctrl-c> to break out to normal mode
