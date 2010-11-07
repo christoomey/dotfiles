@@ -5,6 +5,8 @@ alias so='source' # Like vim
 alias nose='nosetests'
 alias rmpyc='rm *.pyc'
 alias ..='cd ..'
+alias pu='pushd'
+alias po='popd'
 
 # Git bash completion
 source ~/.git-completion.bash
@@ -28,6 +30,7 @@ function jobcount {
 # Use Ctrl-z to freeze current fg process (ie vim), do something else
 # in the shell, ie manpage lookup, then use Ctrl-g to get back to vim
 # ref: http://oinopa.com/2010/10/24/laptop-driven-development.html
+# TODO Get Ctrl-f set as the freeze command
 export HISTIGNORE="fg*"
 bind '"\C-g": "fg %-\n"'
 
@@ -66,9 +69,12 @@ function positive_int() {
 
 # Set the terminal to the specified number of columns
 function cols() {
-    if [[ $# -eq 1 ]] && $(positive_int "$1"); then
+    if [ $# -eq 1 ] && $(positive_int "$1"); then
         printf "\e[8;999;${1};t"
         return 0
+    fi
+    if [ $# -eq "0" ]; then
+        printf "\e[8;999;80;t"
     fi
     return 1
 }
