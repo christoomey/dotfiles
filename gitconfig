@@ -8,3 +8,6 @@
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore
+[user]
+	name = Chris Toomey
+	email = christopherjtoomey@gmail.com
