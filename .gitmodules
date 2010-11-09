@@ -40,3 +40,6 @@
 [submodule "dotvim/bundle/vim-fugitive"]
 	path = dotvim/bundle/vim-fugitive
 	url = git://github.com/tpope/vim-fugitive.git
+[submodule "dotvim/bundle/vim-space"]
+	path = dotvim/bundle/vim-space
+	url = git@github.com:christoomey/vim-space.git

@@ -348,7 +348,7 @@
 
     " BUNDLE: git://github.com/vim-scripts/IndexedSearch.git
 
-    " BUNDLE: git://github.com/scrooloose/vim-space.git
+    " BUNDLE: git://github.com/christoomey/vim-space.git
         " TODO Need to reclaim the ; normal map from this
         " Unfortunately I have to unhook ';' in the plugin itself
         " to avoid conflict with how I `nnoremap ; :`
