@@ -94,8 +94,11 @@ snippet try Try/Except/Else/Finally
 		${6:pass}
 # if __name__ == '__main__':
 snippet ifmain
+	def main():
+		${1:pass}
+
 	if __name__ == '__main__':
-		${1:main()}
+		main()
 snippet wx
 	import wx
 

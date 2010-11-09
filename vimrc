@@ -2,7 +2,7 @@
 "                                 ~My vimrc~
 "===========================================================================
 " Author:        Chris Toomey <christopherjtoomey at the google mails>
-" Source:        http://bitbucket.org/christoomey/dotfiles
+" Source:        https://github.com/christoomey/dotfiles
 "
 " My vimrc, mostly for python development. Did my best to document
 " inline for anyone who may ended up reading this (especially me+=1year)
@@ -101,6 +101,7 @@
             nnoremap <LEADER>lap :set guifont=Consolas:h12<CR>
         endif
     else
+        set nocursorline nocursorcolumn
         colorscheme slate
     endif
 
@@ -312,6 +313,7 @@
 
     " BUNDLE: git://github.com/msanders/snipmate.vim.git
         let g:snips_author = 'Chris Toomey'
+        let g:snippets_dir = '$HOME/.vim/snippets'
 
     " BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
 
@@ -333,6 +335,7 @@
 
     " BUNDLE: git://github.com/vim-scripts/YankRing.vim.git
         " Use <Ctrl-p> to cycle back to earlier yanks after a paste
+        let g:yankring_history_file = '.yankring_history'
 
     " BUNDLE: git://github.com/mileszs/ack.vim.git
         "TODO stop vim from jumping to the first match
