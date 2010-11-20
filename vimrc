@@ -135,6 +135,15 @@
     cnoremap <C-@> <C-c>
     inoremap <C-@> <Esc>`^
 
+    " Move current line up
+    nnoremap <A-k> :m-2<cr>
+    " Move current line down
+    nnoremap <A-j> :m+<cr>
+    " Move visual selection up
+    vnoremap <A-k> :m-2<cr>gv
+    " Move visual selection down
+    vnoremap <A-j> :m'>+<cr>gv
+
     " Setup nice command tab completion
     set wildmenu
     set wildmode=list:longest,full
@@ -142,8 +151,7 @@
 
     " Easy vimrc moding ",v" loads vimrc for edit, ",V" sources it
     map <leader>rc :e ~/.vimrc<CR>
-    map <silent> <leader>src :source ~/.vimrc<CR>
-            \:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+    map <silent> <leader>src :source %<CR>
 
     " Help File funtimes, <enter> to follow tag, delete for back
     au filetype help nnoremap <buffer><cr> <c-]>
@@ -187,7 +195,7 @@
     "
     " Thesaurus lookup for the |word| under the cursor
     nnoremap <LEADER>th :silent !open
-        \http://thesaurus.com/browse/<cword><CR>
+        \ http://thesaurus.com/browse/<cword><CR>
 
     " Move one line at a time, aka 'fine ajdustment'
     nmap j gj
@@ -262,11 +270,14 @@
     nmap <silent> ,gW
          \ :vimgrep /<C-r><C-a>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
 
-"---- PEP 8 SETTING ----
+"---- PYTHON SETTINGS ----
     "TODO Get PEP8.vim and or pylint
     set tabstop=4
     set shiftwidth=4
     set expandtab
+
+    "Run the current file
+    nnoremap <LEADER>prun :! python ./%<CR>
 
 "---- FOLDING AND INDENT OPTION ----
     "Enable indent folding
@@ -324,7 +335,7 @@
         let g:bufExplorerDefaultHelp=1       " Show default help.
         let g:bufExplorerDetailedHelp=0      " Don't show detailed help.
         let g:bufExplorerShowRelativePath=1  " Show relative paths.
-        let g:bufExplorerSortBy='name'       " Sort by the buffer's name.
+        let g:bufExplorerSortBy='mru'        " Sort by most recently used.
         let g:bufExplorerSplitOutPathName=1  " Split the path and file
 
     " BUNDLE: git://github.com/bronson/vim-trailing-whitespace.git
@@ -525,3 +536,16 @@
     "
     " Amix the lucky stiff's huge vimrc
     " http://amix.dk/vim/vimrc.html
+
+
+
+
+"TODO Reload issues
+" Error detected while processing /Applications/MacVim.app/Contents/Resources/vim/runtime/syntax/synload.vim:
+" line   19:
+" E185: Cannot find color scheme wombat
+" Error detected while processing /Users/nation/.vimrc:
+" line   99:
+" E596: Invalid font(s): guifont=Consolas:h12
+
+" E488: Trailing characters
