@@ -8,6 +8,11 @@ alias ..='cd ..'
 alias pu='pushd'
 alias po='popd'
 
+# Django related aliases
+alias djsh='python manage.py shell'
+alias djru='python manage.py runserver'
+alias djte='python manage.py test'
+
 # Git bash completion
 source ~/.git-completion.bash
 
