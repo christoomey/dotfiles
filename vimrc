@@ -270,6 +270,8 @@
     nmap <silent> ,gW
          \ :vimgrep /<C-r><C-a>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
 
+    nnoremap <LEADER>rdb :g/import\ ipdb/normal dd
+
 "---- PYTHON SETTINGS ----
     "TODO Get PEP8.vim and or pylint
     set tabstop=4
