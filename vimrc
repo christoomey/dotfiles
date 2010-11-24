@@ -420,16 +420,51 @@
     "Underline a vimrc section title
     nmap <LEADER>urc yypVr-r"
 
-    " Create a table of contents with tags for vimrc
-    " TODO create this regex based function, then extract to script
+    " TODO Create a func to generate a table of contents with tags for vimrc
     " Ref: http://www.vim.org/scripts/script.php?script_id=2014
 
-    " Custom statusline format, and always show it
-    " TODO setup a truly snazy statusline per scroolose (NERDTree)
-    " http://got-ravings.blogspot.com/2008/08/vim-pr0n-making-statuslines-that-own.html
+    " Simple wrapper around system mkdir cmd
+    function! Mkdir()
+        let dir = input('Dir name: ')
+        let dir_exists = isdirectory(dir)
 
-    " TODO Create a plugin to launch http version of git bundle <cword>
+        " Check to see if the dir exists, abort if so, but inform user
+        if dir_exists
+            echon 'Error, dir ['
+            echohl WarningMsg
+            echon dir
+            echohl None
+            echon '] already exists in path ['
+            echohl vimString
+            echon getcwd()
+            echohl None
+            echon ']'
+        else
+            let retval = system('mkdir ' . dir)
+            echon 'Created directory ['
+            echohl vimString
+            echon dir
+            echohl None
+            echon '] under root ['
+            echohl vimString
+            echon getcwd()
+            echohl None
+            echon ']'
+        endif
+    endfunction
+    nnoremap <LEADER>md :call Mkdir()<CR>
 
+    " List out the syntax for the word under the cursor
+    function! SyntaxGroup()
+        let hl = synIDattr(synID(line("."),col("."),1),"name")
+        let trans = synIDattr(synID(line("."),col("."),0),"name")
+        let low = synIDattr(synIDtrans(synID(line("."),col("."),1)),"name")
+        " for id in synstack(line("."), col("."))
+           " echo synIDattr(id, 'name')
+        " endfor
+        echo 'hl<' . hl . '> trans<' . trans . '>low<' . low . '>'
+    endfunction
+    nnoremap <LEADER>syn :call SyntaxGroup()<CR>
 
     function! ListMapShaddows()
          silent! redir @a
