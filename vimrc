@@ -11,12 +11,14 @@
 "---- PATHOGEN FOR PLUGIN ----
     " Pathogen lets each plugin have its own subdir for easy mgmt
     " Made by Tim Pope. Found here: github.com/tpope/vim-pathogen
-    filetype off
-    call pathogen#runtime_append_all_bundles()
-    call pathogen#helptags()
+    if !exists('g:vimrc_loaded')
+        filetype off
+        call pathogen#runtime_append_all_bundles()
+        call pathogen#helptags()
 
-    syntax on
-    filetype plugin indent on
+        syntax on
+        filetype plugin indent on
+    endif
 
     " Search here for other plugins (github mirror of offical vim-scripts)
     " http://vim-scripts.org/scripts.html
@@ -62,16 +64,18 @@
 
 "---- GUI SETTING ----
     if has('gui')
-        colorscheme wombatMine
+        colorscheme ctwombat
         set guioptions-=r "Hide the right side scrollbar
         set guioptions-=L "Hide the left side scrollbar
         set guioptions-=T "Hide toolbars...this is vim for craps sake
         set guioptions-=m "Hide the menu, see above
 
-        " Size and position the window well
-        set columns=85
-        set lines=999
-        winpos 999 5
+        " Size and position the window well (only perform on startup)
+        if !exists('g:vimrc_loaded')
+            set columns=85
+            set lines=999
+            winpos 999 5
+        endif
 
         " Display a crosshair to highlight the cursor (hi row & col)
         set cursorline! cursorcolumn!
@@ -96,7 +100,9 @@
         if has('win32')
             set guifont=Consolas:h10
         elseif has('mac')
-            set guifont=Consolas:h12
+            if !exists('g:vimrc_loaded')
+                set guifont=Consolas:h12
+            endif
             nnoremap <LEADER>ext :set guifont=Consolas:h14<CR>
             nnoremap <LEADER>lap :set guifont=Consolas:h12<CR>
         endif
@@ -574,15 +580,6 @@
     " Amix the lucky stiff's huge vimrc
     " http://amix.dk/vim/vimrc.html
 
-
-
-
-"TODO Reload issues
-" Error detected while processing /Applications/MacVim.app/Contents/Resources/vim/runtime/syntax/synload.vim:
-" line   19:
-" E185: Cannot find color scheme wombat
-" Error detected while processing /Users/nation/.vimrc:
-" line   99:
-" E596: Invalid font(s): guifont=Consolas:h12
-
-" E488: Trailing characters
+"---- LOADED VARIABLE ----
+    "Use this to prevent some settings from reloading
+    let g:vimrc_loaded = 1
