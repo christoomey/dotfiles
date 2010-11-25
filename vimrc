@@ -579,6 +579,9 @@
     "
     " Amix the lucky stiff's huge vimrc
     " http://amix.dk/vim/vimrc.html
+    "
+    " Another good one from the creator of vimcasts
+    " https://github.com/nelstrom/dotfiles/raw/master/vimrc
 
 "---- LOADED VARIABLE ----
     "Use this to prevent some settings from reloading
