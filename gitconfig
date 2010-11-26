@@ -5,6 +5,8 @@
 	status = auto
 [alias]
 	st = status
+	unstage = reset
+	unchange = checkout --
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore
