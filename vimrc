@@ -52,7 +52,10 @@
     set vb t_vb=
 
     " Auto change the directory to the current file I'm working on
-    autocmd BufEnter * lcd %:p:h
+    " autocmd BufEnter * lcd %:p:h " Removed this to make command-t make sense
+    if has('mac')
+        cd work
+    endif
 
     " Allow command line editing like emacs
     cnoremap <C-A>      <Home>
@@ -153,7 +156,7 @@
     " Setup nice command tab completion
     set wildmenu
     set wildmode=list:longest,full
-    set wildignore+=*.pyc
+    set wildignore+=*.pyc,*/dotvim/bundle/*
 
     " Easy vimrc moding ",v" loads vimrc for edit, ",V" sources it
     map <leader>rc :e ~/.vimrc<CR>
@@ -373,7 +376,11 @@
         " to avoid conflict with how I `nnoremap ; :`
 
     " BUNDLE: git://github.com/tpope/vim-fugitive.git
-
+    "
+    " BUNDLE: git://github.com/wincent/Command-T.git
+    " Ref wildignore setting above for filtering, relative path setting
+    nmap <silent> <Leader>fo :CommandT<CR>
+    let g:CommandTCancelMap='<C-Space>'
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir

@@ -43,3 +43,6 @@
 [submodule "dotvim/bundle/vim-space"]
 	path = dotvim/bundle/vim-space
 	url = git@github.com:christoomey/vim-space.git
+[submodule "dotvim/bundle/Command-T"]
+	path = dotvim/bundle/Command-T
+	url = git://github.com/wincent/Command-T.git
