@@ -126,6 +126,15 @@ function mgitd {
     mvim -d $1 <(git show HEAD:$1);
 }
 
+function gitup {
+    branch=`__git_ps1 "%s"`
+    if [ -z "$branch" ]; then #Not a git repo
+        echo "./"
+    else
+        echo "./"$(git rev-parse --show-cdup)
+    fi
+}
+
 # Vim split diff view function for modified hg file
 # Additional settings applied in the vimrc
 function hgd {

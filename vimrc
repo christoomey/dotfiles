@@ -54,7 +54,9 @@
     " Auto change the directory to the current file I'm working on
     " autocmd BufEnter * lcd %:p:h " Removed this to make command-t make sense
     if has('mac')
-        cd work
+        if !g:vimrc_loaded
+            cd work
+        endif
     endif
 
     " Allow command line editing like emacs
@@ -379,8 +381,28 @@
     "
     " BUNDLE: git://github.com/wincent/Command-T.git
     " Ref wildignore setting above for filtering, relative path setting
-    nmap <silent> <Leader>fo :CommandT<CR>
+    nmap <silent> <Leader>cmt :CommandT<CR>
     let g:CommandTCancelMap='<C-Space>'
+    let g:CommandTMatchWindowAtTop=1
+    function! Command_T_Local() "Go to the root of the git repo, then CommandT
+        "Ask git for the root of the git repo (as a relative '../../' path)
+        let git_top = system('git rev-parse --show-cdup')
+        let git_fail = 'fatal: Not a git repository'
+        if strpart(git_top, 0, strlen(git_fail)) == git_fail
+            " Above line says we are not in git repo. Ugly. Better version?
+            call Command_T_Work()
+        else
+            " Move working dir to root of repo, then CommandT
+            execute ":cd ./" . git_top
+            CommandT
+        endif
+    endfunction
+    function! Command_T_Work() "Go from the ~/work repo
+        cd ~/work
+        CommandT
+    endfunction
+    nmap <LEADER>fow :call Command_T_Work()<CR>
+    nmap <LEADER>fop :call Command_T_Local()<CR>
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
@@ -392,8 +414,6 @@
     "--------------
     " For speedy HTMLing (using zen coding)
     " #BUNDLE: git://github.com/rstacruz/sparkup.git
-    "
-    " TODO LustyExplorer or CommandT for quick file open
     "
     " TODO create a plugin that combines LustyJuggler with BufExplorer
     " --Display in Ctrl-D windlmenu style, not new buffer (ref snipmate)
