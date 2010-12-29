@@ -159,4 +159,5 @@ function cols() {
 # Less severe than rm
 function trash() { mv "$@" ~/.Trash; }
 
-#TODO Switch to vi style keybindings. use "set -o vi"
+# Make sure rvm works right
+source $HOME/.rvm/scripts/rvm
