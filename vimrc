@@ -327,6 +327,38 @@
     "...
     "endif
 
+"---- TESTING / REFACTORING RELATED ----
+    " Create a nice long test name without having to enter the undersocre
+    function! Test_Function()
+        echohl String
+        let test_name=input('Test name: ')
+        if test_name != ""
+            let new_test_name = substitute(test_name, "\\s", "_", "g")
+            execute "normal odef " . new_test_name . "():"
+        endif
+    endfunction
+    nmap <LEADER>tf :call Test_Function()<CR>
+
+    " Borrowed from Gary Bernhardt's vimrc
+    function! ExtractVariable()
+        echohl String
+        let name = input("Variable name: ")
+        if name == ''
+            return
+        endif
+
+        " Enter visual mode (input() takes us out of it)
+        normal! gv
+
+        " Replace selected text with the variable name
+        exec "normal c" . name
+        " Define the variable on the line above
+        exec "normal! O" . name . " = "
+        " Paste the original selected text to be the variable value
+        normal! $p
+    endfunction
+    vnoremap <LEADER>ev :call ExtractVariable()<cr>
+
 "---- PLUGIN OPTION ----
     " BUNDLE: git://github.com/scrooloose/nerdcommenter.git
         nmap <F2> <plug>NERDCommenterToggle
