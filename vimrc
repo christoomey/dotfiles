@@ -52,7 +52,7 @@
     set vb t_vb=
 
     " Auto change the directory to the current file I'm working on
-    " autocmd BufEnter * lcd %:p:h " Removed this to make command-t make sense
+    autocmd BufEnter * lcd %:p:h " Removed this to make command-t make sense
     if has('mac')
         if !g:vimrc_loaded
             cd work
