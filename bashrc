@@ -122,6 +122,10 @@ function gitd {
     cols 80
 }
 
+function git_show_deleted_file {
+    git show $(git rev-list -n 1 HEAD -- $1)^:$1
+}
+
 function mgitd {
     mvim -d $1 <(git show HEAD:$1);
 }
