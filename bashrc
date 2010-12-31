@@ -11,7 +11,8 @@ alias po='popd'
 # Django related aliases
 alias djsh='python manage.py shell'
 alias djru='python manage.py runserver'
-alias djte='python manage.py test'
+alias djte='python manage.py test --verbosity 0'
+alias djtx='python manage.py test --verbosity 0 -x'
 
 # Git bash completion
 source ~/.git-completion.bash
