@@ -292,6 +292,9 @@
     "Run the current file
     nnoremap <LEADER>prun :! python ./%<CR>
 
+    " TODO get ahold of a better syntax file. Ref gary B. Spec, hilite '%s'
+
+
 "---- FOLDING AND INDENT OPTION ----
     "Enable indent folding
     set foldenable
@@ -358,6 +361,33 @@
         normal! $p
     endfunction
     vnoremap <LEADER>ev :call ExtractVariable()<cr>
+
+    function! Git_Repo_Cdup() " Get the relative path to repo root
+        "Ask git for the root of the git repo (as a relative '../../' path)
+        let git_top = system('git rev-parse --show-cdup')
+        let git_fail = 'fatal: Not a git repository'
+        if strpart(git_top, 0, strlen(git_fail)) == git_fail
+            " Above line says we are not in git repo. Ugly. Better version?
+            return ''
+        else
+            " Return the cdup path to the root. If already in root,
+            " path will be empty, so add './'
+            return './' . git_top
+        endif
+    endfunction
+
+    function! RunDjangoTests()
+        let cdup = Git_Repo_Cdup()
+        if cdup != ''
+            execute ":cd " . cdup
+            let test_results = system('python manage.py test --verbosity 0 -x')
+            echo test_results
+        else
+            echohl ErrorMsg
+            echo 'Not in a git repo'
+        endif
+    endfunction
+    nmap <LEADER>ts :call RunDjangoTests()<cr>
 
 "---- PLUGIN OPTION ----
     " BUNDLE: git://github.com/scrooloose/nerdcommenter.git
@@ -645,3 +675,10 @@
 "---- LOADED VARIABLE ----
     "Use this to prevent some settings from reloading
     let g:vimrc_loaded = 1
+
+"---- GTD RELATED STUFF ----
+    function! InsertDate()
+        let date = strftime('%Y-%m-%d') " Grab date as 2010-09-17 format
+        exe 'normal A [' . date . ']'
+    endfunction
+    nnoremap <LEADER>ad :call InsertDate()<cr>
