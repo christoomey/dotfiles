@@ -391,7 +391,9 @@
 
 "---- PLUGIN OPTION ----
     " BUNDLE: git://github.com/scrooloose/nerdcommenter.git
-        nmap <F2> <plug>NERDCommenterToggle
+        let g:NERDCreateDefaultMappings = 0
+        nmap <LEADER>cm <plug>NERDCommenterToggle
+        vmap <LEADER>cm <plug>NERDCommenterToggle
         let NERDSpaceDelims=1 " Add a space before the comment
     " BUNDLE: git://github.com/scrooloose/nerdtree.git
         nnoremap <LEADER>nt :NERDTreeToggle<CR>
@@ -400,8 +402,11 @@
     " BUNDLE: git://github.com/msanders/snipmate.vim.git
         let g:snips_author = 'Chris Toomey'
         let g:snippets_dir = '$HOME/.vim/snippets'
+        "XXX consider a switch to xptemplate
 
     " BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
+        "Need to remap this before Command-T, or it barks
+        map <leader>tl <Plug>TaskList
 
     " BUNDLE: git://github.com/vim-scripts/ScrollColors.git
 
@@ -440,31 +445,28 @@
         " to avoid conflict with how I `nnoremap ; :`
 
     " BUNDLE: git://github.com/tpope/vim-fugitive.git
-    "
+
     " BUNDLE: git://github.com/wincent/Command-T.git
-    " Ref wildignore setting above for filtering, relative path setting
-    nmap <silent> <Leader>cmt :CommandT<CR>
-    let g:CommandTCancelMap='<C-Space>'
-    let g:CommandTMatchWindowAtTop=1
-    function! Command_T_Local() "Go to the root of the git repo, then CommandT
-        "Ask git for the root of the git repo (as a relative '../../' path)
-        let git_top = system('git rev-parse --show-cdup')
-        let git_fail = 'fatal: Not a git repository'
-        if strpart(git_top, 0, strlen(git_fail)) == git_fail
-            " Above line says we are not in git repo. Ugly. Better version?
-            call Command_T_Work()
-        else
-            " Move working dir to root of repo, then CommandT
-            execute ":cd ./" . git_top
+        " Ref wildignore setting above for filtering, relative path setting
+        let g:CommandTCancelMap='<C-Space>'
+        let g:CommandTMatchWindowAtTop=1
+        function! Command_T_Local()
+            let cdup = Git_Repo_Cdup()
+            if cdup != ''
+                " Move working dir to root of repo, then CommandT
+                execute ":cd " . cdup
+                CommandT
+            else
+                " Not in a git repo, default to ~/work
+                call Command_T_Work()
+            endif
+        endfunction
+        function! Command_T_Work() "Go from the ~/work repo
+            cd ~/work
             CommandT
-        endif
-    endfunction
-    function! Command_T_Work() "Go from the ~/work repo
-        cd ~/work
-        CommandT
-    endfunction
-    nmap <LEADER>fow :call Command_T_Work()<CR>
-    nmap <LEADER>fop :call Command_T_Local()<CR>
+        endfunction
+        nmap <LEADER>fow :call Command_T_Work()<CR>
+        nmap <LEADER>fop :call Command_T_Local()<CR>
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
