@@ -8,6 +8,7 @@
 	unstage = reset
 	unchange = checkout --
 	slog = log --pretty=oneline --abbrev-commit
+	aa = add --all
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore
