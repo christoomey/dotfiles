@@ -185,10 +185,6 @@
     "Make Y yank to end of line (like D, or C)
     nmap Y y$
 
-    " And while we are at, vv for visual line, V for visual to end of line
-    nnoremap vv V
-    nnoremap V v$
-
     "Allow Ctrl-f to paste current register in insert mode
     imap <C-f> <C-r>"
 
@@ -333,11 +329,10 @@
 "---- TESTING / REFACTORING RELATED ----
     " Create a nice long test name without having to enter the undersocre
     function! Test_Function()
-        echohl String
-        let test_name=input('Test name: ')
+        let test_name = getline('.')
         if test_name != ""
             let new_test_name = substitute(test_name, "\\s", "_", "g")
-            execute "normal odef " . new_test_name . "():"
+            execute "normal ccdef " . new_test_name . "():"
         endif
     endfunction
     nmap <LEADER>tf :call Test_Function()<CR>
@@ -388,6 +383,26 @@
         endif
     endfunction
     nmap <LEADER>ts :call RunDjangoTests()<cr>
+
+    function! FeedbackBar(type, msg)
+        " Produce a red bar on error with ErrorMsg, else green bar
+        " TODO set a global var g:last_good_time each time we hit green bar
+        " then create a function to revert (:earlier g:last_good_time) so I
+        " will always have the fallback of a known good configuration, kinda
+        " like a rock climber doing lead climbing
+        hi GreenBar guifg=black guibg=green
+        hi YellowBar guifg=black guibg=lightgray
+        hi RedBar guifg=black guibg=red
+        if a:type == "red"
+            echohl RedBar
+        elseif a:type == "green"
+            echohl GreenBar
+        else
+            echohl YellowBar
+        endif
+        echon a:msg repeat(" ", &columns - strlen(a:msg) - 1)
+        echohl None
+    endfunction
 
 "---- PLUGIN OPTION ----
     " BUNDLE: git://github.com/scrooloose/nerdcommenter.git
