@@ -3,6 +3,7 @@ alias ip='ipython'
 alias ls='ls -FG' #Colorize and show folders, symlinks, etc
 alias so='source' # Like vim
 alias nose='nosetests'
+alias cover='nosetests --with-cover --cover-html --cover-package=`basename $PWD` && open cover/index.html'
 alias rmpyc='rm *.pyc'
 alias ..='cd ..'
 alias pu='pushd'
