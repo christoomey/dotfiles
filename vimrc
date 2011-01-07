@@ -5,7 +5,7 @@
 " Source:        https://github.com/christoomey/dotfiles
 "
 " My vimrc, mostly for python development. Did my best to document
-" inline for anyone who may ended up reading this (especially me+=1year)
+" inline for anyone who may end up reading this (especially me+=1year)
 "---------------------------------------------------------------------
 
 "---- PATHOGEN FOR PLUGIN ----
@@ -290,7 +290,6 @@
 
     " TODO get ahold of a better syntax file. Ref gary B. Spec, hilite '%s'
 
-
 "---- FOLDING AND INDENT OPTION ----
     "Enable indent folding
     set foldenable
@@ -396,6 +395,7 @@
         if a:type == "red"
             echohl RedBar
         elseif a:type == "green"
+            let g:last_good_time = strftime('%s') "seconds since epoch
             echohl GreenBar
         else
             echohl YellowBar
@@ -603,16 +603,14 @@
     set laststatus=2 " Always show the statusline
 
     "define 3 custom highlight groups
-    hi User1 ctermbg=white ctermfg=red   guibg=green guifg=red
-    hi User2 ctermbg=red   ctermfg=blue  guibg=red   guifg=blue
-    hi User3 ctermbg=gray ctermfg=blue guibg=blue  guifg=green
-    hi User4 ctermbg=blue guibg=green
+    hi User1 guifg=orange guibg=#444444 gui=bold
+    hi User2 guifg=#dc143c guibg=#444444 gui=bold
 
     set statusline= " Clear the statusline for vimrc reloads
 
     set stl=%*                       " Normal statusline highlight
     set stl+=%{InsertSpace()}        " Put a leading space in
-    set stl+=%2* 				     " Red highlight
+    set stl+=%1* 				     " Red highlight
     set stl+=%{HasPaste()}           " Red show paste
 
     set stl+=%*                      " Return to normal stl hilight
@@ -628,7 +626,15 @@
     set stl+=%*                      " Set to 3rd highlight
     set stl+=\ %y                    " Filetype
 
-    set stl+=\ \ CWD:%{CurDir()}     " Semi-smart CWD display
+    " Visual feedback of time since last diff
+    set stl+=\ \ \ \ Last\ Green:
+    set stl+=%*
+    set stl+=\ %{TimeSinceGreen(0)}
+    set stl+=%1*
+    set stl+=%{TimeSinceGreen(1)}
+    set stl+=%2*
+    set stl+=%{TimeSinceGreen(5)}
+    set stl+=%*
 
     set stl+=%=                      " Right align from here on
     set statusline+=%{SlSpace()}     " Vim-space plugin current setting
@@ -660,6 +666,34 @@
     function! CurDir()
         let curdir = substitute(getcwd(), '/Users/nation/', "~/", "g")
         return curdir
+    endfunction
+
+    let g:master_time = strftime('%s')
+    "TODO Define equivalent hilights for the terminal usage
+    "TODO get this hooked up with run_tests func and FeedbackBar('green')
+    function! TimeSinceGreen(var)
+        let the_time = strftime('%s') " Using seconds since epoch
+        let diff = the_time - g:master_time
+        let diff_minutes = diff / 60
+        if a:var == 0 "Check for normal time, 0-5 minutes
+            if diff_minutes <= 5
+                return diff_minutes
+            else
+                return ''
+            endif
+        elseif a:var == 1 "Check for mid level, 5-10 minutes
+            if diff_minutes > 5 && diff_minutes <= 10
+                return diff_minutes
+            else
+                return ''
+            endif
+        else
+            if diff_minutes > 10
+                return diff_minutes
+            else
+                return ''
+            endif
+        endif
     endfunction
 
 "---- REFERENCES ----
