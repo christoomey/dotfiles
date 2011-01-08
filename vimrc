@@ -395,7 +395,7 @@
         if a:type == "red"
             echohl RedBar
         elseif a:type == "green"
-            let g:last_good_time = strftime('%s') "seconds since epoch
+            let g:last_green_time = strftime('%s') "seconds since epoch
             echohl GreenBar
         else
             echohl YellowBar
@@ -604,7 +604,8 @@
 
     "define 3 custom highlight groups
     hi User1 guifg=orange guibg=#444444 gui=bold
-    hi User2 guifg=#dc143c guibg=#444444 gui=bold
+    hi User2 guifg=#dc143c guibg=#444444 gui=none
+    hi User3 guifg=#ffff00 guibg=#444444 gui=bold
 
     set statusline= " Clear the statusline for vimrc reloads
 
@@ -629,11 +630,13 @@
     " Visual feedback of time since last diff
     set stl+=\ \ \ \ Last\ Green:
     set stl+=%*
-    set stl+=\ %{TimeSinceGreen(0)}
+    set stl+=\ %{TimeSinceGreen('low')}
     set stl+=%1*
-    set stl+=%{TimeSinceGreen(1)}
+    set stl+=%{TimeSinceGreen('medium')}
     set stl+=%2*
-    set stl+=%{TimeSinceGreen(5)}
+    set stl+=%{TimeSinceGreen('high')}
+    set stl+=%3*
+    set stl+=%{TimeSinceGreen('na')}
     set stl+=%*
 
     set stl+=%=                      " Right align from here on
@@ -668,30 +671,56 @@
         return curdir
     endfunction
 
-    let g:master_time = strftime('%s')
     "TODO Define equivalent hilights for the terminal usage
     "TODO get this hooked up with run_tests func and FeedbackBar('green')
     function! TimeSinceGreen(var)
-        let the_time = strftime('%s') " Using seconds since epoch
-        let diff = the_time - g:master_time
-        let diff_minutes = diff / 60
-        if a:var == 0 "Check for normal time, 0-5 minutes
-            if diff_minutes <= 5
-                return diff_minutes
+        " Really ugly, but it works. See the associated ugliness in the
+        " statusline section for where this gets used
+
+        "Setup the time difference value for use in responses
+        if exists('g:last_green_time')
+            let current_time = strftime('%s') " Using seconds since epoch
+            let diff = current_time - g:last_green_time
+            let interval = 5
+            let diff_minutes = diff / 60
+        endif
+
+        "Many cases for return values
+        if a:var == 'low' "Check for normal time, 0-5 minutes
+            if exists('g:last_green_time')
+                if diff_minutes <= interval
+                    return diff_minutes
+                else
+                    return ''
+                endif
             else
                 return ''
             endif
-        elseif a:var == 1 "Check for mid level, 5-10 minutes
-            if diff_minutes > 5 && diff_minutes <= 10
-                return diff_minutes
+        elseif a:var == 'medium' "Start to get worried
+            if exists('g:last_green_time')
+                if diff_minutes > interval && diff_minutes <= interval * 2
+                    return diff_minutes
+                else
+                    return ''
+                endif
             else
                 return ''
             endif
-        else
-            if diff_minutes > 10
-                return diff_minutes
+        elseif a:var == 'high' " high warning level
+            if exists('g:last_green_time')
+                if diff_minutes > interval * 2
+                    return diff_minutes
+                else
+                    return ''
+                endif
             else
                 return ''
+            endif
+        elseif a:var == 'na'
+            if exists('g:last_green_time')
+                return ''
+            else
+                return '--'
             endif
         endif
     endfunction
