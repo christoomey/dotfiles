@@ -113,7 +113,7 @@
         endif
     else
         set nocursorline nocursorcolumn
-        colorscheme slate
+        colorscheme ctslate
     endif
 
 
@@ -482,6 +482,7 @@
         endfunction
         nmap <LEADER>fow :call Command_T_Work()<CR>
         nmap <LEADER>fop :call Command_T_Local()<CR>
+        nmap <LEADER>fl :CommandTFlush<CR>
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
@@ -603,9 +604,9 @@
     set laststatus=2 " Always show the statusline
 
     "define 3 custom highlight groups
-    hi User1 guifg=orange guibg=#444444 gui=bold
-    hi User2 guifg=#dc143c guibg=#444444 gui=none
-    hi User3 guifg=#ffff00 guibg=#444444 gui=bold
+    hi User1 ctermbg=lightgray ctermfg=yellow guifg=orange guibg=#444444 cterm=bold gui=bold
+    hi User2 ctermbg=lightgray ctermfg=red guifg=#dc143c guibg=#444444 gui=none
+    hi User3 ctermbg=lightgray ctermfg=red guifg=#ffff00 guibg=#444444 gui=bold
 
     set statusline= " Clear the statusline for vimrc reloads
 
@@ -682,7 +683,7 @@
             let current_time = strftime('%s') " Using seconds since epoch
             let diff = current_time - g:last_green_time
             let interval = 5
-            let diff_minutes = diff / 60
+            let diff_minutes = diff / 6
         endif
 
         "Many cases for return values

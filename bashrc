@@ -176,3 +176,10 @@ function trash() { mv "$@" ~/.Trash; }
 
 # Make sure rvm works right
 source $HOME/.rvm/scripts/rvm
+
+# Python virtualenv support
+export WORKON_HOME=~/envs
+export PIP_RESPECT_VIRTUALENV=true
+export PIP_VIRTUALENV_BASE=$WORKON_HOME
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+source /usr/local/bin/virtualenvwrapper.sh
