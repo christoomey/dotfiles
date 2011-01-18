@@ -482,7 +482,7 @@
         endfunction
         nmap <LEADER>fow :call Command_T_Work()<CR>
         nmap <LEADER>fop :call Command_T_Local()<CR>
-        nmap <LEADER>fl :CommandTFlush<CR>
+        nmap <LEADER>ctf :CommandTFlush<CR>
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
