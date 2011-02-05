@@ -46,3 +46,6 @@
 [submodule "dotvim/bundle/vim-space"]
 	path = dotvim/bundle/vim-space
 	url = git://github.com/christoomey/vim-space.git
+[submodule "dotvim/bundle/vim-sparkup"]
+	path = dotvim/bundle/vim-sparkup
+	url = http://github.com/bingaman/vim-sparkup.git

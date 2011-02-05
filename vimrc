@@ -31,6 +31,7 @@
 
 "---- GENERAL SETUP STUF ----
     set hidden                      " Allow buffer change w/o saving
+    set autoread                    " Load file from disk, ie for git reset
     set nocompatible		        " Not concerned with vi compatibility
     set backspace=indent,eol,start	" Sane backspace behavior
     set nobackup      		        " Do not automatically backup files
@@ -52,7 +53,12 @@
     set vb t_vb=
 
     " Auto change the directory to the current file I'm working on
-    autocmd BufEnter * lcd %:p:h " Removed this to make command-t make sense
+    if version >= 703
+        set autochdir " Need to use this vs 'lcd %:p:h' for fugitive to work
+    else
+        autocmd BufEnter * lcd %:p:h " Fights fugitive
+    endif
+
     if has('mac')
         if !g:vimrc_loaded
             cd work
@@ -83,7 +89,7 @@
         endif
 
         " Display a crosshair to highlight the cursor (hi row & col)
-        set cursorline! cursorcolumn!
+        set cursorline cursorcolumn
 
         " Version 7.3 of the vim, with things like margins
         if version >= 703
@@ -132,6 +138,16 @@
     vnoremap ; :
     cnoremap ; :
 
+    " Use j/k to scroll through autocomplete options
+    inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("j"))
+    inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("k"))
+    " FIXME Fire off Supertab with C-j
+    let g:SuperTabMappingForward = '<nul>'
+    let g:SuperTabMappingBackward = '<s-nul>'
+    let g:SuperTabMappingBackward = '<C-k>'
+    let g:SuperTabMappingForward = '<C-j>'
+
+
     " Do not use <Ctrl-c> to break out to normal mode
     " Use C-Space to Esc out of any mode
     nnoremap <C-Space> <Esc>:noh<CR>
@@ -158,7 +174,7 @@
     " Setup nice command tab completion
     set wildmenu
     set wildmode=list:longest,full
-    set wildignore+=*.pyc,*/dotvim/bundle/*
+    set wildignore+=*.pyc
 
     " Easy vimrc moding ",v" loads vimrc for edit, ",V" sources it
     map <leader>rc :e ~/.vimrc<CR>
@@ -258,7 +274,7 @@
 
     " Mappings for quick search & replace. Global set to default
     " In order, they are `all`, `visual`, `confirm`, `word`
-    map <Leader>rpa :%s//<Left>
+    map <Leader>rpa :%s///<Left>
     map <Leader>rpv :s//<Left>
     map <Leader>rpc :%s//c<Left><Left>
     map <Leader>rpw :%s/<C-r><C-w>//c<Left><Left>
