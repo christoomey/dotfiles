@@ -104,7 +104,7 @@
 
             " Fullscreen options
             set fuoptions=maxvert
-            au GUIEnter * set fullscreen
+            " au GUIEnter * set fullscreen
         endif
 
         " Set a pretty font
@@ -124,8 +124,8 @@
 
 
     " Use +/- directly to resize a window
-    nnoremap - <C-w>-
-    nnoremap = <C-w>+
+    nnoremap - 10<C-w><
+    nnoremap = 10<C-w>>
     " Easy access to maximizing
     nnoremap <C-_> <C-w>_
 
@@ -486,6 +486,7 @@
             if cdup != ''
                 " Move working dir to root of repo, then CommandT
                 execute ":cd " . cdup
+                CommandTFlush
                 CommandT
             else
                 " Not in a git repo, default to ~/work

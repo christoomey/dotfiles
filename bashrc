@@ -15,6 +15,9 @@ alias djru='python manage.py runserver'
 alias djte='python manage.py test --verbosity 0'
 alias djtx='python manage.py test --verbosity 0 -x'
 
+# Case insensitive completion
+# Add `set completion-ignore-case on` to /etc/inputrc
+
 # Git bash completion
 source ~/.git-completion.bash
 
@@ -117,6 +120,11 @@ bind '"\C-g": "fg %-\n"'
 function mkcd {
     dir=$1;
     mkdir -p $dir && cd $dir;
+}
+
+function mkgit {
+    dir=$1;
+    mkdir -p $dir && cd $dir && git init;
 }
 
 function gitd {

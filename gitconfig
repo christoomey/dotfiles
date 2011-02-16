@@ -4,10 +4,10 @@
 	interactive = auto
 	status = auto
 [alias]
-	st = status
+	st = status -sb
 	unstage = reset
 	unchange = checkout --
-	slog = log --pretty=oneline --abbrev-commit
+	slog = log --pretty=oneline --abbrev-commit --decorate
 	aa = add --all
 [core]
 	editor = /usr/bin/vim
