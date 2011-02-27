@@ -49,3 +49,6 @@
 [submodule "dotvim/bundle/vim-sparkup"]
 	path = dotvim/bundle/vim-sparkup
 	url = http://github.com/bingaman/vim-sparkup.git
+[submodule "dotvim/bundle/VimCalc"]
+	path = dotvim/bundle/VimCalc
+	url = https://github.com/gregsexton/VimCalc.git
