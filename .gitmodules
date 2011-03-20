@@ -52,3 +52,6 @@
 [submodule "dotvim/bundle/VimCalc"]
 	path = dotvim/bundle/VimCalc
 	url = https://github.com/gregsexton/VimCalc.git
+[submodule "dotvim/bundle/extradite"]
+	path = dotvim/bundle/extradite
+	url = https://github.com/int3/vim-extradite.git
