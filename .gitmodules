@@ -55,3 +55,6 @@
 [submodule "dotvim/bundle/extradite"]
 	path = dotvim/bundle/extradite
 	url = https://github.com/int3/vim-extradite.git
+[submodule "dotvim/bundle/markdown"]
+	path = dotvim/bundle/markdown
+	url = git://github.com/plasticboy/vim-markdown.git
