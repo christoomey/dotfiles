@@ -58,3 +58,6 @@
 [submodule "dotvim/bundle/markdown"]
 	path = dotvim/bundle/markdown
 	url = git://github.com/plasticboy/vim-markdown.git
+[submodule "dotvim/bundle/vim-rails"]
+	path = dotvim/bundle/vim-rails
+	url = git://github.com/tpope/vim-rails.git
