@@ -52,9 +52,6 @@
 [submodule "dotvim/bundle/VimCalc"]
 	path = dotvim/bundle/VimCalc
 	url = https://github.com/gregsexton/VimCalc.git
-[submodule "dotvim/bundle/extradite"]
-	path = dotvim/bundle/extradite
-	url = https://github.com/int3/vim-extradite.git
 [submodule "dotvim/bundle/markdown"]
 	path = dotvim/bundle/markdown
 	url = git://github.com/plasticboy/vim-markdown.git
@@ -64,3 +61,12 @@
 [submodule "dotvim/bundle/vim-markdown"]
 	path = dotvim/bundle/vim-markdown
 	url = git://github.com/plasticboy/vim-markdown.git
+[submodule "dotvim/bundle/indent-guides"]
+	path = dotvim/bundle/indent-guides
+	url = git://github.com/nathanaelkane/vim-indent-guides.git
+[submodule "dotvim/bundle/gist-vim"]
+	path = dotvim/bundle/gist-vim
+	url = git://github.com/mattn/gist-vim.git
+[submodule "dotvim/bundle/solarized"]
+	path = dotvim/bundle/solarized
+	url = git://github.com/altercation/vim-colors-solarized.git
