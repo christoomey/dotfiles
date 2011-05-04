@@ -1,0 +1,32 @@
+# Path to your oh-my-zsh configuration.
+export ZSH=$HOME/.oh-my-zsh
+
+# Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
+export ZSH_THEME="cjt"
+
+# Quick jumping to ~/code directories
+code(){cd ~/code/$1;}
+compctl -W ~/code -/ code
+
+# List all symlinks in current directory #TODO where do they point?
+lns() {
+    find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }'
+}
+lnsm() {
+    find -L ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }'
+}
+
+# Convenice aliases
+alias ls="ls -FG"
+alias la="ls -la"
+
+alias ez='vim ~/.zshrc'
+alias sz='source ~/.zshrc'
+
+# Example format: plugins=(rails git textmate ruby lighthouse)
+plugins=(git)
+
+source $ZSH/oh-my-zsh.sh
+
+# Customize to your needs...
+export PATH=$HOME/work/dotfiles/bin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@rails3/bin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@global/bin:/Users/nation/.rvm/rubies/ruby-1.9.2-p0/bin:/Users/nation/.rvm/bin:/Users/nation/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/git/bin:/usr/X11/bin
