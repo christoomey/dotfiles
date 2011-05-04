@@ -67,6 +67,3 @@
 [submodule "dotvim/bundle/gist-vim"]
 	path = dotvim/bundle/gist-vim
 	url = git://github.com/mattn/gist-vim.git
-[submodule "dotvim/bundle/solarized"]
-	path = dotvim/bundle/solarized
-	url = git://github.com/altercation/vim-colors-solarized.git
