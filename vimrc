@@ -38,6 +38,10 @@
     set history=1000  		        " Remember last 1000 commands
     set nu                          " Show line numbers
     set scrolloff=4                 " Keep at least 4 lines below cursor
+    set expandtab                   " Convert <tab> to spaces (2 or 4)
+    set tabstop=4                   " Four spaces per tab as default
+    set shiftwidth=4                "     then override with per filteype
+    set softtabstop=4               "     specific settings via autocmd
 
     " Interacting with system clipboard
     " TODO get system clipboard interaction going
@@ -59,11 +63,16 @@
         autocmd BufEnter * lcd %:p:h " Fights fugitive
     endif
 
-    if has('mac')
-        if !g:vimrc_loaded
-            cd work
-        endif
-    endif
+    " If this is terminal vim, we should work from the current dir. Macvim ~/code
+    " if has('mac')
+        " if !exists('g:vimrc_loaded')
+            " cd ~/work
+        " endif
+    " endif
+
+    " Configure easy toggle between single and double width
+    nnoremap <leader>7 :set columns=170<cr>
+    nnoremap <leader>8 :set columns=85<cr>
 
     " Allow command line editing like emacs
     cnoremap <C-A>      <Home>
@@ -114,8 +123,6 @@
             if !exists('g:vimrc_loaded')
                 set guifont=Consolas:h12
             endif
-            nnoremap <LEADER>ext :set guifont=Consolas:h14<CR>
-            nnoremap <LEADER>lap :set guifont=Consolas:h12<CR>
         endif
     else
         set nocursorline nocursorcolumn
@@ -147,6 +154,8 @@
     let g:SuperTabMappingBackward = '<C-k>'
     let g:SuperTabMappingForward = '<C-j>'
 
+    " For opening up HTML files in chrome for previewing
+    nmap <leader>op :silent !open %<CR>
 
     " Do not use <Ctrl-c> to break out to normal mode
     " Use C-Space to Esc out of any mode
@@ -188,9 +197,8 @@
     set splitbelow " Split windows, ie Help, make more sense to me below
     au filetype help wincmd _ " Maximze the help on open
 
-    " Mappings for quick maximizing or equaling btwn windows
-    nmap <LEADER>max <C-w>_
-    nmap <LEADER>eq <C-w>=
+    " Better edit mapping. Includes current path, ie ":e /Users/<user>/path/"
+    nmap <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
 
     " Speedy window jumping
     nnoremap <C-j> <C-w>j
@@ -212,10 +220,6 @@
         \:set columns=170<CR>
         \<C-w>=
 
-    " Shell `Open` the WORD under the cursor. Mostly for URLs
-    nnoremap <LEADER>op :silent !open <cWORD><CR>
-    "TODO wrap the open map above in a function to handle windows
-    "
     " Thesaurus lookup for the |word| under the cursor
     nnoremap <LEADER>th :silent !open
         \ http://thesaurus.com/browse/<cword><CR>
@@ -244,6 +248,7 @@
 "---- DIFF SETTINGS ----
     " TODO link the filetypes (buffer[2].&ft = buffer[1].&ft)
     " TODO set the statusbar for the original to say '---ORIGINAL---'
+    " au FilterWritePre * if &diff | echo 'Hello' | endif
     if &diff
         set columns=170
         vert res=85
@@ -297,14 +302,22 @@
 
 "---- PYTHON SETTINGS ----
     "TODO Get PEP8.vim and or pylint
-    set tabstop=4
-    set shiftwidth=4
-    set expandtab
+    au FileType python setl sw=4 sts=4 ts=4 " Four spaces per tab
 
     "Run the current file
     nnoremap <LEADER>prun :! python ./%<CR>
 
     " TODO get ahold of a better syntax file. Ref gary B. Spec, hilite '%s'
+
+"---- RUBY SETTINGS ----
+    "Ruby is new, and sometimes funtimes
+    au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
+
+    " Set .erb html files
+    au FileType ebury setl setl sw=2 sts=2 ts=2 " Two spaces per tab
+
+    " System `touch` to have autotest run
+    nnoremap <LEADER>touch :silent !touch %<CR>
 
 "---- FOLDING AND INDENT OPTION ----
     "Enable indent folding
@@ -461,7 +474,19 @@
 
     " BUNDLE: git://github.com/mileszs/ack.vim.git
         "TODO stop vim from jumping to the first match
-        nmap <LEADER>a :Ack<SPACE>
+        nmap <LEADER>a :call AckProject()<CR>
+        nmap <LEADER>\ack :Ack<space>
+        function! AckProject()
+            let cdup = Git_Repo_Cdup()
+            if cdup != ''
+                " Move working dir to root of repo, then Ack
+                execute ":cd " . cdup
+                normal ,\ack
+            else
+                " Not in a git repo, work from cwd
+                normal ,\ack
+            endif
+        endfunction
 
     " BUNDLE: git://github.com/ervandew/supertab.git
         let g:SuperTabDefaultCompletionType = 'context'
@@ -476,10 +501,12 @@
         " to avoid conflict with how I `nnoremap ; :`
 
     " BUNDLE: git://github.com/tpope/vim-fugitive.git
+        nmap <LEADER>gs :Gstatus<CR>
+        nmap <LEADER>gd :Gdiff<CR>
 
     " BUNDLE: git://github.com/wincent/Command-T.git
         " Ref wildignore setting above for filtering, relative path setting
-        let g:CommandTCancelMap='<C-Space>'
+        let g:CommandTCancelMap='<C-space>'
         let g:CommandTMatchWindowAtTop=1
         function! Command_T_Local()
             let cdup = Git_Repo_Cdup()
@@ -499,7 +526,13 @@
         endfunction
         nmap <LEADER>fow :call Command_T_Work()<CR>
         nmap <LEADER>fop :call Command_T_Local()<CR>
+        nmap <LEADER>ctb :CommandTBuffer<CR>
         nmap <LEADER>ctf :CommandTFlush<CR>
+
+    " BUNDLE: git://github.com/nathanaelkane/vim-indent-guides.git
+        let g:indent_guides_guide_size = 1
+        let g:indent_guides_enable_on_vim_startup = 1
+        let g:indent_guides_start_level = 2
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
