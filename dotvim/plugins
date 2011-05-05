@@ -1,0 +1,26 @@
+Plugins List as of May 1st 2011
+===============================
+
+gregsexton/VimCalc
+bingaman/vim-sparkup
+scrooloose/nerdcommenter
+scrooloose/nerdtree
+msanders/snipmate.vim
+vim-scripts/IndexedSearch
+vim-scripts/TaskList.vim
+vim-scripts/ScrollColors
+edsono/vim-bufexplorer
+bronson/vim-trailing-whitespace
+vim-scripts/kwbdi.vim
+vim-scripts/YankRing.vim
+mileszs/ack.vim
+ervandew/supertab
+tpope/vim-surround
+tpope/vim-fugitive
+wincent/Command-T
+christoomey/vim-space
+plasticboy/vim-markdown
+tpope/vim-rails
+plasticboy/vim-markdown
+nathanaelkane/vim-indent-guides
+mattn/gist-vim
