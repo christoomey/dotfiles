@@ -13,9 +13,6 @@
 [submodule "dotvim/bundle/TaskList"]
 	path = dotvim/bundle/TaskList
 	url = git://github.com/vim-scripts/TaskList.vim.git
-[submodule "dotvim/bundle/ScrollColors"]
-	path = dotvim/bundle/ScrollColors
-	url = git://github.com/vim-scripts/ScrollColors.git
 [submodule "dotvim/bundle/vim-bufexplorer"]
 	path = dotvim/bundle/vim-bufexplorer
 	url = git://github.com/edsono/vim-bufexplorer.git
