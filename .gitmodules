@@ -34,9 +34,6 @@
 [submodule "dotvim/bundle/supertab"]
 	path = dotvim/bundle/supertab
 	url = git://github.com/ervandew/supertab.git
-[submodule "dotvim/bundle/vim-surround"]
-	path = dotvim/bundle/vim-surround
-	url = git://github.com/tpope/vim-surround.git
 [submodule "dotvim/bundle/vim-fugitive"]
 	path = dotvim/bundle/vim-fugitive
 	url = git://github.com/tpope/vim-fugitive.git
@@ -52,15 +49,9 @@
 [submodule "dotvim/bundle/VimCalc"]
 	path = dotvim/bundle/VimCalc
 	url = https://github.com/gregsexton/VimCalc.git
-[submodule "dotvim/bundle/markdown"]
-	path = dotvim/bundle/markdown
-	url = git://github.com/plasticboy/vim-markdown.git
 [submodule "dotvim/bundle/vim-rails"]
 	path = dotvim/bundle/vim-rails
 	url = git://github.com/tpope/vim-rails.git
-[submodule "dotvim/bundle/vim-markdown"]
-	path = dotvim/bundle/vim-markdown
-	url = git://github.com/plasticboy/vim-markdown.git
 [submodule "dotvim/bundle/indent-guides"]
 	path = dotvim/bundle/indent-guides
 	url = git://github.com/nathanaelkane/vim-indent-guides.git
