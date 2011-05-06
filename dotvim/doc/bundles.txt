@@ -1,0 +1,8 @@
+*bundles* *bundles.txt*            Installed Bundles
+
+
+Last updated by vim-update-bundles on 2011-05-05 21:26:31 -0400.
+
+  PLUGIN                           VERSION                RELEASE DATE
+------------------------------------------------------------------------
+
