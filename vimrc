@@ -27,7 +27,7 @@
     " http://github.com/bronson/vim-update-bundles/
 
     " Map to bundles listing which is also a TOC for plugin helpfiles
-    nnoremap <LEADER>hb :h bundles<CR>5j7l
+    nmap <LEADER>hb :h bundles<CR>5j7l
 
 "---- GENERAL SETUP STUF ----
     set hidden                      " Allow buffer change w/o saving
@@ -434,45 +434,33 @@
     endfunction
 
 "---- PLUGIN OPTIONS ----
-    " A__BUNDLE: git://github.com/scrooloose/nerdcommenter.git
+    " BUNDLE: git://github.com/scrooloose/nerdcommenter.git
         let g:NERDCreateDefaultMappings = 0
         nmap <LEADER>cm <plug>NERDCommenterToggle
         vmap <LEADER>cm <plug>NERDCommenterToggle
         let NERDSpaceDelims=1 " Add a space before the comment
-    " A__BUNDLE: git://github.com/scrooloose/nerdtree.git
+    " BUNDLE: git://github.com/scrooloose/nerdtree.git
         nnoremap <LEADER>nt :NERDTreeToggle<CR>
         " TODO remap the keys for better motion in the tree (space=>fold)
-
-    " A__BUNDLE: git://github.com/msanders/snipmate.vim.git
+    " BUNDLE: git://github.com/msanders/snipmate.vim.git
         let g:snips_author = 'Chris Toomey'
         let g:snippets_dir = '$HOME/.vim/snippets'
         "XXX consider a switch to xptemplate
-
-    " A__BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
+    " BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
         "Need to remap this before Command-T, or it barks
         map <leader>tl <Plug>TaskList
-
-    " A__BUNDLE: git://github.com/vim-scripts/ScrollColors.git
-
-    " A__BUNDLE: git://github.com/edsono/vim-bufexplorer.git
+    " BUNDLE: git://github.com/edsono/vim-bufexplorer.git
         nmap <LEADER>be :BufExplorer<CR>
         let g:bufExplorerDefaultHelp=1       " Show default help.
         let g:bufExplorerDetailedHelp=0      " Don't show detailed help.
         let g:bufExplorerShowRelativePath=1  " Show relative paths.
         let g:bufExplorerSortBy='mru'        " Sort by most recently used.
         let g:bufExplorerSplitOutPathName=1  " Split the path and file
-
-    " A__BUNDLE: git://github.com/bronson/vim-trailing-whitespace.git
+    " BUNDLE: git://github.com/bronson/vim-trailing-whitespace.git
         nmap <LEADER>wht :FixWhitespace<CR>
-
-    " A__BUNDLE: git://github.com/vim-scripts/kwbdi.vim.git
+    " BUNDLE: git://github.com/vim-scripts/kwbdi.vim.git
         " Use <LEADER>bd to dump buffer w/o closing window
-
-    " A__BUNDLE: git://github.com/vim-scripts/YankRing.vim.git
-        " Use <Ctrl-p> to cycle back to earlier yanks after a paste
-        let g:yankring_history_file = '.yankring_history'
-
-    " A__BUNDLE: git://github.com/mileszs/ack.vim.git
+    " BUNDLE: git://github.com/mileszs/ack.vim.git
         "TODO stop vim from jumping to the first match
         nmap <LEADER>a :call AckProject()<CR>
         nmap <LEADER>\ack :Ack<space>
@@ -487,24 +475,20 @@
                 normal ,\ack
             endif
         endfunction
-
-    " A__BUNDLE: git://github.com/ervandew/supertab.git
+    " BUNDLE: git://github.com/ervandew/supertab.git
         let g:SuperTabDefaultCompletionType = 'context'
-
-    " A__BUNDLE: git://github.com/tpope/vim-surround.git
-
-    " A__BUNDLE: git://github.com/vim-scripts/IndexedSearch.git
-
-    " A__BUNDLE: git://github.com/christoomey/vim-space.git
+    " BUNDLE: git://github.com/tpope/vim-surround.git
+    " BUNDLE: git://github.com/vim-scripts/IndexedSearch.git
+    " BUNDLE: git://github.com/christoomey/vim-space.git
         " TODO Need to reclaim the ; normal map from this
         " Unfortunately I have to unhook ';' in the plugin itself
         " to avoid conflict with how I `nnoremap ; :`
-
-    " A__BUNDLE: git://github.com/tpope/vim-fugitive.git
+    " BUNDLE: git://github.com/tpope/vim-fugitive.git
         nmap <LEADER>gs :Gstatus<CR>
         nmap <LEADER>gd :Gdiff<CR>
-
-    " A__BUNDLE: git://github.com/wincent/Command-T.git
+    " BUNDLE: git://github.com/wincent/Command-T.git
+        " Need to run make process from within vim to link against correct
+        " ruby version (system, same as mac version) make
         " Ref wildignore setting above for filtering, relative path setting
         let g:CommandTCancelMap='<C-space>'
         let g:CommandTMatchWindowAtTop=1
@@ -528,8 +512,7 @@
         nmap <LEADER>fop :call Command_T_Local()<CR>
         nmap <LEADER>ctb :CommandTBuffer<CR>
         nmap <LEADER>ctf :CommandTFlush<CR>
-
-    " A__BUNDLE: git://github.com/nathanaelkane/vim-indent-guides.git
+    " BUNDLE: git://github.com/nathanaelkane/vim-indent-guides.git
         let g:indent_guides_guide_size = 1
         let g:indent_guides_enable_on_vim_startup = 1
         let g:indent_guides_start_level = 2

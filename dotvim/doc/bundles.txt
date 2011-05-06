@@ -1,8 +1,23 @@
 *bundles* *bundles.txt*            Installed Bundles
 
 
-Last updated by vim-update-bundles on 2011-05-05 21:26:31 -0400.
+Last updated by vim-update-bundles on 2011-05-05 22:26:13 -0400.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
+  |nerdcommenter|                  2.2.2-53-g5a93714      2011-05-05
+  |nerdtree|                       4.1.0-30-g2e072fe      2011-04-24
+  |snipmate.vim|                   n/a                    2010-04-08
+  |TaskList.vim|                   1.0.1                  2009-04-12
+  |bufexplorer|                    n/a                    2010-07-05
+  |trailing-whitespace|            1.0-2-g6bfea00         2010-09-25
+  |kwbdi.vim|                      1.1                    2007-12-18
+  |ack.vim|                        n/a                    2010-09-22
+  |supertab|                       1.5-5-g21cd55b         2011-03-24
+  |surround|                       v1.90-5-gd9e6bfd       2011-01-23
+  |IndexedSearch|                  070503                 2007-05-03
+  |space|                          n/a                    2010-12-29
+  |fugitive|                       v1.2                   2011-04-28
+  |Command-T|                      1.2.1-1-gcee619a       2011-05-04
+  |indent-guides|                  1.5                    2011-03-13
 
