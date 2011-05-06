@@ -9,3 +9,4 @@ test -z $(git config --file=.gitmodules submodule.$NAME.url) && echo "submodule 
 git config --remove-section submodule.$NAME
 git config --file=.gitmodules --remove-section submodule.$NAME
 git rm --cached $NAME
+rm -rf $1
