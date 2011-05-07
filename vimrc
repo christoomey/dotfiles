@@ -434,33 +434,40 @@
     endfunction
 
 "---- PLUGIN OPTIONS ----
-    " BUNDLE: git://github.com/scrooloose/nerdcommenter.git
+    " BUNDLE: scrooloose/nerdcommenter
         let g:NERDCreateDefaultMappings = 0
         nmap <LEADER>cm <plug>NERDCommenterToggle
         vmap <LEADER>cm <plug>NERDCommenterToggle
         let NERDSpaceDelims=1 " Add a space before the comment
-    " BUNDLE: git://github.com/scrooloose/nerdtree.git
+
+    " BUNDLE: scrooloose/nerdtree
         nnoremap <LEADER>nt :NERDTreeToggle<CR>
         " TODO remap the keys for better motion in the tree (space=>fold)
-    " BUNDLE: git://github.com/msanders/snipmate.vim.git
+
+    " BUNDLE: msanders/snipmate.vim
         let g:snips_author = 'Chris Toomey'
         let g:snippets_dir = '$HOME/.vim/snippets'
         "XXX consider a switch to xptemplate
-    " BUNDLE: git://github.com/vim-scripts/TaskList.vim.git
+
+    " BUNDLE: vim-scripts/TaskList.vim
         "Need to remap this before Command-T, or it barks
         map <leader>tl <Plug>TaskList
-    " BUNDLE: git://github.com/edsono/vim-bufexplorer.git
+
+    " BUNDLE: edsono/vim-bufexplorer
         nmap <LEADER>be :BufExplorer<CR>
         let g:bufExplorerDefaultHelp=1       " Show default help.
         let g:bufExplorerDetailedHelp=0      " Don't show detailed help.
         let g:bufExplorerShowRelativePath=1  " Show relative paths.
         let g:bufExplorerSortBy='mru'        " Sort by most recently used.
         let g:bufExplorerSplitOutPathName=1  " Split the path and file
-    " BUNDLE: git://github.com/bronson/vim-trailing-whitespace.git
+
+    " BUNDLE: bronson/vim-trailing-whitespace
         nmap <LEADER>wht :FixWhitespace<CR>
-    " BUNDLE: git://github.com/vim-scripts/kwbdi.vim.git
+
+    " BUNDLE: vim-scripts/kwbdi.vim
         " Use <LEADER>bd to dump buffer w/o closing window
-    " BUNDLE: git://github.com/mileszs/ack.vim.git
+
+    " BUNDLE: mileszs/ack.vim
         "TODO stop vim from jumping to the first match
         nmap <LEADER>a :call AckProject()<CR>
         nmap <LEADER>\ack :Ack<space>
@@ -475,18 +482,22 @@
                 normal ,\ack
             endif
         endfunction
-    " BUNDLE: git://github.com/ervandew/supertab.git
+
+    " BUNDLE: ervandew/supertab
         let g:SuperTabDefaultCompletionType = 'context'
-    " BUNDLE: git://github.com/tpope/vim-surround.git
-    " BUNDLE: git://github.com/vim-scripts/IndexedSearch.git
-    " BUNDLE: git://github.com/christoomey/vim-space.git
+
+    " BUNDLE: tpope/vim-surround
+    " BUNDLE: vim-scripts/IndexedSearch
+    " BUNDLE: christoomey/vim-space
         " TODO Need to reclaim the ; normal map from this
         " Unfortunately I have to unhook ';' in the plugin itself
         " to avoid conflict with how I `nnoremap ; :`
-    " BUNDLE: git://github.com/tpope/vim-fugitive.git
+
+    " BUNDLE: tpope/vim-fugitive
         nmap <LEADER>gs :Gstatus<CR>
         nmap <LEADER>gd :Gdiff<CR>
-    " BUNDLE: git://github.com/wincent/Command-T.git
+
+    " BUNDLE: wincent/Command-T
         " Need to run make process from within vim to link against correct
         " ruby version (system, same as mac version) make
         " Ref wildignore setting above for filtering, relative path setting
@@ -512,7 +523,8 @@
         nmap <LEADER>fop :call Command_T_Local()<CR>
         nmap <LEADER>ctb :CommandTBuffer<CR>
         nmap <LEADER>ctf :CommandTFlush<CR>
-    " BUNDLE: git://github.com/nathanaelkane/vim-indent-guides.git
+
+    " BUNDLE: nathanaelkane/vim-indent-guides
         let g:indent_guides_guide_size = 1
         let g:indent_guides_enable_on_vim_startup = 1
         let g:indent_guides_start_level = 2

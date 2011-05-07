@@ -73,7 +73,7 @@ def print_bundle dir, doc
   version = date = ''
   Dir.chdir(dir) do
     version = `git describe --tags 2>/dev/null`.chomp
-    version = "n/a" if version == ''
+    version = `git rev-parse HEAD`[0..12] if version == ''
     date = git(:log, '-1', '--pretty=format:%ai').chomp
   end
   doc.printf "  %-32s %-22s %s\n", "|#{dir}|", version, date.split(' ').first
@@ -202,6 +202,11 @@ def update_bundles doc
     if line =~ /^\s*"\s*bundle:\s*(.*)$/i
       url, tag = $1.split
       dir = url.split('/').last.gsub(/^vim-|\.git$/, '')
+      repo_pattern = /[t|p|s]:\/\//
+      unless repo_pattern.match url # user/repo style directive
+        template = 'git://github.com/%s.git'
+        url = template % url
+      end
       download_bundle dir, url, tag, doc
       existing_bundles.delete dir
     elsif line =~ /^\s*"\s*bundle[ -]command:\s*(.*)$/i

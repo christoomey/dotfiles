@@ -23,6 +23,14 @@ alias la="ls -la"
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
 
+# Markdown preview to html with local css
+function mkd2tmphtml {
+    tempfile="/tmp/$$.html";
+    pandoc $1 -t html -c $HOME/.pandoc-mkd-style.css > $tempfile;
+    open $tempfile;
+    return 0;
+}
+
 # Example format: plugins=(rails git textmate ruby lighthouse)
 plugins=(git)
 
