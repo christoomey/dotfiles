@@ -25,14 +25,6 @@ ZSH_THEME_GIT_PROMPT_SUFFIX=""
 ZSH_THEME_GIT_PROMPT_DIRTY=" %{$RED%}(*)"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-# Format for git_prompt_status()
-ZSH_THEME_GIT_PROMPT_UNMERGED=" %{$RED%}unmerged"
-ZSH_THEME_GIT_PROMPT_DELETED=" %{$RED%}deleted"
-ZSH_THEME_GIT_PROMPT_RENAMED=" %{$YELLOW%}renamed"
-ZSH_THEME_GIT_PROMPT_MODIFIED=" %{$YELLOW%}modified"
-ZSH_THEME_GIT_PROMPT_ADDED=" %{$GREEN%}added"
-ZSH_THEME_GIT_PROMPT_UNTRACKED=" %{$WHITE%}untracked"
-
 # Format for git_prompt_ahead()
 ZSH_THEME_GIT_PROMPT_AHEAD=" %{$RED%}(!)"
 
@@ -40,8 +32,26 @@ ZSH_THEME_GIT_PROMPT_AHEAD=" %{$RED%}(!)"
 ZSH_THEME_GIT_PROMPT_SHA_BEFORE=" %{$WHITE%}[%{$YELLOW%}"
 ZSH_THEME_GIT_PROMPT_SHA_AFTER="%{$WHITE%}]"
 
-# Prompt format
+
+# Show job count for backgrounded jobs
+function jobbies() {
+    job_count=$#jobstates
+    if [ $job_count -ne 0 ]; then
+        echo " j($job_count)"
+    else
+        echo ""
+    fi
+    return JOBS
+}
+
+# Only display host if this is via SSH
+if [[ -n $SSH_CONNECTION ]]; then
+    sshing="%n@%m"
+else
+    sshing=""
+fi
+
 PROMPT='
-%{$GREEN_BOLD%}%n@%m%{$WHITE%}:%{$YELLOW%}%~%u%{$RESET_COLOR%}
+%{$GREEN_BOLD%}$sshing%{$WHITE%}:%{$YELLOW%}%~%u%{$RESET_COLOR%}$(jobbies)
 %{$BLUE%}>%{$RESET_COLOR%} '
 RPROMPT='%{$BLUE%}$(current_branch)$(git_prompt_short_sha)$(parse_git_dirty)%{$RESET_COLOR%}'
