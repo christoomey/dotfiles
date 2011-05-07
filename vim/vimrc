@@ -157,6 +157,9 @@
     " For opening up HTML files in chrome for previewing
     nmap <leader>op :silent !open %<CR>
 
+    " For reformatting files.
+    nmap <leader>gq maggVGgq`a
+
     " Do not use <Ctrl-c> to break out to normal mode
     " Use C-Space to Esc out of any mode
     nnoremap <C-Space> <Esc>:noh<CR>
