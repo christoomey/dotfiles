@@ -36,12 +36,11 @@ ZSH_THEME_GIT_PROMPT_SHA_AFTER="%{$WHITE%}]"
 # Show job count for backgrounded jobs
 function jobbies() {
     job_count=$#jobstates
-    if [ $job_count -ne 0 ]; then
-        echo " j($job_count)"
+    if [ $job_count -gt "0" ]; then
+        echo ${job_count}
     else
         echo ""
     fi
-    return JOBS
 }
 
 # Only display host if this is via SSH
@@ -52,6 +51,6 @@ else
 fi
 
 PROMPT='
-%{$GREEN_BOLD%}$sshing%{$WHITE%}:%{$YELLOW%}%~%u%{$RESET_COLOR%}$(jobbies)
+%{$GREEN_BOLD%}$sshing%{$WHITE%} %{$YELLOW%}%~%u%{$RESET_COLOR%}$(jobbies)
 %{$BLUE%}>%{$RESET_COLOR%} '
 RPROMPT='%{$BLUE%}$(current_branch)$(git_prompt_short_sha)$(parse_git_dirty)%{$RESET_COLOR%}'

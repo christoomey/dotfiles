@@ -41,4 +41,7 @@ source $ZSH/oh-my-zsh.sh
 # Customize to your needs...
 export PATH=$HOME/mbin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@rails3/bin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@global/bin:/Users/nation/.rvm/rubies/ruby-1.9.2-p0/bin:/Users/nation/.rvm/bin:/Users/nation/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/git/bin:/usr/X11/bin
 
+# use .localrc for settings specific to one system
+[[ -f ~/.localrc ]] && . ~/.localrc
+
 [[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm

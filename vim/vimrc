@@ -322,6 +322,9 @@
     " System `touch` to have autotest run
     nnoremap <LEADER>touch :silent !touch %<CR>
 
+"---- ZSH SETTINGS ----
+    au BufRead,BufNewFile *.zsh-theme set filetype=zsh
+
 "---- FOLDING AND INDENT OPTION ----
     "Enable indent folding
     set foldenable

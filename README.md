@@ -22,3 +22,8 @@ to mangage installing and removing plugins.
   when I was working in python more, but once I tried git, there was no going
 back.
 
+## Inspiration
+
+- [Ryanb](https://github.com/ryanb/dotfiles)
+- [Gary Bernhardt](https://github.com/garybernhardt/dotfiles)
+- [Rtomayko](https://github.com/rtomayko/dotfiles)
