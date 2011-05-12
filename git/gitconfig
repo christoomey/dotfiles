@@ -12,9 +12,12 @@
 	aa = add --all
     glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
     dc = diff --cached
+    cam = commit -am
+    cob = checkout -b
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore
 [user]
-	name = Chris Toomey
+	name = Chirs Toomey
 	email = christopherjtoomey@gmail.com
+	token = 5d8d66f2e4cf25fa541890bc27b83ecb

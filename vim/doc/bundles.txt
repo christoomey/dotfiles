@@ -1,7 +1,7 @@
 *bundles* *bundles.txt*            Installed Bundles
 
 
-Last updated by vim-update-bundles on 2011-05-06 21:39:36 -0400.
+Last updated by vim-update-bundles on 2011-05-09 21:53:11 -0400.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
@@ -17,7 +17,9 @@ Last updated by vim-update-bundles on 2011-05-06 21:39:36 -0400.
   |surround|                       v1.90-5-gd9e6bfd       2011-01-23
   |IndexedSearch|                  070503                 2007-05-03
   |space|                          d09ab23e4d199          2010-12-29
-  |fugitive|                       v1.2                   2011-04-28
+  |fugitive|                       v1.2-5-gb089a2b        2011-05-09
   |Command-T|                      1.2.1-1-gcee619a       2011-05-04
   |indent-guides|                  1.5                    2011-03-13
+  |markdown|                       34e28b3f6f6d7          2010-10-24
+  |sparkup|                        0d038a897307f          2010-09-30
 

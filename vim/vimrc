@@ -517,12 +517,12 @@
                 CommandTFlush
                 CommandT
             else
-                " Not in a git repo, default to ~/work
+                " Not in a git repo, default to ~/code
                 call Command_T_Work()
             endif
         endfunction
-        function! Command_T_Work() "Go from the ~/work repo
-            cd ~/work
+        function! Command_T_Work() "Go from the ~/code repo
+            cd ~/code
             CommandT
         endfunction
         nmap <LEADER>fow :call Command_T_Work()<CR>
@@ -535,6 +535,10 @@
         let g:indent_guides_enable_on_vim_startup = 1
         let g:indent_guides_start_level = 2
 
+    " BUNDLE: tpope/vim-markdown
+
+    " BUNDLE: kogakure/vim-sparkup
+
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
     " #BUNDLE: git://github.com/vim-scripts/MRU.git
@@ -544,7 +548,6 @@
     " For me to try
     "--------------
     " For speedy HTMLing (using zen coding)
-    " #BUNDLE: git://github.com/rstacruz/sparkup.git
     "
     " TODO create a plugin that combines LustyJuggler with BufExplorer
     " --Display in Ctrl-D windlmenu style, not new buffer (ref snipmate)
