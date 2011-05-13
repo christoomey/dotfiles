@@ -197,15 +197,20 @@ end
 
 def update_bundles doc
   existing_bundles = Dir['*']
+
+  # Ignore files in the bundle directory, ie READMEs
+  existing_bundles.reject! { |path| FileTest.file? path }
+
   dir = nil
   read_vimrc do |line|
     if line =~ /^\s*"\s*bundle:\s*(.*)$/i
       url, tag = $1.split
       dir = url.split('/').last.gsub(/^vim-|\.git$/, '')
-      repo_pattern = /[t|p|s]:\/\//
-      unless repo_pattern.match url # user/repo style directive
-        template = 'git://github.com/%s.git'
-        url = template % url
+      if url.match /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/  # user/repo style
+        url = "git://github.com/#{url}.git"
+      end
+      if url.match /^[A-Za-z0-9._-]+$/                 # just plain repo
+        url = "git://github.com/vim-scripts/#{url}.git"
       end
       download_bundle dir, url, tag, doc
       existing_bundles.delete dir
