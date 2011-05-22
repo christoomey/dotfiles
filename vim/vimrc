@@ -29,7 +29,7 @@
     " Map to bundles listing which is also a TOC for plugin helpfiles
     nmap <LEADER>hb :h bundles<CR>5j7l
 
-"---- GENERAL SETUP STUF ----
+"---- GENERAL SETUP STUFF ----
     set hidden                      " Allow buffer change w/o saving
     set autoread                    " Load file from disk, ie for git reset
     set nocompatible		        " Not concerned with vi compatibility
@@ -82,7 +82,7 @@
     cnoremap <C-N>      <End>
     cnoremap <C-P>      <Up>
 
-"---- GUI SETTING ----
+"---- GUI/VISUAL SETTINGS ----
     if has('gui')
         colorscheme ctwombat
         set guioptions-=r "Hide the right side scrollbar
@@ -129,6 +129,14 @@
         colorscheme ctslate
     endif
 
+    " We have to have a winheight bigger than we want to set winminheight. But if
+    " we set winheight to be huge before winminheight, the winminheight set will
+    " fail.
+    set winwidth=84
+    set winheight=5
+    set winminheight=5
+    set winheight=999
+    " from https://www.destroyallsoftware.com/file-navigation-in-vim.html
 
     " Use +/- directly to resize a window
     nnoremap - 10<C-w><
@@ -136,9 +144,12 @@
     " Easy access to maximizing
     nnoremap <C-_> <C-w>_
 
-"---- SPEEDUP ----
-    "Keep the leader close for many custom maps
+"---- SPEEDUPS ----
+    " Keep the leader close for many custom maps
     let mapleader = ","
+
+    " Quick toggle between two files
+    nnoremap <leader><leader> <C-^>
 
     " I have almost no need for semicolons, but the colon, I love
     nnoremap ; :
@@ -323,6 +334,7 @@
     nnoremap <LEADER>touch :silent !touch %<CR>
 
 "---- ZSH SETTINGS ----
+    " Using the z shell now. Its better
     au BufRead,BufNewFile *.zsh-theme set filetype=zsh
 
 "---- FOLDING AND INDENT OPTION ----
@@ -538,6 +550,10 @@
     " BUNDLE: tpope/vim-markdown
 
     " BUNDLE: kogakure/vim-sparkup
+
+    " BUNDLE: kchmck/vim-coffee-script
+    "
+    " BUNDLE: skammer/vim-css-color
 
     " Can't figure out the issue here. Had to load the old
     " fahioned way by putting the script into a plugin dir
