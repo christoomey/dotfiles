@@ -6,11 +6,15 @@ export DISABLE_AUTO_UPDATE="true"
 # Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
 export ZSH_THEME="cjt"
 
+## case-insensitive (all),partial-word and then substring completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
+    'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
 # Quick jumping to ~/code & $HOME directories
 c(){cd ~/code/$1;}
 compctl -W ~/code -/ c
-# h(){cd ~/$1;}
-# compctl -W ~/ -/ h
+home(){cd ~/$1;}
+compctl -W ~/ -/ home
 
 # List all symlinks in current directory #TODO where do they point?
 lns() {
@@ -18,6 +22,18 @@ lns() {
 }
 lnsm() {
     find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }'
+}
+
+function mkcd() {
+    mkdir $1 && cd $1
+}
+
+function gitup {
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        cd "./"$(git rev-parse --show-cdup)
+    else
+        return
+    fi
 }
 
 # Convenice aliases
@@ -56,7 +72,7 @@ plugins=(git git-flow)
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
-export PATH=$HOME/mbin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@rails3/bin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@global/bin:/Users/nation/.rvm/rubies/ruby-1.9.2-p0/bin:/Users/nation/.rvm/bin:/Users/nation/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/git/bin:/usr/X11/bin
+export PATH=$HOME/local/bin:$PATH:$HOME/mbin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@rails3/bin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@global/bin:/Users/nation/.rvm/rubies/ruby-1.9.2-p0/bin:/Users/nation/.rvm/bin:/Users/nation/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/git/bin:/usr/X11/bin
 
 # use .localrc for settings specific to one system
 [[ -f ~/.localrc ]] && . ~/.localrc
