@@ -1,7 +1,7 @@
 *bundles* *bundles.txt*            Installed Bundles
 
 
-Last updated by vim-update-bundles on 2011-05-22 17:39:11 -0400.
+Last updated by vim-update-bundles on 2011-06-07 12:27:50 -0400.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
@@ -13,15 +13,16 @@ Last updated by vim-update-bundles on 2011-05-22 17:39:11 -0400.
   |trailing-whitespace|            1.0-2-g6bfea00         2010-09-25
   |kwbdi.vim|                      1.1                    2007-12-18
   |ack.vim|                        a41d5d52c39a3          2010-09-22
-  |supertab|                       1.5-6-g344016d         2011-05-22
+  |supertab|                       1.5-7-g1e3cc50         2011-05-30
   |surround|                       v1.90-5-gd9e6bfd       2011-01-23
   |IndexedSearch|                  070503                 2007-05-03
   |space|                          d09ab23e4d199          2010-12-29
-  |fugitive|                       v1.2-6-gc872a54        2011-05-09
+  |fugitive|                       v1.2-10-g50e7887       2011-06-02
   |Command-T|                      1.2.1-1-gcee619a       2011-05-04
   |indent-guides|                  1.5                    2011-03-13
   |markdown|                       34e28b3f6f6d7          2010-10-24
   |sparkup|                        0d038a897307f          2010-09-30
-  |coffee-script|                  1b4957f180771          2011-05-18
-  |css-color|                      47c4ceba09454          2010-11-30
+  |coffee-script|                  feab54e0036b6          2011-05-23
+  |css-color|                      417eaf8a20a62          2011-05-27
+  |lusty|                          92289fa41a5d1          2011-06-02
 

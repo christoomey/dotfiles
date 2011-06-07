@@ -556,11 +556,8 @@
     " BUNDLE: kchmck/vim-coffee-script
     "
     " BUNDLE: skammer/vim-css-color
-
-    " Can't figure out the issue here. Had to load the old
-    " fahioned way by putting the script into a plugin dir
-    " #BUNDLE: git://github.com/vim-scripts/MRU.git
-        " nmap <LEADER>mru :MRU<SPACE>
+    "
+    " BUNDlE: sjbach/lusty
 
 
     " For me to try
@@ -584,22 +581,18 @@
     " TODO pep8.vim or pylint
     "
     " TODO Launch unit tests from vim, errors in quickfix
-    " #BUNDLE: git://github.com/nvie/vim-pyunit.git
+    " git://github.com/nvie/vim-pyunit.git
     "
     " TODO rope.vim or similar refactoring plugin.
     "
     " TODO surround.vim coupled with repeat.vim
     "
     " TODO XP Template to replace snipmate as the best in class snippeter
-    "
-    " TODO Check out this for replacing pager in *nix environment
-    " #BUNDLE: git://github.com/vim-scripts/vimpager.git
-
 
     " Cancelled
     "-----------
     " Didn't seem to work, so I got rid of it
-    " #BUNDLE: git://github.com/vim-scripts/Rainbow-Parenthesis.git
+    " git://github.com/vim-scripts/Rainbow-Parenthesis.git
 
 "---- CUSTOM FUNCTION ----
     "Underline a vimrc section title
