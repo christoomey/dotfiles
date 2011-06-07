@@ -212,7 +212,7 @@
     au filetype help wincmd _ " Maximze the help on open
 
     " Better edit mapping. Includes current path, ie ":e /Users/<user>/path/"
-    nmap <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
+    nmap <Leader>e :e ~/code/
 
     " Speedy window jumping
     nnoremap <C-j> <C-w>j
@@ -325,7 +325,9 @@
 
 "---- RUBY SETTINGS ----
     "Ruby is new, and sometimes funtimes
+    " au BufRead,BufNewFile Gemfile set filetype=ruby
     au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
+    ab -- =>
 
     " Set .erb html files
     au FileType ebury setl setl sw=2 sts=2 ts=2 " Two spaces per tab
