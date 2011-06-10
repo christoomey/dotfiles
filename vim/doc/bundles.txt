@@ -1,7 +1,7 @@
 *bundles* *bundles.txt*            Installed Bundles
 
 
-Last updated by vim-update-bundles on 2011-06-07 12:27:50 -0400.
+Last updated by vim-update-bundles on 2011-06-09 19:08:51 -0400.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
@@ -25,4 +25,5 @@ Last updated by vim-update-bundles on 2011-06-07 12:27:50 -0400.
   |coffee-script|                  feab54e0036b6          2011-05-23
   |css-color|                      417eaf8a20a62          2011-05-27
   |lusty|                          92289fa41a5d1          2011-06-02
+  |colors-solarized|               528a59f26d122          2011-05-09
 

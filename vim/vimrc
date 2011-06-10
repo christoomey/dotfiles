@@ -1,5 +1,5 @@
 "===========================================================================
-"                                 ~My vimrc~
+".git                                 ~My vimrc~
 "===========================================================================
 " Author:        Chris Toomey <christopherjtoomey at the google mails>
 " Source:        https://github.com/christoomey/dotfiles
@@ -558,6 +558,10 @@
     " BUNDLE: skammer/vim-css-color
     "
     " BUNDlE: sjbach/lusty
+        let g:LustyJugglerSuppressRubyWarning = 1
+        nnoremap <LEADER>bj :LustyBufferExplorer<cr>
+
+    " BUNDLE: altercation/vim-colors-solarized
 
 
     " For me to try
