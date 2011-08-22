@@ -3,6 +3,21 @@ export ZSH=$HOME/.oh-my-zsh
 
 export DISABLE_AUTO_UPDATE="true"
 
+export BUNDLER_EDITOR='mvim'
+
+# Prevent correct of git slog
+alias rspec='nocorrect rspec'
+alias be='bundle exec'
+
+# automatically pushd
+setopt auto_pushd
+export dirstacksize=10
+alias lsd='dirs -v'
+function csd() { cd +$1 }
+
+# Do not autoupdate tmux window titles
+export DISABLE_AUTO_TITLE="true"
+
 # Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
 export ZSH_THEME="cjt"
 
@@ -36,6 +51,11 @@ function gitup {
     fi
 }
 
+function gitcount {
+    commit_count=`git log --pretty=oneline | wc -l | awk '{print $1}'`
+    echo "  -> Total commits to date: $commit_count"
+}
+
 # Convenice aliases
 alias ls="ls -FG"
 alias la="ls -la"
@@ -56,6 +76,8 @@ function mkd2tmphtml {
 # Tmux aliases
 alias tls="tmux list-sessions"
 alias ta="tmux attach"
+alias tka="tmux kill-session"
+alias stm="script/tmux-rails"
 
 # Some fun with switching the foreground terminal process
 # Use Ctrl-z to freeze current fg process (ie vim), do something else
@@ -67,7 +89,7 @@ bindkey -s '\C-g' 'fg\n'
 # bind '"\C-g": "fg %-\n"'  ----The Bash way
 
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git git-flow)
+plugins=(git git-flow rvm zsh-syntax-highlighting vagrant)
 
 source $ZSH/oh-my-zsh.sh
 

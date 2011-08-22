@@ -1,5 +1,5 @@
 "===========================================================================
-".git                                 ~My vimrc~
+"                                ~My vimrc~
 "===========================================================================
 " Author:        Chris Toomey <christopherjtoomey at the google mails>
 " Source:        https://github.com/christoomey/dotfiles
@@ -33,8 +33,8 @@
     set hidden                      " Allow buffer change w/o saving
     set autoread                    " Load file from disk, ie for git reset
     set nocompatible		        " Not concerned with vi compatibility
+    set lazyredraw                  " Don't update while executing macros
     set backspace=indent,eol,start	" Sane backspace behavior
-    set nobackup      		        " Do not automatically backup files
     set history=1000  		        " Remember last 1000 commands
     set nu                          " Show line numbers
     set scrolloff=4                 " Keep at least 4 lines below cursor
@@ -53,8 +53,15 @@
     " Toggle paste mode
     nmap <silent> ,p :set invpaste<CR>:set paste?<CR>
 
+    " Seems I may need to source vimrc last to get certain things
+    au VimEnter * source ~/.vimrc
+
     " Disable sound/visual bell on errors
     set vb t_vb=
+
+    " I save constantly and hate swap files in my prject dirs
+    set nobackup
+    set nowritebackup
 
     " Auto change the directory to the current file I'm working on
     if version >= 703
@@ -70,9 +77,14 @@
         " endif
     " endif
 
-    " Configure easy toggle between single and double width
-    nnoremap <leader>7 :set columns=170<cr>
-    nnoremap <leader>8 :set columns=85<cr>
+    function! Make_Big()
+        set columns=170
+    endfunction
+    nmap <leader>rt :call Make_Big()<cr>
+    function! Make_Little()
+        set columns=85
+    endfunction
+    nmap <leader>ro :call Make_Little()<cr>
 
     " Allow command line editing like emacs
     cnoremap <C-A>      <Home>
@@ -97,8 +109,8 @@
             winpos 999 5
         endif
 
-        " Display a crosshair to highlight the cursor (hi row & col)
-        set cursorline cursorcolumn
+        " Hightlight the current row. Index-guide plugin covers columns
+        set cursorline
 
         " Version 7.3 of the vim, with things like margins
         if version >= 703
@@ -129,18 +141,12 @@
         colorscheme ctslate
     endif
 
-    " We have to have a winheight bigger than we want to set winminheight. But if
-    " we set winheight to be huge before winminheight, the winminheight set will
-    " fail.
-    set winwidth=84
-    set winheight=5
-    set winminheight=5
-    set winheight=999
-    " from https://www.destroyallsoftware.com/file-navigation-in-vim.html
-
+    " Shift +/- directly to resize a window
+    nnoremap _ 10<C-w><
+    nnoremap + 10<C-w>>
     " Use +/- directly to resize a window
-    nnoremap - 10<C-w><
-    nnoremap = 10<C-w>>
+    nnoremap - 4<C-w>-
+    nnoremap = 4<C-w>+
     " Easy access to maximizing
     nnoremap <C-_> <C-w>_
 
@@ -156,6 +162,9 @@
     vnoremap ; :
     cnoremap ; :
 
+    " Reclaim <c-i> and <c-o> for word and omni completion
+    inoremap <c-i> <c-x><c-i>
+    inoremap <c-o> <c-x><c-o>
     " Use j/k to scroll through autocomplete options
     inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("j"))
     inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("k"))
@@ -242,10 +251,6 @@
     nmap j gj
     nmap k gk
 
-    " Move four lines at a time, 'medium adjustment'
-    nnoremap <C-j> 10j
-    nnoremap <C-k> 10k
-
     " Better visual indentation control (reslect region after shift)
     vnoremap > >gv
     vnoremap < <gv
@@ -325,7 +330,7 @@
 
 "---- RUBY SETTINGS ----
     "Ruby is new, and sometimes funtimes
-    " au BufRead,BufNewFile Gemfile set filetype=ruby
+    au BufRead,BufNewFile Vagrantfile set filetype=ruby
     au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
     ab -- =>
 
@@ -374,7 +379,7 @@
     "...
     "endif
 
-"---- TESTING / REFACTORING RELATED ----
+"---- MY FUNCTIONS ----
     " Create a nice long test name without having to enter the undersocre
     function! Test_Function()
         let test_name = getline('.')
@@ -419,6 +424,13 @@
         endif
     endfunction
 
+    function! CD_Git_Root()
+        execute 'cd '.Git_Repo_Cdup()
+        let curdir = getcwd()
+        echo 'CWD now set to: '.curdir
+    endfunction
+    nnoremap <LEADER>cdg :call CD_Git_Root()<cr>
+
     function! RunDjangoTests()
         let cdup = Git_Repo_Cdup()
         if cdup != ''
@@ -452,6 +464,14 @@
         echon a:msg repeat(" ", &columns - strlen(a:msg) - 1)
         echohl None
     endfunction
+
+    function! KillEmAll()
+        call Make_Little()
+        execute 'silent! bufdo bdelete'
+        echohl String
+        echo 'All buffers cleared. Go forth and make great things!'
+    endfunction
+    nnoremap <leader>cla :call KillEmAll()<cr>
 
 "---- PLUGIN OPTIONS ----
     " BUNDLE: scrooloose/nerdcommenter
@@ -556,13 +576,18 @@
     " BUNDLE: kchmck/vim-coffee-script
     "
     " BUNDLE: skammer/vim-css-color
-    "
+        autocmd FileType sass,scss,stylus syn cluster sassCssAttributes add=@cssColors
+        " This autocmd is needed until this plugin natively supports SASS
+
     " BUNDlE: sjbach/lusty
         let g:LustyJugglerSuppressRubyWarning = 1
         nnoremap <LEADER>bj :LustyBufferExplorer<cr>
 
     " BUNDLE: altercation/vim-colors-solarized
-
+    "
+    " BUNDLE: tpope/vim-rails
+    "
+    " BUNDLE: tpope/vim-haml
 
     " For me to try
     "--------------

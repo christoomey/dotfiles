@@ -1,24 +1,16 @@
 #!/bin/sh
 
+mvim
+title=$(basename `pwd`)
+
 tmux start-server
-tmux new-session -d -s sample -n vim
-tmux send-keys -t sample:1 'rvm use 1.9.2@rails3' C-m
-tmux send-keys -t sample:1 'vim' C-m
+tmux new-session -d -s $title -n zsh
 
-tmux new-window -t sample -n shell
-tmux send-keys -t sample:2 'rvm use 1.9.2@rails3' C-m
+tmux new-window -t $title -n console
+tmux send-keys -t $title:2 'rails c' C-m
 
-tmux new-window -t sample -n spork
-tmux send-keys -t sample:3 'rvm use 1.9.2@rails3' C-m
-tmux send-keys -t sample:3 'spork' C-m
+tmux new-window -t $title -n guard
+tmux send-keys -t $title:3 'guard' C-m
 
-tmux new-window -t sample -n autotest
-tmux send-keys -t sample:4 'rvm use 1.9.2@rails3' C-m
-tmux send-keys -t sample:4 'sleep 10 && autotest' C-m
-
-tmux new-window -t sample -n server
-tmux send-keys -t sample:5 'rvm use 1.9.2@rails3' C-m
-tmux send-keys -t sample:5 'rails s' C-m
-
-tmux select-window -t sample:1
-tmux attach-session -d -t sample
+tmux select-window -t $title:1
+tmux attach-session -d -t $title

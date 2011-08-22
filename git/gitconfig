@@ -21,3 +21,5 @@
 	name = Chirs Toomey
 	email = christopherjtoomey@gmail.com
 	token = 5d8d66f2e4cf25fa541890bc27b83ecb
+[clean]
+	requireForce = false

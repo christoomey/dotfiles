@@ -39,6 +39,23 @@ end
 # Fire up vim subsession, then eval buffer content on save-quit
 extend_console 'interactive_editor'
 
+# Awesome print for pretty colorful indented object printing
+extend_console 'awesome_print'
+
+# Just for Rails...
+if defined? Rails
+  rails_root = File.basename(Dir.pwd)
+  IRB.conf[:PROMPT] ||= {}
+  IRB.conf[:PROMPT][:RAILS] = {
+    :PROMPT_I => "#{rails_root}> ",
+    :PROMPT_S => "#{rails_root}* ",
+    :PROMPT_C => "#{rails_root}? ",
+    :RETURN   => "  => %s\n\n"
+  }
+  IRB.conf[:PROMPT_MODE] = :RAILS
+
+end
+
 class Object
   def local_methods
     (methods - Object.instance_methods).sort
