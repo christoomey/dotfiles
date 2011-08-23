@@ -1,29 +1,30 @@
 *bundles* *bundles.txt*            Installed Bundles
 
 
-Last updated by vim-update-bundles on 2011-06-09 19:08:51 -0400.
+Last updated by vim-update-bundles on 2011-08-22 20:45:35 -0400.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
-  |nerdcommenter|                  2.2.2-53-g5a93714      2011-05-05
-  |nerdtree|                       4.1.0-35-g1cd5048      2011-05-06
+  |nerdcommenter|                  2.2.2-55-gb28e7be      2011-07-21
+  |nerdtree|                       4.1.0-42-g2dd198c      2011-07-09
   |snipmate.vim|                   f5a75d075d3c0          2010-04-08
   |TaskList.vim|                   1.0.1                  2009-04-12
   |bufexplorer|                    fd281067fa88a          2010-07-05
   |trailing-whitespace|            1.0-2-g6bfea00         2010-09-25
   |kwbdi.vim|                      1.1                    2007-12-18
   |ack.vim|                        a41d5d52c39a3          2010-09-22
-  |supertab|                       1.5-7-g1e3cc50         2011-05-30
   |surround|                       v1.90-5-gd9e6bfd       2011-01-23
   |IndexedSearch|                  070503                 2007-05-03
   |space|                          d09ab23e4d199          2010-12-29
-  |fugitive|                       v1.2-10-g50e7887       2011-06-02
-  |Command-T|                      1.2.1-1-gcee619a       2011-05-04
+  |fugitive|                       v1.2-44-g5f5c8da       2011-08-21
+  |Command-T|                      1.2.1-6-g3c0dc0a       2011-06-30
   |indent-guides|                  1.5                    2011-03-13
   |markdown|                       34e28b3f6f6d7          2010-10-24
   |sparkup|                        0d038a897307f          2010-09-30
-  |coffee-script|                  feab54e0036b6          2011-05-23
+  |coffee-script|                  04568ec7bb684          2011-08-21
   |css-color|                      417eaf8a20a62          2011-05-27
   |lusty|                          92289fa41a5d1          2011-06-02
   |colors-solarized|               528a59f26d122          2011-05-09
+  |rails|                          v4.3-37-gb009f16       2011-08-22
+  |haml|                           vim7.2-57-gde3e72a     2011-05-11
 

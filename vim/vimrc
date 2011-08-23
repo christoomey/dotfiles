@@ -12,12 +12,11 @@
     " Pathogen lets each plugin have its own subdir for easy mgmt
     " Made by Tim Pope. Found here: github.com/tpope/vim-pathogen
     if !exists('g:vimrc_loaded')
-        filetype off
-        call pathogen#runtime_append_all_bundles()
-        call pathogen#helptags()
-
-        syntax on
-        filetype plugin indent on
+      filetype off
+      call pathogen#runtime_append_all_bundles()
+      call pathogen#helptags()
+      syntax on
+      filetype plugin indent on
     endif
 
     " Search here for other plugins (github mirror of offical vim-scripts)
@@ -162,17 +161,9 @@
     vnoremap ; :
     cnoremap ; :
 
-    " Reclaim <c-i> and <c-o> for word and omni completion
-    inoremap <c-i> <c-x><c-i>
-    inoremap <c-o> <c-x><c-o>
-    " Use j/k to scroll through autocomplete options
-    inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("j"))
-    inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("k"))
-    " FIXME Fire off Supertab with C-j
-    let g:SuperTabMappingForward = '<nul>'
-    let g:SuperTabMappingBackward = '<s-nul>'
-    let g:SuperTabMappingBackward = '<C-k>'
-    let g:SuperTabMappingForward = '<C-j>'
+    " Use j/k to start, then scroll through autocomplete options
+    inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
+    inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
 
     " For opening up HTML files in chrome for previewing
     nmap <leader>op :silent !open %<CR>
@@ -318,6 +309,19 @@
          \ :vimgrep /<C-r><C-a>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
 
     nnoremap <LEADER>rdb :g/import\ ipdb/normal dd
+
+    " Search for selected text, forwards or backwards.
+    " http://vim.wikia.com/wiki/Search_for_visually_selected_text
+    vnoremap <silent> * :<C-U>
+      \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+      \gvy/<C-R><C-R>=substitute(
+      \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+      \gV:call setreg('"', old_reg, old_regtype)<CR>
+    vnoremap <silent> # :<C-U>
+      \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+      \gvy?<C-R><C-R>=substitute(
+      \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+      \gV:call setreg('"', old_reg, old_regtype)<CR>
 
 "---- PYTHON SETTINGS ----
     "TODO Get PEP8.vim and or pylint
@@ -522,9 +526,6 @@
                 normal ,\ack
             endif
         endfunction
-
-    " BUNDLE: ervandew/supertab
-        let g:SuperTabDefaultCompletionType = 'context'
 
     " BUNDLE: tpope/vim-surround
     " BUNDLE: vim-scripts/IndexedSearch
