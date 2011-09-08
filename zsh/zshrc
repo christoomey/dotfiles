@@ -7,12 +7,14 @@ export BUNDLER_EDITOR='mvim'
 
 # Prevent correct of git slog
 alias rspec='nocorrect rspec'
+alias git='nocorrect git'
 alias be='bundle exec'
 
 # automatically pushd
 setopt auto_pushd
 export dirstacksize=10
 alias lsd='dirs -v'
+alias cld='cd +1'
 function csd() { cd +$1 }
 
 # Do not autoupdate tmux window titles
@@ -54,6 +56,11 @@ function gitup {
 function gitcount {
     commit_count=`git log --pretty=oneline | wc -l | awk '{print $1}'`
     echo "  -> Total commits to date: $commit_count"
+}
+
+function gitopen {
+    url=`git remote show origin | grep 'Fetch' | sed 's/.*git:\/\/\(.*\).git$/http:\/\/\1/'`
+    open $url
 }
 
 # Convenice aliases

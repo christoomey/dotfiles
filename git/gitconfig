@@ -14,6 +14,7 @@
     dc = diff --cached
     cam = commit -am
     cob = checkout -b
+	df = diff --word-diff
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore

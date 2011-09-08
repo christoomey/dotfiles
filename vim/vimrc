@@ -61,6 +61,7 @@
     " I save constantly and hate swap files in my prject dirs
     set nobackup
     set nowritebackup
+    set noswapfile
 
     " Auto change the directory to the current file I'm working on
     if version >= 703
@@ -344,6 +345,10 @@
     " System `touch` to have autotest run
     nnoremap <LEADER>touch :silent !touch %<CR>
 
+"---- COFFEESCRIPT SETTINGS ----
+    au FileType coffee setl sw=2 sts=2 ts=2 " Two spaces per tab
+    let jfjfj=2
+
 "---- ZSH SETTINGS ----
     " Using the z shell now. Its better
     au BufRead,BufNewFile *.zsh-theme set filetype=zsh
@@ -493,10 +498,6 @@
         let g:snippets_dir = '$HOME/.vim/snippets'
         "XXX consider a switch to xptemplate
 
-    " BUNDLE: vim-scripts/TaskList.vim
-        "Need to remap this before Command-T, or it barks
-        map <leader>tl <Plug>TaskList
-
     " BUNDLE: edsono/vim-bufexplorer
         nmap <LEADER>be :BufExplorer<CR>
         let g:bufExplorerDefaultHelp=1       " Show default help.
@@ -535,8 +536,8 @@
         " to avoid conflict with how I `nnoremap ; :`
 
     " BUNDLE: tpope/vim-fugitive
-        nmap <LEADER>gs :Gstatus<CR>
-        nmap <LEADER>gd :Gdiff<CR>
+        nmap <LEADER>st :Gstatus<CR>
+        nmap <LEADER>df :Gdiff<CR>
 
     " BUNDLE: wincent/Command-T
         " Need to run make process from within vim to link against correct
@@ -562,6 +563,11 @@
         endfunction
         nmap <LEADER>fow :call Command_T_Work()<CR>
         nmap <LEADER>fop :call Command_T_Local()<CR>
+        nmap <leader>gv :call CD_Git_Root()<cr>\|:CommandT app/views<cr>
+        nmap <leader>gc :call CD_Git_Root()<cr>\|:CommandT app/controllers<cr>
+        nmap <leader>gm :call CD_Git_Root()<cr>\|:CommandT app/models<cr>
+        nmap <leader>gj :call CD_Git_Root()<cr>\|:CommandT app/assets/javascripts<cr>
+        nmap <leader>gs :call CD_Git_Root()<cr>\|:CommandT app/assets/stylesheets<cr>
         nmap <LEADER>ctb :CommandTBuffer<CR>
         nmap <LEADER>ctf :CommandTFlush<CR>
 
