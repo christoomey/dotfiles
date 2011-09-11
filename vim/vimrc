@@ -346,7 +346,7 @@
     nnoremap <LEADER>touch :silent !touch %<CR>
 
 "---- COFFEESCRIPT SETTINGS ----
-    au FileType coffee setl sw=2 sts=2 ts=2 " Two spaces per tab
+    au BufNewFile,BufReadPost *.coffee setl shiftwidth=4 expandtab
     let jfjfj=2
 
 "---- ZSH SETTINGS ----
