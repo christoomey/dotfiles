@@ -2,7 +2,7 @@
 
 
 Lists the currently installed bundles. Also see the |bundle-log|.
-Last updated by vim-update-bundles on Thu Sep  8 14:05:55 EDT 2011.
+Last updated by vim-update-bundles on Sun Sep 11 12:59:08 EDT 2011.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
@@ -17,6 +17,7 @@ Last updated by vim-update-bundles on Thu Sep  8 14:05:55 EDT 2011.
   |IndexedSearch|                  070503                 2007-05-03
   |vim-space|                      d09ab23e4d199          2010-12-29
   |vim-fugitive|                   v1.2-56-g1ecd40d       2011-09-02
+  |vim-rhubarb|                    5df8f46efea19          2011-09-08
   |Command-T|                      1.2.1-7-ga353ea1       2011-08-31
   |vim-indent-guides|              1.5-4-g6854275         2011-08-30
   |vim-markdown|                   ae3a2653f824b          2011-08-26

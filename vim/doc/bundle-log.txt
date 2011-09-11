@@ -69,3 +69,7 @@ Thu Sep  8 14:05:55 EDT 2011 by vim-update-bundles 0.8
  Add |Command-T|                1.2.1-7-ga353ea1   https://github.com/wincent/Command-T.git
    1 bundle added
 
+Sun Sep 11 12:59:08 EDT 2011 by vim-update-bundles 0.8
+ Add |vim-rhubarb|              5df8f46efea19      https://github.com/tpope/vim-rhubarb.git
+   1 bundle added
+

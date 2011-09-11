@@ -539,6 +539,8 @@
         nmap <LEADER>st :Gstatus<CR>
         nmap <LEADER>df :Gdiff<CR>
 
+    " BUNDLE: tpope/vim-rhubarb
+
     " BUNDLE: wincent/Command-T
         " Need to run make process from within vim to link against correct
         " ruby version (system, same as mac version) make
