@@ -1,1 +1,22 @@
---type-set=coffeescript=.coffee,.coffeescript
+###    General Ack Settings
+####################################################################
+
+# only search with case sensitivity if there is mixed case
+--smart-case
+# follow symlinks
+--follow
+
+###    Ack Type Settings
+####################################################################
+
+--type-add
+ruby=.erb,.rake,Gemfile
+
+--type-add
+js=.coffee,.coffeescript,.ejs
+
+--type-set
+markdown=.markdown,.md,.mkd,.mdown
+
+--type-set
+cucumber=.feature
