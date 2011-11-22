@@ -8,7 +8,7 @@
 " inline for anyone who may end up reading this (especially me+=1year)
 "---------------------------------------------------------------------
 
-"---- PATHOGEN FOR PLUGIN ----
+"---- PATHOGEN ----
     " Pathogen lets each plugin have its own subdir for easy mgmt
     " Made by Tim Pope. Found here: github.com/tpope/vim-pathogen
     if !exists('g:vimrc_loaded')
@@ -28,7 +28,7 @@
     " Map to bundles listing which is also a TOC for plugin helpfiles
     nmap <LEADER>hb :h bundles<CR>5j7l
 
-"---- GENERAL SETUP STUFF ----
+"---- GENERAL SETUP ----
     set hidden                      " Allow buffer change w/o saving
     set autoread                    " Load file from disk, ie for git reset
     set nocompatible		        " Not concerned with vi compatibility
@@ -94,7 +94,7 @@
     cnoremap <C-N>      <End>
     cnoremap <C-P>      <Up>
 
-"---- GUI/VISUAL SETTINGS ----
+"---- GUI/VISUAL ----
     if has('gui')
         colorscheme ctwombat
         set guioptions-=r "Hide the right side scrollbar
@@ -212,8 +212,9 @@
     set splitbelow " Split windows, ie Help, make more sense to me below
     au filetype help wincmd _ " Maximze the help on open
 
-    " Better edit mapping. Includes current path, ie ":e /Users/<user>/path/"
+    " Easy navigation for editing and cding
     nmap <Leader>e :e ~/code/
+    nmap <Leader>cd :cd ~/code/
 
     " Speedy window jumping
     nnoremap <C-j> <C-w>j
@@ -256,7 +257,7 @@
     " Quick insertion of a datetime stamp for daily log
     nnoremap <LEADER>dt :r! date +"\%Y-\%m-\%d \%H:\%M:\%S"
 
-"---- DIFF SETTINGS ----
+"---- DIFF ----
     " TODO link the filetypes (buffer[2].&ft = buffer[1].&ft)
     " TODO set the statusbar for the original to say '---ORIGINAL---'
     " au FilterWritePre * if &diff | echo 'Hello' | endif
@@ -275,7 +276,7 @@
         endif
     endif
 
-"---- SEARCH STUFF ----
+"---- SEARCH ----
     " Searching stuff
     set hlsearch                    " hilight searches, map below to clear
     nohlsearch                      " kill highliting on vimrc reload
@@ -291,7 +292,7 @@
     " Mappings for quick search & replace. Global set to default
     " In order, they are `all`, `visual`, `confirm`, `word`
     map <Leader>rpa :%s///<Left>
-    map <Leader>rpv :s//<Left>
+    map <Leader>rpv :s///<Left>
     map <Leader>rpc :%s//c<Left><Left>
     map <Leader>rpw :%s/<C-r><C-w>//c<Left><Left>
 
@@ -324,7 +325,7 @@
       \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
       \gV:call setreg('"', old_reg, old_regtype)<CR>
 
-"---- PYTHON SETTINGS ----
+"---- PYTHON ----
     "TODO Get PEP8.vim and or pylint
     au FileType python setl sw=4 sts=4 ts=4 " Four spaces per tab
 
@@ -333,7 +334,7 @@
 
     " TODO get ahold of a better syntax file. Ref gary B. Spec, hilite '%s'
 
-"---- RUBY SETTINGS ----
+"---- RUBY ----
     "Ruby is new, and sometimes funtimes
     au BufRead,BufNewFile Vagrantfile set filetype=ruby
     au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
@@ -345,15 +346,21 @@
     " System `touch` to have autotest run
     nnoremap <LEADER>touch :silent !touch %<CR>
 
-"---- COFFEESCRIPT SETTINGS ----
+"---- BLOGGING ----
+    " Setup spell checking, and use <Ctrl>s to open spelling completion menu
+    au BufNewFile,BufReadPost *.markdown setl spell
+    nnoremap <c-s> i<C-x>s
+    nnoremap <LEADER>more i<!--more--><ESC>
+
+"---- COFFEESCRIPT ----
     au BufNewFile,BufReadPost *.coffee setl shiftwidth=4 expandtab
     let jfjfj=2
 
-"---- ZSH SETTINGS ----
+"---- ZSH ----
     " Using the z shell now. Its better
     au BufRead,BufNewFile *.zsh-theme set filetype=zsh
 
-"---- FOLDING AND INDENT OPTION ----
+"---- FOLDING AND INDENT ----
     "Enable indent folding
     set foldenable
     set fdm=indent
@@ -388,7 +395,7 @@
     "...
     "endif
 
-"---- MY FUNCTIONS ----
+"---- CUSTOM FUNCTIONS ----
     " Create a nice long test name without having to enter the undersocre
     function! Test_Function()
         let test_name = getline('.')
@@ -438,7 +445,31 @@
         let curdir = getcwd()
         echo 'CWD now set to: '.curdir
     endfunction
-    nnoremap <LEADER>cdg :call CD_Git_Root()<cr>
+    nnoremap <LEADER>gr :call CD_Git_Root()<cr>
+
+    " Define the wildignore from gitignore. Primarily for CommandT
+    function! WildignoreFromGitignore()
+        silent call CD_Git_Root()
+        let gitignore = '.gitignore'
+        if filereadable(gitignore)
+            let igstring = ''
+            for oline in readfile(gitignore)
+                let line = substitute(oline, '\s|\n|\r', '', "g")
+                if line =~ '^#' | con | endif
+                if line == '' | con  | endif
+                if line =~ '^!' | con  | endif
+                if line =~ '/$' | let igstring .= "," . line . "*" | con | endif
+                let igstring .= "," . line
+            endfor
+            let execstring = "set wildignore=".substitute(igstring,'^,','',"g")
+            execute execstring
+            echo 'Wildignore defined from gitignore in: '.getcwd()
+        else
+            echo 'Unable to find gitignore'
+        endif
+    endfunction
+    nnoremap <LEADER>cti :call WildignoreFromGitignore()<cr>
+    nnoremap <LEADER>cwi :set wildignore=''<cr>:echo 'Wildignore cleared'<cr>
 
     function! RunDjangoTests()
         let cdup = Git_Repo_Cdup()
@@ -481,8 +512,9 @@
         echo 'All buffers cleared. Go forth and make great things!'
     endfunction
     nnoremap <leader>cla :call KillEmAll()<cr>
+    nnoremap <leader>clw :only<cr>
 
-"---- PLUGIN OPTIONS ----
+"---- PLUGINS ----
     " BUNDLE: scrooloose/nerdcommenter
         let g:NERDCreateDefaultMappings = 0
         nmap <LEADER>cm <plug>NERDCommenterToggle
@@ -514,7 +546,8 @@
 
     " BUNDLE: mileszs/ack.vim
         "TODO stop vim from jumping to the first match
-        nmap <LEADER>a :call AckProject()<CR>
+        nmap <LEADER>ak :call CD_Git_Root()<enter>:Ack<space>
+        " nmap <LEADER>a :call AckProject()<CR>
         nmap <LEADER>\ack :Ack<space>
         function! AckProject()
             let cdup = Git_Repo_Cdup()
@@ -538,6 +571,7 @@
     " BUNDLE: tpope/vim-fugitive
         nmap <LEADER>st :Gstatus<CR>
         nmap <LEADER>df :Gdiff<CR>
+        nmap <LEADER>git :Git<space>
 
     " BUNDLE: tpope/vim-rhubarb
 
@@ -569,7 +603,10 @@
         nmap <leader>gc :call CD_Git_Root()<cr>\|:CommandT app/controllers<cr>
         nmap <leader>gm :call CD_Git_Root()<cr>\|:CommandT app/models<cr>
         nmap <leader>gj :call CD_Git_Root()<cr>\|:CommandT app/assets/javascripts<cr>
-        nmap <leader>gs :call CD_Git_Root()<cr>\|:CommandT app/assets/stylesheets<cr>
+        nmap <leader>gy :call CD_Git_Root()<cr>\|:CommandT app/assets/stylesheets<cr>
+        nmap <leader>gs :call CD_Git_Root()<cr>\|:CommandT spec<cr>
+        nmap <leader>gt :call CD_Git_Root()<cr>\|:CommandT app/assets/templates<cr>
+        nmap <leader>gl :call CD_Git_Root()<cr>\|:CommandT app/lib<cr>
         nmap <LEADER>ctb :CommandTBuffer<CR>
         nmap <LEADER>ctf :CommandTFlush<CR>
 
@@ -859,10 +896,3 @@
 "---- LOADED VARIABLE ----
     "Use this to prevent some settings from reloading
     let g:vimrc_loaded = 1
-
-"---- GTD RELATED STUFF ----
-    function! InsertDate()
-        let date = strftime('%Y-%m-%d') " Grab date as 2010-09-17 format
-        exe 'normal A [' . date . ']'
-    endfunction
-    nnoremap <LEADER>ad :call InsertDate()<cr>

@@ -8,7 +8,11 @@ export BUNDLER_EDITOR='mvim'
 # Prevent correct of git slog
 alias rspec='nocorrect rspec'
 alias git='nocorrect git'
+alias guard='nocorrect guard'
 alias be='bundle exec'
+
+# Fix up octopress rake issue
+alias rake="noglob rake"
 
 # automatically pushd
 setopt auto_pushd
@@ -16,9 +20,6 @@ export dirstacksize=10
 alias lsd='dirs -v'
 alias cld='cd +1'
 function csd() { cd +$1 }
-
-# Do not autoupdate tmux window titles
-export DISABLE_AUTO_TITLE="true"
 
 # Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
 export ZSH_THEME="cjt"
@@ -39,6 +40,11 @@ lns() {
 }
 lnsm() {
     find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }'
+}
+
+# Growl notify function
+function growl {
+    growlnotify -s "That long running thing is done" -m "Finished!" 
 }
 
 function mkcd() {
@@ -63,6 +69,11 @@ function gitopen {
     open $url
 }
 
+function gitlag {
+    lag=`git fetch && git log --pretty=oneline master..origin/master | wc -l | awk '{print $1}'`
+    echo "Master branch currently behind by $lag commits"
+}
+
 # Convenice aliases
 alias ls="ls -FG"
 alias la="ls -la"
@@ -70,7 +81,8 @@ alias la="ls -la"
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
 
-alias gf='git flow'
+alias jp='python -mjson.tool'
+
 
 # Markdown preview to html with local css
 function mkd2tmphtml {
@@ -80,10 +92,27 @@ function mkd2tmphtml {
     return 0;
 }
 
+# Do not autoupdate tmux window titles
+export DISABLE_AUTO_TITLE="true"
+
 # Tmux aliases
 alias tls="tmux list-sessions"
-alias ta="tmux attach"
 alias tka="tmux kill-session"
+function ta {
+    if [ -z "$1" ]; then
+        tmux attach
+    else
+        tmux attach -t $session_name
+    fi
+}
+function tn {
+    if [ -z "$1" ]; then
+        session_name=$(basename `pwd`)
+    else
+        session_name=$1
+    fi
+    tmux new -s $session_name
+}
 alias stm="script/tmux-rails"
 
 # Some fun with switching the foreground terminal process
