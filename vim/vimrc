@@ -872,8 +872,10 @@
     " Swaroop's great, free, intro to vim. Where I started
     " http://www.swaroopch.com/notes/Vim
     "
-    " Probably the best blog post I have read on vim.
+    " Probably the best blog post I have read on vim, as well as the authors
+    " personal vimrc
     " http://stevelosh.com/blog/2010/09/coming-home-to-vim/
+    " https://bitbucket.org/sjl/dotfiles/src/tip/vim/.vimrc
     "
     " An insanely long list of lesser known/used vimery
     " http://rayninfo.co.uk/vimtips.html

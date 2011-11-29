@@ -1,6 +1,8 @@
 #!/bin/sh
 title=$(basename `pwd`)
 
+issues
+
 tmux start-server
 tmux new-session -d -s $title -n zsh
 

@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+origin = `git remote -v | grep fetch`
+url = origin.scan(/:(.*\/.*)\.git/).flatten
+system "open https://github.com/#{url[0]}/issues"
