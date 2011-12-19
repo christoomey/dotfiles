@@ -356,6 +356,10 @@
     au BufNewFile,BufReadPost *.coffee setl shiftwidth=4 expandtab
     let jfjfj=2
 
+"--- BACKBONE ----
+    au BufNewFile, BufReadPost *.jst.ejs set filetype=html
+    let jfjfj=2
+
 "---- ZSH ----
     " Using the z shell now. Its better
     au BufRead,BufNewFile *.zsh-theme set filetype=zsh

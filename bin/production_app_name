@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+origin = `git remote show production | grep Push`
+url = origin.scan(/heroku.com:(.*).git/).flatten
+puts url
