@@ -42,6 +42,9 @@ lnsm() {
     find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }'
 }
 
+# Serve the current directory. Pass in a port, or use default 8000
+web_serve() { $(which python) -m SimpleHTTPServer ${1:-8000} }
+
 # Growl notify function
 function growl {
     growlnotify -s "That long running thing is done" -m "Finished!" 
@@ -73,6 +76,12 @@ function gitlag {
     lag=`git fetch && git log --pretty=oneline master..origin/master | wc -l | awk '{print $1}'`
     echo "Master branch currently behind by $lag commits"
 }
+
+function ackjs {
+    ack $1 --js app/assets/javascripts
+}
+
+function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(production_app_name)}
 
 # Convenice aliases
 alias ls="ls -FG"

@@ -2,30 +2,30 @@
 
 
 Lists the currently installed bundles. Also see the |bundle-log|.
-Last updated by vim-update-bundles on Sun Sep 11 12:59:08 EDT 2011.
+Last updated by vim-update-bundles on Mon Dec 19 17:58:14 EST 2011.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
-  |nerdcommenter|                  2.2.2-55-gb28e7be      2011-07-21
-  |nerdtree|                       4.1.0-45-g12f692f      2011-08-30
+  |nerdcommenter|                  2.2.2-79-g0fe4938      2011-12-14
+  |nerdtree|                       4.1.0-48-g49b8875      2011-12-15
   |snipmate.vim|                   f5a75d075d3c0          2010-04-08
   |vim-bufexplorer|                fd281067fa88a          2010-07-05
   |vim-trailing-whitespace|        1.0-2-g6bfea00         2010-09-25
   |kwbdi.vim|                      1.1                    2007-12-18
-  |ack.vim|                        a41d5d52c39a3          2010-09-22
-  |vim-surround|                   v1.90-13-gc912039      2011-08-30
+  |ack.vim|                        9895285042a2f          2011-10-19
+  |vim-surround|                   v1.90-18-g4eb2cdf      2011-11-15
   |IndexedSearch|                  070503                 2007-05-03
   |vim-space|                      d09ab23e4d199          2010-12-29
-  |vim-fugitive|                   v1.2-56-g1ecd40d       2011-09-02
+  |vim-fugitive|                   v1.2-79-gb4b75ef       2011-12-09
   |vim-rhubarb|                    5df8f46efea19          2011-09-08
-  |Command-T|                      1.2.1-7-ga353ea1       2011-08-31
-  |vim-indent-guides|              1.5-4-g6854275         2011-08-30
-  |vim-markdown|                   ae3a2653f824b          2011-08-26
+  |Command-T|                      1.3.1                  2011-12-18
+  |vim-indent-guides|              1.5-8-gf1c115c         2011-11-28
+  |vim-markdown|                   5a70519e487c6          2011-11-13
   |vim-sparkup|                    0d038a897307f          2010-09-30
-  |vim-coffee-script|              dc1692561461f          2011-07-14
+  |vim-coffee-script|              v002                   2011-12-05
   |vim-css-color|                  417eaf8a20a62          2011-05-27
-  |lusty|                          92289fa41a5d1          2011-06-02
+  |lusty|                          c89b9cfa80a5a          2011-12-12
   |vim-colors-solarized|           528a59f26d122          2011-05-09
-  |vim-rails|                      v4.4-8-g7cc8737        2011-09-03
-  |vim-haml|                       vim7.2-57-gde3e72a     2011-05-11
+  |vim-rails|                      v4.4-17-ge45164c       2011-11-25
+  |vim-haml|                       vim7.2-58-ga995d4a     2011-10-16
 

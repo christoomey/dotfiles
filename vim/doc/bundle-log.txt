@@ -73,3 +73,29 @@ Sun Sep 11 12:59:08 EDT 2011 by vim-update-bundles 0.8
  Add |vim-rhubarb|              5df8f46efea19      https://github.com/tpope/vim-rhubarb.git
    1 bundle added
 
+Mon Dec 19 17:55:29 EST 2011 by vim-update-bundles 0.8
+ Add |ctrlp.vim|                1.6.4-1-g348e256   https://github.com/kien/ctrlp.vim.git
+   1 bundle added
+
+Mon Dec 19 17:57:26 EST 2011 by vim-update-bundles 0.8
+ up  |nerdcommenter|            2.2.2-79-g0fe4938  <- 2.2.2-55-gb28e7be
+ Interrupted
+
+Mon Dec 19 17:57:44 EST 2011 by vim-update-bundles 0.8
+ Del |ctrlp.vim|                1.6.4-1-g348e256
+   1 bundle removed
+
+Mon Dec 19 17:58:14 EST 2011 by vim-update-bundles 0.8
+ up  |nerdtree|                 4.1.0-48-g49b8875  <- 4.1.0-45-g12f692f
+ up  |ack.vim|                  9895285042a2f      <- a41d5d52c39a3
+ up  |vim-surround|             v1.90-18-g4eb2cdf  <- v1.90-13-gc912039
+ up  |vim-fugitive|             v1.2-79-gb4b75ef   <- v1.2-56-g1ecd40d
+ up  |Command-T|                1.3.1              <- 1.2.1-7-ga353ea1
+ up  |vim-indent-guides|        1.5-8-gf1c115c     <- 1.5-4-g6854275
+ up  |vim-markdown|             5a70519e487c6      <- ae3a2653f824b
+ up  |vim-coffee-script|        v002               <- dc1692561461f
+ up  |lusty|                    c89b9cfa80a5a      <- 92289fa41a5d1
+ up  |vim-rails|                v4.4-17-ge45164c   <- v4.4-8-g7cc8737
+ up  |vim-haml|                 vim7.2-58-ga995d4a <- vim7.2-57-gde3e72a
+   11 bundles updated
+
