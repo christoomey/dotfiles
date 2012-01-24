@@ -99,3 +99,11 @@ Mon Dec 19 17:58:14 EST 2011 by vim-update-bundles 0.8
  up  |vim-haml|                 vim7.2-58-ga995d4a <- vim7.2-57-gde3e72a
    11 bundles updated
 
+Sat Jan 14 16:29:31 EST 2012 by vim-update-bundles 0.8
+ Add |vim-rvm|                  d53dfd8d320e4      https://github.com/tpope/vim-rvm.git
+   1 bundle added
+
+Wed Jan 18 17:13:37 CST 2012 by vim-update-bundles 0.8
+ Add |mustache.vim|             9c119016faf2e      https://github.com/juvenn/mustache.vim.git
+   1 bundle added
+
