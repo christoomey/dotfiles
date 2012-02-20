@@ -107,3 +107,7 @@ Wed Jan 18 17:13:37 CST 2012 by vim-update-bundles 0.8
  Add |mustache.vim|             9c119016faf2e      https://github.com/juvenn/mustache.vim.git
    1 bundle added
 
+Tue Jan 24 17:57:58 EST 2012 by vim-update-bundles 0.8
+ Add |colors-ctoomey|           9d3d183cdeb77      https://github.com/christoomey/colors-ctoomey.git
+   1 bundle added
+

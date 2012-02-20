@@ -2,7 +2,7 @@
 
 
 Lists the currently installed bundles. Also see the |bundle-log|.
-Last updated by vim-update-bundles on Wed Jan 18 17:13:37 CST 2012.
+Last updated by vim-update-bundles on Tue Jan 24 17:57:58 EST 2012.
 
   PLUGIN                           VERSION                RELEASE DATE
 ------------------------------------------------------------------------
@@ -30,4 +30,5 @@ Last updated by vim-update-bundles on Wed Jan 18 17:13:37 CST 2012.
   |vim-rvm|                        d53dfd8d320e4          2011-11-01
   |vim-haml|                       vim7.2-58-ga995d4a     2011-10-16
   |mustache.vim|                   9c119016faf2e          2011-05-08
+  |colors-ctoomey|                 9d3d183cdeb77          2012-01-24
 

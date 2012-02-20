@@ -290,11 +290,12 @@
     set gdefault "Replace all occurences of pattern in a line
 
     " Mappings for quick search & replace. Global set to default
+    " Do a / search first, then leave pattern empty in :s// to use last
     " In order, they are `all`, `visual`, `confirm`, `word`
     map <Leader>rpa :%s///<Left>
     map <Leader>rpv :s///<Left>
     map <Leader>rpc :%s//c<Left><Left>
-    map <Leader>rpw :%s/<C-r><C-w>//c<Left><Left>
+    map <Leader>rpg :%g//normal<space>
 
     " TODO get the awk search functional for moi
 
@@ -355,7 +356,7 @@
     nnoremap <LEADER>more i<!--more--><ESC>
 
 "---- COFFEESCRIPT ----
-    au BufNewFile,BufReadPost *.coffee setl shiftwidth=4 expandtab
+    au BufNewFile,BufReadPost *.coffee setl shiftwidth=4 expandtab foldlevel=1
     let jfjfj=2
 
 "--- BACKBONE ----
@@ -644,6 +645,9 @@
     " BUNDLE: tpope/vim-haml
     "
     " BUNDLE: juvenn/mustache.vim
+    "
+    " BUNDLE: christoomey/colors-ctoomey
+    "   My vim colorschemes
 
     " For me to try
     "--------------
