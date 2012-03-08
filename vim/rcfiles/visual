@@ -1,7 +1,6 @@
 " Visual configurations
 "------------------------
 
-Bundle 'christoomey/vim-colors-ctoomey'
 if has('gui')
     try
         colorscheme ctwombat
