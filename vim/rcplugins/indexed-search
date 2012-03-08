@@ -1,0 +1,5 @@
+" Indexed-Search - Display count details in search results eg [2 of 3]
+
+Bundle "vim-scripts/IndexedSearch"
+
+" vim:ft=vim

@@ -1,0 +1,138 @@
+snippet #!
+	#!/usr/bin/python
+
+snippet imp
+	import ${1:module}
+# Module Docstring
+snippet docs
+	'''
+	File: ${1:`Filename('$1.py', 'foo.py')`}
+	Author: ${2:`g:snips_author`}
+	Description: ${3}
+	'''
+snippet wh
+	while ${1:condition}:
+		${2:# code...}
+snippet for
+	for ${1:needle} in ${2:haystack}:
+		${3:# code...}
+# New Class
+snippet cl
+	class ${1:ClassName}(${2:object}):
+		'''${3:docstring for $1}'''
+		def __init__(self, ${4:arg}):
+			${5:super($1, self).__init__($4)}
+			${6}
+# New Function
+snippet def
+	def ${1:fname}(${2:}):
+		'''${3:docstring for $1}'''
+		${4:pass}
+snippet deff
+	def ${1:fname}(${2:`indent('.') ? 'self' : ''`}):
+		${3}
+# New Method
+snippet defs
+	def ${1:mname}(self, ${3:arg}):
+		'''${2:doctstring}'''
+		${4:pass}
+# New Property
+snippet property
+	def ${1:foo}():
+		doc = "${2:The $1 property.}"
+		def fget(self):
+			${3:return self._$1}
+		def fset(self, value):
+			${4:self._$1 = value}
+#logger.info
+snippet logd
+	logger.debug("${1:debug statement}")
+snippet logi
+	logger.info("${1:info statement}")
+snippet loge
+	logger.error("${1:error statement}")
+snippet logw
+	logger.warn("${1:warn statement}")
+snippet logc
+	logger.critical("${1:critical statement}")
+# Lambda
+snippet ld
+	${1:var} = lambda ${2:vars} : ${3:action}
+snippet s
+	self.
+snippet ipdb
+	import ipdb; ipdb.set_trace()
+snippet td
+	#TODO 
+snippet try Try/Except
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+snippet try Try/Except/Else
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+	else:
+		${5:pass}
+snippet try Try/Except/Finally
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+	finally:
+		${5:pass}
+snippet try Try/Except/Else/Finally
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+	else:
+		${5:pass}
+	finally:
+		${6:pass}
+# if __name__ == '__main__':
+snippet ifmain
+	def main():
+		${1:pass}
+
+	if __name__ == '__main__':
+		main()
+snippet wx
+	import wx
+
+	class TestingFrame(wx.Frame):
+		'''A frame to use for testing the top level widgets'''
+		def __init__(self, parent=None):
+			super(TestingFrame, self).__init__(parent, -1)
+			pass
+
+	def main():
+		app = wx.App()
+		${1:TestingFrame}().Show()
+		
+		#import wx.lib.inspection as wxin
+		#inspector = wxin.InspectionTool()
+		#inspector.Show()
+
+		app.MainLoop()
+
+	if __name__ == '__main__':
+		main()
+snippet lc # This is long comment 1
+	'''${1:doctstring}'''
+snippet in
+	def __init__(self):
+		pass
+# __magic__
+snippet _
+	__${1:init}__${2}
+snippet ae
+	assert_equal(
+snippet ane
+	self.assertNotEqual(
+snippet ar
+	self.assertRaises(
+snippet at
+	assert_true(

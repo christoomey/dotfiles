@@ -1,0 +1,9 @@
+" Fugitive - Interact with git via Vim
+
+Bundle "tpope/vim-fugitive"
+
+nmap <LEADER>st :Gstatus<CR>
+nmap <LEADER>df :Gdiff<CR>
+nmap <LEADER>git :Git<space>
+
+" vim:ft=vim

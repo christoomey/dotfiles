@@ -1,0 +1,10 @@
+" Nerdcommenter - Used to comment / uncomment lines
+
+Bundle "scrooloose/nerdcommenter"
+
+let g:NERDCreateDefaultMappings = 0
+nmap <LEADER>cm <plug>NERDCommenterToggle
+vmap <LEADER>cm <plug>NERDCommenterToggle
+let NERDSpaceDelims=1 " Add a space before the comment
+
+" vim:ft=vim

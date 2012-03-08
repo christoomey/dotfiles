@@ -1,0 +1,9 @@
+" Space - Repeat search and motion commands with <space>, <s-space>
+
+Bundle "christoomey/vim-space"
+
+" TODO Need to reclaim the ; normal map from this
+" Unfortunately I have to unhook ';' in the plugin itself
+" to avoid conflict with how I `nnoremap ; :`
+
+" vim:ft=vim

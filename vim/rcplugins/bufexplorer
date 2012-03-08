@@ -1,0 +1,12 @@
+" Bufexplorer - Provides a list of buffers for organization
+
+Bundle "edsono/vim-bufexplorer"
+
+nmap <LEADER>be :BufExplorer<CR>
+let g:bufExplorerDefaultHelp=1       " Show default help.
+let g:bufExplorerDetailedHelp=0      " Don't show detailed help.
+let g:bufExplorerShowRelativePath=1  " Show relative paths.
+let g:bufExplorerSortBy='mru'        " Sort by most recently used.
+let g:bufExplorerSplitOutPathName=1  " Split the path and file
+
+" vim:ft=vim

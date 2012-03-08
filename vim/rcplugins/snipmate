@@ -1,0 +1,13 @@
+" Snipmate - Code snippets ala textmate
+
+Bundle "msanders/snipmate.vim"
+
+let g:snips_author = 'Chris Toomey'
+if has('win16') || has('win32') || has('win64')
+    let g:snippets_dir = '$USERPROFILE/.vim/snippets'
+else
+    let g:snippets_dir = '$HOME/.vim/snippets'
+endif
+"XXX consider a switch to xptemplate
+
+" vim:ft=vim

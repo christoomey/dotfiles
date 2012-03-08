@@ -1,0 +1,20 @@
+" Ack - Integrata ack (grep replacement) into vim
+
+" BUNDLE: mileszs/ack.vim
+"TODO stop vim from jumping to the first match
+nmap <LEADER>ak :call CD_Git_Root()<enter>:Ack<space>
+" nmap <LEADER>a :call AckProject()<CR>
+nmap <LEADER>\ack :Ack<space>
+function! AckProject()
+    let cdup = Git_Repo_Cdup()
+    if cdup != ''
+        " Move working dir to root of repo, then Ack
+        execute ":cd " . cdup
+        normal ,\ack
+    else
+        " Not in a git repo, work from cwd
+        normal ,\ack
+    endif
+endfunction
+
+" vim:ft=vim
