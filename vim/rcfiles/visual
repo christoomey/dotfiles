@@ -1,0 +1,80 @@
+" Visual configurations
+"------------------------
+
+Bundle 'christoomey/vim-colors-ctoomey'
+if has('gui')
+    try
+        colorscheme ctwombat
+    catch /^Vim\%((\a\+)\)\=:E185/
+        " deal with it
+    endtry
+    set guioptions-=r "Hide the right side scrollbar
+    set guioptions-=L "Hide the left side scrollbar
+    set guioptions-=T "Hide toolbars...this is vim for craps sake
+    set guioptions-=m "Hide the menu, see above
+
+    " Size and position the window well (only perform on startup)
+    if !exists('g:vimrc_loaded')
+        set columns=85
+        set lines=999
+        winpos 999 5
+    endif
+
+    " Hightlight the current row. Index-guide plugin covers columns
+    set cursorline
+
+    " Version 7.3 of the vim, with things like margins
+    if version >= 703
+        " Add a margin on the left to highlight past 79
+        hi ColorColumn guibg=#2d2d2d
+        set colorcolumn=80,81,82
+    endif
+
+    " MacVim is very pretty
+    if has('gui_macvim')
+        set transparency=8
+
+        " Fullscreen options
+        set fuoptions=maxvert
+        " au GUIEnter * set fullscreen
+    endif
+
+    " Set a pretty font
+    if has('win32')
+        set guifont=Consolas:h10
+    elseif has('mac')
+        if !exists('g:vimrc_loaded')
+            set guifont=Consolas:h12
+        endif
+    endif
+else
+    set nocursorline nocursorcolumn
+    try
+        colorscheme ctslate
+    catch /^Vim\%((\a\+)\)\=:E185/
+        " deal with it
+    endtry
+endif
+
+" Shift +/- directly to resize a window
+nnoremap _ 10<C-w><
+nnoremap + 10<C-w>>
+" Use +/- directly to resize a window
+nnoremap - 4<C-w>-
+nnoremap = 4<C-w>+
+" Easy access to maximizing
+nnoremap <C-_> <C-w>_
+
+" List out the syntax for the word under the cursor
+function! SyntaxGroup()
+    let hl = synIDattr(synID(line("."),col("."),1),"name")
+    let trans = synIDattr(synID(line("."),col("."),0),"name")
+    let low = synIDattr(synIDtrans(synID(line("."),col("."),1)),"name")
+    " for id in synstack(line("."), col("."))
+       " echo synIDattr(id, 'name')
+    " endfor
+    echo 'hl<' . hl . '> trans<' . trans . '>low<' . low . '>'
+endfunction
+nnoremap <LEADER>syn :call SyntaxGroup()<CR>
+
+" vim:ft=vim

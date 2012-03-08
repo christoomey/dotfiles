@@ -1,0 +1,53 @@
+" Search configurations
+"------------------------
+
+" Searching stuff
+set hlsearch                    " hilight searches, map below to clear
+nohlsearch                      " kill highliting on vimrc reload
+set incsearch                   " do incremental searching
+set ignorecase                  " Case insensitive...
+set smartcase                   " ...except if you use UCase
+nmap <F4> :silent noh<CR>
+nnoremap <LEADER>rh :silent noh<CR>
+
+" Replace settings
+set gdefault "Replace all occurences of pattern in a line
+
+" Mappings for quick search & replace. Global set to default
+" Do a / search first, then leave pattern empty in :s// to use last
+" In order, they are `all`, `visual`, `confirm`, `word`
+map <Leader>rpa :%s///<Left>
+map <Leader>rpv :s///<Left>
+map <Leader>rpc :%s//c<Left><Left>
+map <Leader>rpg :%g//normal<space>
+
+" TODO get the awk search functional for moi
+
+" Vimgrep for the last search
+nmap <silent> ,gs
+     \ :vimgrep /<C-r>// %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
+
+" Vimgrep for the word under the cursor
+nmap <silent> ,gw
+     \ :vimgrep /<C-r><C-w>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
+
+" Vimgrep for the current WORD under cursor
+nmap <silent> ,gW
+     \ :vimgrep /<C-r><C-a>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
+
+nnoremap <LEADER>rdb :g/import\ ipdb/normal dd
+
+" Search for selected text, forwards or backwards.
+" http://vim.wikia.com/wiki/Search_for_visually_selected_text
+vnoremap <silent> * :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy/<C-R><C-R>=substitute(
+  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gV:call setreg('"', old_reg, old_regtype)<CR>
+vnoremap <silent> # :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy?<C-R><C-R>=substitute(
+  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gV:call setreg('"', old_reg, old_regtype)<CR>
+
+" vim:ft=vim

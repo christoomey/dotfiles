@@ -1,0 +1,6 @@
+" Look in Users dir, ie C:/Users/toomeych/_vimrc
+" Vundle uses $USERPROFILE/.vim instead of vimfiles
+let s:vimrc_path = $USERPROFILE . "/_vimrc"
+if filereadable(s:vimrc_path)
+    execute "source" s:vimrc_path
+endif

@@ -1,0 +1,21 @@
+" Leaders configurations
+"------------------------
+
+function! ListMapShaddows()
+     silent! redir @a
+     silent! nmap <LEADER>
+     silent! redir END
+     silent! new
+     silent! put! a
+     silent! g/^s*$/d
+     silent! %s/^.*,//
+     silent! normal ggVg
+     silent! sort
+     silent! let lines = getline(1,"$")
+     silent! call append("$", "--------------------")
+     silent! call append("$", lines)
+    " let lines = getline(1,"$")
+    " for line in lines
+endfunction
+
+" vim:ft=vim

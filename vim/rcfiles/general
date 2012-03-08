@@ -1,0 +1,46 @@
+" General configurations
+"------------------------
+
+set nocompatible                " Don't maintain compat with Vi.
+set hidden                      " Allow buffer change w/o saving
+set autoread                    " Load file from disk, ie for git reset
+set nocompatible		        " Not concerned with vi compatibility
+set lazyredraw                  " Don't update while executing macros
+set backspace=indent,eol,start	" Sane backspace behavior
+set history=1000  		        " Remember last 1000 commands
+set nu                          " Show line numbers
+set scrolloff=4                 " Keep at least 4 lines below cursor
+set expandtab                   " Convert <tab> to spaces (2 or 4)
+set tabstop=4                   " Four spaces per tab as default
+set shiftwidth=4                "     then override with per filteype
+set softtabstop=4               "     specific settings via autocmd
+
+" Interacting with system clipboard
+" TODO get system clipboard interaction going
+    " Map for pasting from clipboard
+    " Toggles paste mode
+    " Paste from clipboard
+    " Toggle back
+
+" Toggle paste mode
+nmap <silent> ,p :set invpaste<CR>:set paste?<CR>
+
+" Seems I may need to source vimrc last to get certain things
+au VimEnter * source ~/.vimrc
+
+" Disable sound/visual bell on errors
+set vb t_vb=
+
+" I save constantly and hate swap files in my prject dirs
+set nobackup
+set nowritebackup
+set noswapfile
+
+" Auto change the directory to the current file I'm working on
+if version >= 703
+    set autochdir " Need to use this vs 'lcd %:p:h' for fugitive to work
+else
+    autocmd BufEnter * lcd %:p:h " Fights fugitive
+endif
+
+" vim:ft=vim

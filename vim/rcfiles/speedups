@@ -1,0 +1,110 @@
+" Speedup configurations
+"------------------------
+
+" Keep the leader close for many custom maps
+let mapleader = ","
+
+" Quick toggle between two files
+nnoremap <leader><leader> <C-^>
+
+" I have almost no need for semicolons, but the colon, I love
+nnoremap ; :
+vnoremap ; :
+cnoremap ; :
+
+" Use j/k to start, then scroll through autocomplete options
+inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
+inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
+
+" For opening up HTML files in chrome for previewing
+nmap <leader>op :silent !open %<CR>
+
+" For reformatting files.
+nmap <leader>gq maggVGgq`a
+
+" Do not use <Ctrl-c> to break out to normal mode
+" Use C-Space to Esc out of any mode
+nnoremap <C-Space> <Esc>:noh<CR>
+vnoremap <C-Space> <Esc>gV
+onoremap <C-Space> <Esc>
+cnoremap <C-Space> <C-c>
+inoremap <C-Space> <Esc>`^
+" Terminal sees <C-@> as <C-space> WTF, but ok
+nnoremap <C-@> <Esc>:noh<CR>
+vnoremap <C-@> <Esc>gV
+onoremap <C-@> <Esc>
+cnoremap <C-@> <C-c>
+inoremap <C-@> <Esc>`^
+
+" Move current line up
+nnoremap <A-k> :m-2<cr>
+" Move current line down
+nnoremap <A-j> :m+<cr>
+" Move visual selection up
+vnoremap <A-k> :m-2<cr>gv
+" Move visual selection down
+vnoremap <A-j> :m'>+<cr>gv
+
+" Setup nice command tab completion
+set wildmenu
+set wildmode=list:longest,full
+set wildignore+=*.pyc
+
+" Easy vimrc moding ",v" loads vimrc for edit, ",V" sources it
+map <leader>rc :e ~/.vimrc<CR>
+map <silent> <leader>src :source %<CR>
+
+" Help File funtimes, <enter> to follow tag, delete for back
+au filetype help nnoremap <buffer><cr> <c-]>
+au filetype help nnoremap <buffer><bs> <c-T>
+au filetype help nnoremap <buffer>q :q<CR>
+au filetype help set nonumber
+set splitbelow " Split windows, ie Help, make more sense to me below
+au filetype help wincmd _ " Maximze the help on open
+
+" Easy navigation for editing and cding
+nmap <Leader>e :e ~/code/
+nmap <Leader>cd :cd ~/code/
+
+" Speedy window jumping
+nnoremap <C-j> <C-w>j
+nnoremap <C-h> <C-w>h
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+"Make Y yank to end of line (like D, or C)
+nmap Y y$
+
+"Allow Ctrl-f to paste current register in insert mode
+imap <C-f> <C-r>"
+
+" Easy access to the start of the line
+nnoremap 0 ^
+
+" Quickly open a second window to view files side by side
+nmap <LEADER>vn :vnew<CR>
+    \:set columns=170<CR>
+    \<C-w>=
+
+" Thesaurus lookup for the |word| under the cursor
+nnoremap <LEADER>th :silent !open
+    \ http://thesaurus.com/browse/<cword><CR>
+
+" Move one line at a time, aka 'fine ajdustment'
+nmap j gj
+nmap k gk
+
+" Better visual indentation control (reslect region after shift)
+vnoremap > >gv
+vnoremap < <gv
+
+" Reselect pasted text. Mnem: 'Get pasted'
+nnoremap gp `[v`]
+
+" Go to position of last edit. Mnem: 'Go to Edit'
+nnoremap ge `.
+
+" Quick insertion of a datetime stamp for daily log
+nnoremap <LEADER>dt :r! date +"\%Y-\%m-\%d \%H:\%M:\%S"
+
+" vim:ft=vim
