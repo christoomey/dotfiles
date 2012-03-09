@@ -25,11 +25,12 @@ set softtabstop=4               "     specific settings via autocmd
 " Toggle paste mode
 nmap <silent> ,p :set invpaste<CR>:set paste?<CR>
 
-" Seems I may need to source vimrc last to get certain things
-au VimEnter * source ~/.vimrc
+" Not sure what this was doing, but it made gVim on windows angry
+" au VimEnter * source ~/.vimrc
 
 " Disable sound/visual bell on errors
-set vb t_vb=
+" May need additional config about audible bell
+set t_vb=
 
 " I save constantly and hate swap files in my prject dirs
 set nobackup
