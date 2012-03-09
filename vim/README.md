@@ -18,10 +18,10 @@ before continuing. Use [this guide](https://github.com/gmarik/vundle/wiki/Vundle
 ``` cmd
 REM Note: this all must be run as Administrator (specifically the mklink)
 cd /d %USERPROFILE%
-mklink /d .vim .\code\dotfiles\vim
+mklink /d .vim code\dotfiles\vim
 mkdir code\dotfiles\vim\bundles
-git clone https://github.com/gmarik/vundle.git .vim\bundles\vundle
-mklink _vimrc .\code\dotfiles\vim\vimrc
+git clone https://github.com/gmarik/vundle.git code\dotfiles\vim\bundles\vundle
+mklink _vimrc code\dotfiles\vim\vimrc
 cd /d "\Program Files\Vim"
 mklink /h _vimrc %USERPROFILE%\code\dotfiles\vim\windows_vimrc
 REM Now open gVim and run :BundleInstall<cr>
