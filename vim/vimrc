@@ -6,7 +6,7 @@
 "
 " My vimrc, mostly for rails & javascript development. I have organized
 " all of my vimrc style configurations into individual files organized
-" by functionality. These live in $VIM/rcfiles. 
+" by functionality. These live in $VIM/rcfiles.
 "
 " I am using Vundle to manage my plugins, which is configured below
 "---------------------------------------------------------------------
@@ -15,8 +15,10 @@
 " Setup the vim configuration directory path, ie ~/.vim, C:\...\vimfiles
 if has('win16') || has('win32') || has('win64')
     let my_vim_dir = $USERPROFILE . "/.vim"
+    let my_vimrc = $VIM . "/_vimrc"
 else
     let my_vim_dir = $HOME . "/.vim"
+    let my_vimrc = $HOME . "/.vimrc"
 endif
 
 
@@ -27,7 +29,7 @@ execute "set rtp+=" . my_vim_dir . "/bundles/vundle/"
 call vundle#rc(my_vim_dir . "/bundles/")
 " let Vundle manage Vundle (required!)
 Bundle 'gmarik/vundle'
-filetype plugin indent on " required! 
+filetype plugin indent on " required!
 
 
 " Vimrc is split accross multiple files, so loop over and source each
