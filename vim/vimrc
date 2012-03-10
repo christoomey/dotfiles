@@ -27,10 +27,6 @@ endif
 filetype off " required!
 execute "set rtp+=" . my_vim_dir . "/bundles/vundle/"
 call vundle#rc(my_vim_dir . "/bundles/")
-" let Vundle manage Vundle (required!)
-Bundle 'gmarik/vundle'
-filetype plugin indent on " required!
-
 
 " Vimrc is split accross multiple files, so loop over and source each
 "---------------------------------------------------------------------
@@ -40,7 +36,6 @@ for rcfile in split(glob(my_vim_dir . '/rcfiles/*'), '\n')
     endif
 endfor
 
-
 " Plugins are each listed in their own file. Loop and source ftw
 "----------------------------------------------------------------
 for rcplugin in split(glob(my_vim_dir . '/rcplugins/*'), '\n')
@@ -48,3 +43,5 @@ for rcplugin in split(glob(my_vim_dir . '/rcplugins/*'), '\n')
         execute 'source' rcplugin
     endif
 endfor
+
+filetype plugin indent on " required!

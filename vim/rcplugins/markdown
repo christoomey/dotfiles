@@ -1,0 +1,5 @@
+" Markdown - Syntax file for Markdowm files
+
+Bundle "tpope/vim-markdown"
+
+" vim:ft=vim

@@ -56,6 +56,8 @@ else
     endtry
 endif
 
+syntax on
+
 " Shift +/- directly to resize a window
 nnoremap _ 10<C-w><
 nnoremap + 10<C-w>>

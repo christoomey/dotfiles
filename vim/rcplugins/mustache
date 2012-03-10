@@ -1,0 +1,5 @@
+" Mustache - Syntax support for mustache js templates
+
+Bundle "juvenn/mustache.vim"
+
+" vim:ft=vim

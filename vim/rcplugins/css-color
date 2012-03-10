@@ -1,0 +1,8 @@
+" CSS-Color - Highlight colors in CSS files with the color
+
+Bundle "skammer/vim-css-color"
+
+" This autocmd is needed until this plugin natively supports SASS
+autocmd FileType sass,scss,stylus syn cluster sassCssAttributes add=@cssColors
+
+" vim:ft=vim
