@@ -56,7 +56,7 @@ else
     endtry
 endif
 
-syntax on
+set vb
 
 " Shift +/- directly to resize a window
 nnoremap _ 10<C-w><

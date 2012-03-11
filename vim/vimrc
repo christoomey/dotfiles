@@ -45,3 +45,4 @@ for rcplugin in split(glob(my_vim_dir . '/rcplugins/*'), '\n')
 endfor
 
 filetype plugin indent on " required!
+syntax on

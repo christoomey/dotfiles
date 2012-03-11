@@ -1,6 +1,7 @@
 " Ack - Integrata ack (grep replacement) into vim
 
-" BUNDLE: mileszs/ack.vim
+Bundle "mileszs/ack.vim"
+
 "TODO stop vim from jumping to the first match
 nmap <LEADER>ak :call CD_Git_Root()<enter>:Ack<space>
 " nmap <LEADER>a :call AckProject()<CR>
