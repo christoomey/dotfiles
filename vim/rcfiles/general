@@ -15,13 +15,6 @@ set tabstop=4                   " Four spaces per tab as default
 set shiftwidth=4                "     then override with per filteype
 set softtabstop=4               "     specific settings via autocmd
 
-" Interacting with system clipboard
-" TODO get system clipboard interaction going
-    " Map for pasting from clipboard
-    " Toggles paste mode
-    " Paste from clipboard
-    " Toggle back
-
 " Toggle paste mode
 nmap <silent> ,p :set invpaste<CR>:set paste?<CR>
 
@@ -43,5 +36,15 @@ if version >= 703
 else
     autocmd BufEnter * lcd %:p:h " Fights fugitive
 endif
+
+" Allow command line editing like emacs
+cnoremap <C-A>      <Home>
+cnoremap <C-B>      <Left>
+cnoremap <C-E>      <End>
+cnoremap <C-F>      <Right>
+cnoremap <C-N>      <End>
+cnoremap <C-P>      <Up>
+
+nmap <leader>hello :echo 'function'<cr>
 
 " vim:ft=vim
