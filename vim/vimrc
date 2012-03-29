@@ -11,6 +11,8 @@
 " I am using Vundle to manage my plugins, which is configured below
 "---------------------------------------------------------------------
 
+" Want to set this before any others
+let mapleader = ","
 
 " Setup the vim configuration directory path, ie ~/.vim, C:\...\vimfiles
 if has('win16') || has('win32') || has('win64')

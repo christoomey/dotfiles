@@ -24,6 +24,9 @@ function csd() { cd +$1 }
 # Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
 export ZSH_THEME="cjt"
 
+# Toggle airport for wifi from the terminal
+airport() { networksetup -setairportpower airport $1 }
+
 ## case-insensitive (all),partial-word and then substring completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
     'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
@@ -43,7 +46,7 @@ lnsm() {
 }
 
 # Serve the current directory. Pass in a port, or use default 8000
-web_serve() { $(which python) -m SimpleHTTPServer ${1:-8000} }
+function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
 
 # Growl notify function
 function growl {
@@ -134,7 +137,7 @@ bindkey -s '\C-g' 'fg\n'
 # bind '"\C-g": "fg %-\n"'  ----The Bash way
 
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git git-flow rvm zsh-syntax-highlighting vagrant)
+plugins=(git git-flow rvm zsh-syntax-highlighting vagrant heroku brew bundler gem)
 
 source $ZSH/oh-my-zsh.sh
 

@@ -26,8 +26,10 @@ if has('gui')
     " Version 7.3 of the vim, with things like margins
     if version >= 703
         " Add a margin on the left to highlight past 79
-        hi ColorColumn guibg=#2d2d2d
-        set colorcolumn=80,81,82
+        " hi ColorColumn guibg=#5C5558
+        " set colorcolumn=79,80,81,82
+        set colorcolumn=
+		hi ColorColumn ctermbg=lightgrey guibg=#5C5558
     endif
 
     " MacVim is very pretty
@@ -66,6 +68,16 @@ nnoremap - 4<C-w>-
 nnoremap = 4<C-w>+
 " Easy access to maximizing
 nnoremap <C-_> <C-w>_
+
+function! Make_Big()
+    set columns=170
+endfunction
+nmap <leader>rt :call Make_Big()<cr>
+function! Make_Little()
+    set columns=85
+endfunction
+nmap <leader>ro :call Make_Little()<cr>
+
 
 " List out the syntax for the word under the cursor
 function! SyntaxGroup()

@@ -6,7 +6,6 @@ au BufRead,BufNewFile Vagrantfile, Gemfile, Guardfile set filetype=ruby
 au BufRead,BufNewFile Gemfile set filetype=ruby
 au BufRead,BufNewFile Guardfile set filetype=ruby
 au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
-ab -- =>
 
 " Set .erb html files
 au FileType ebury setl setl sw=2 sts=2 ts=2 " Two spaces per tab

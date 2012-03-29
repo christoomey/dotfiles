@@ -16,12 +16,15 @@ set gdefault "Replace all occurences of pattern in a line
 " Mappings for quick search & replace. Global set to default
 " Do a / search first, then leave pattern empty in :s// to use last
 " In order, they are `all`, `visual`, `confirm`, `word`
-map <Leader>rpa :%s///<Left>
-map <Leader>rpv :s///<Left>
-map <Leader>rpc :%s//c<Left><Left>
-map <Leader>rpg :%g//normal<space>
+map <Leader>sra :%s///<Left>
+map <Leader>srv :s///<Left>
+map <Leader>src :%s//c<Left><Left>
 
-" TODO get the awk search functional for moi
+" Global helper. First, compose a search to find all the relevant lines. Then
+" compose a macro in @q register. Then hit up this mapping to start the global
+" fun times.
+nmap <leader>gg :g//normal <C-r>q
+vmap <leader>gg :g//normal <C-r>q
 
 " Vimgrep for the last search
 nmap <silent> ,gs

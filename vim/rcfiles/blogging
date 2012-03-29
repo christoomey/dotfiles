@@ -2,8 +2,9 @@
 "------------------------
 
 " Setup spell checking, and use <Ctrl>s to open spelling completion menu
-au BufNewFile,BufReadPost *.markdown setl spell
+au filetype markdown setl spell
 nnoremap <c-s> i<C-x>s
 nnoremap <LEADER>more i<!--more--><ESC>
+nnoremap <leader>gf gqip
 
 " vim:ft=vim

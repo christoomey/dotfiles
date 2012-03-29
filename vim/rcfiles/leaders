@@ -1,5 +1,8 @@
 " Leaders configurations
 "------------------------
+"
+" Mapleader => ',' in primary vimrc. Must occur before any <leader> maps
+" I have it in the main vimrc now
 
 function! ListMapShaddows()
      silent! redir @a
@@ -12,10 +15,6 @@ function! ListMapShaddows()
      silent! normal ggVg
      silent! sort
      silent! let lines = getline(1,"$")
-     silent! call append("$", "--------------------")
-     silent! call append("$", lines)
-    " let lines = getline(1,"$")
-    " for line in lines
 endfunction
 
 " vim:ft=vim
