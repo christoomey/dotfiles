@@ -1,7 +1,8 @@
 # Path to your oh-my-zsh configuration.
 export ZSH=$HOME/.oh-my-zsh
 
-export DISABLE_AUTO_UPDATE="true"
+# Let oh-my-zsh auto update
+# export DISABLE_AUTO_UPDATE="true"
 
 export BUNDLER_EDITOR='mvim'
 
@@ -114,7 +115,7 @@ function ta {
     if [ -z "$1" ]; then
         tmux attach
     else
-        tmux attach -t $session_name
+        tmux attach-session -t $1
     fi
 }
 function tn {
