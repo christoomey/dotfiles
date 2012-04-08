@@ -1,0 +1,10 @@
+" Turbux - Focused rspec test runner for use with tslime
+"
+
+Bundle "jgdavey/vim-turbux"
+let g:no_turbux_mappings=1
+
+nmap <leader>rn :call SendFocusedTestToTmux(expand('%:p'), line('.'))<cr>
+nmap <leader>ra :call SendTestToTmux(expand('%:p'))<cr>
+
+" vim:ft=vim

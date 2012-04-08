@@ -1,0 +1,11 @@
+" Tslime - Push content from Vim to another tmux pane
+"
+" Had to pull the plugin file from
+" https://raw.github.com/kikijump/tslime.vim/master/tslime.vim
+" into a hand rolled bundle pack with the script in a plugin dir
+
+Bundle "vim-scripts/tslime.vim"
+
+Bundle "jgdavey/vim-turbux"
+
+" vim:ft=vim
