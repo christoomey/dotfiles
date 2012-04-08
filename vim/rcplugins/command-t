@@ -5,7 +5,7 @@ Bundle "wincent/Command-T"
 " Need to run make process from within vim to link against correct
 " ruby version (system, same as mac version) make
 " Ref wildignore setting above for filtering, relative path setting
-let g:CommandTCancelMap='<C-space>'
+let g:CommandTCancelMap='<C-@>'
 let g:CommandTMatchWindowAtTop=1
 
 function! Command_T_Local()
