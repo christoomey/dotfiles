@@ -6,9 +6,10 @@
 "
 " My vimrc, mostly for rails & javascript development. I have organized
 " all of my vimrc style configurations into individual files organized
-" by functionality. These live in $VIM/rcfiles.
+" by functionality. These live in ~/.vim/rcfiles.
 "
 " I am using Vundle to manage my plugins, which is configured below
+" Each plugin is configured in its own file in ~/.vim/rcplugins
 "---------------------------------------------------------------------
 
 " Want to set this before any others
@@ -30,13 +31,6 @@ filetype off " required!
 execute "set rtp+=" . my_vim_dir . "/bundles/vundle/"
 call vundle#rc(my_vim_dir . "/bundles/")
 
-" Vimrc is split accross multiple files, so loop over and source each
-"---------------------------------------------------------------------
-for rcfile in split(glob(my_vim_dir . '/rcfiles/*'), '\n')
-    if filereadable(rcfile)
-        execute 'source' rcfile
-    endif
-endfor
 
 " Plugins are each listed in their own file. Loop and source ftw
 "----------------------------------------------------------------
@@ -46,5 +40,15 @@ for rcplugin in split(glob(my_vim_dir . '/rcplugins/*'), '\n')
     endif
 endfor
 
+
 filetype plugin indent on " required!
 syntax on
+
+
+" Vimrc is split accross multiple files, so loop over and source each
+"---------------------------------------------------------------------
+for rcfile in split(glob(my_vim_dir . '/rcfiles/*'), '\n')
+    if filereadable(rcfile)
+        execute 'source' rcfile
+    endif
+endfor
