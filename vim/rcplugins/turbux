@@ -6,5 +6,6 @@ let g:no_turbux_mappings=1
 
 nmap <leader>rn :call SendFocusedTestToTmux(expand('%:p'), line('.'))<cr>
 nmap <leader>ra :call SendTestToTmux(expand('%:p'))<cr>
+nmap <leader>rt :call Send_to_Tmux("bundle exec rspec spec\n")<cr>
 
 " vim:ft=vim

@@ -6,6 +6,4 @@
 
 Bundle "vim-scripts/tslime.vim"
 
-Bundle "jgdavey/vim-turbux"
-
 " vim:ft=vim
