@@ -2,9 +2,10 @@
 export ZSH=$HOME/.oh-my-zsh
 
 # Let oh-my-zsh auto update
-# export DISABLE_AUTO_UPDATE="true"
+export DISABLE_AUTO_UPDATE="true"
 
-export BUNDLER_EDITOR='mvim'
+export BUNDLER_EDITOR='vim'
+alias vim=/Applications/MacVim.app/Contents/MacOS/Vim
 
 # Prevent correct of git slog
 alias rspec='nocorrect rspec'
@@ -35,8 +36,8 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
 # Quick jumping to ~/code & $HOME directories
 c(){cd ~/code/$1;}
 compctl -W ~/code -/ c
-home(){cd ~/$1;}
-compctl -W ~/ -/ home
+h(){cd ~/$1;}
+compctl -W ~/ -/ h
 
 # List all symlinks in current directory #TODO where do they point?
 lns() {
