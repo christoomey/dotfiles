@@ -26,3 +26,6 @@
     pretty=format:%C(yellow)%h%Creset -%C(blue)%d%Creset %s %Cgreen(%ar)
 [clean]
 	requireForce = false
+[user]
+	name = Chris Toomey
+	email = chris@ctoomey.com
