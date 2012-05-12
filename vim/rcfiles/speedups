@@ -86,9 +86,7 @@ imap <C-f> <C-r>"
 nnoremap 0 ^
 
 " Quickly open a second window to view files side by side
-nmap <LEADER>vn :vnew<CR>
-    \:set columns=170<CR>
-    \<C-w>=
+nmap <LEADER>vn :vnew<CR><C-w>=
 
 " Thesaurus lookup for the |word| under the cursor
 nnoremap <LEADER>th :silent !open

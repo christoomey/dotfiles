@@ -26,20 +26,6 @@ map <Leader>src :%s//c<Left><Left>
 nmap <leader>gg :g//normal <C-r>q
 vmap <leader>gg :g//normal <C-r>q
 
-" Vimgrep for the last search
-nmap <silent> ,gs
-     \ :vimgrep /<C-r>// %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
-
-" Vimgrep for the word under the cursor
-nmap <silent> ,gw
-     \ :vimgrep /<C-r><C-w>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
-
-" Vimgrep for the current WORD under cursor
-nmap <silent> ,gW
-     \ :vimgrep /<C-r><C-a>/ %<CR>:ccl<CR>:cwin<CR><C-W>J:set nohls<CR>
-
-nnoremap <LEADER>rdb :g/import\ ipdb/normal dd
-
 " Search for selected text, forwards or backwards.
 " http://vim.wikia.com/wiki/Search_for_visually_selected_text
 vnoremap <silent> * :<C-U>

@@ -1,6 +1,6 @@
 " Coffeescript configurations
 "------------------------
 
-au BufNewFile,BufReadPost *.coffee setl shiftwidth=4 expandtab foldlevel=1
+au Filetype coffee setl sw=2 sts=2 ts=2 expandtab foldlevel=1
 
 " vim:ft=vim

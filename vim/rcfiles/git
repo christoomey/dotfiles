@@ -18,7 +18,9 @@ endfunction
 function! CD_Git_Root()
     execute 'cd '.Git_Repo_Cdup()
     let curdir = getcwd()
+    echohl String
     echo 'CWD now set to: '.curdir
+    echohl
 endfunction
 nnoremap <LEADER>gr :call CD_Git_Root()<cr>
 

@@ -2,7 +2,9 @@
 "------------------------
 
 " Setup spell checking, and use <Ctrl>s to open spelling completion menu
-au filetype markdown setl spell
+au BufEnter,BufNewFile *.md set filetype=markdown
+au BufEnter,BufNewFile *.mkd set filetype=markdown
+" au filetype markdown setl spell
 nnoremap <c-s> i<C-x>s
 nnoremap <LEADER>more i<!--more--><ESC>
 nnoremap <leader>gf gqip

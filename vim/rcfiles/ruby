@@ -10,7 +10,8 @@ au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
 " Set .erb html files
 au FileType ebury setl setl sw=2 sts=2 ts=2 " Two spaces per tab
 
-" System `touch` to have autotest run
-nnoremap <LEADER>touch :silent !touch %<CR>
+" Easy hash rocket insertion
+imap <C-l> <space>=><space>
+
 
 " vim:ft=vim

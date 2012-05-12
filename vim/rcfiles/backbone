@@ -1,6 +1,6 @@
 " Backbone configurations
 "------------------------
 
-au BufNewFile, BufReadPost *.jst.ejs set filetype=html
+au BufNewFile,BufReadPost *.jst.ejs set filetype=html
 
 " vim:ft=vim

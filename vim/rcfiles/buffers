@@ -2,7 +2,6 @@
 "------------------------
 
 function! KillEmAll()
-    call Make_Little()
     execute 'silent! bufdo bdelete'
     echohl String
     echo 'All buffers cleared. Go forth and make great things!'

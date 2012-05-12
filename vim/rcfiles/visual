@@ -1,8 +1,13 @@
 " Visual configurations
 "------------------------
 
-Bundle "christoomey/vim-colors-ctoomey"
-if has('gui')
+try
+    Bundle "christoomey/vim-colors-ctoomey"
+catch
+    " No colors for me
+endtry
+
+if has('gui_running')
     try
         colorscheme ctwombat
     catch /^Vim\%((\a\+)\)\=:E185/
@@ -69,14 +74,14 @@ nnoremap = 4<C-w>+
 " Easy access to maximizing
 nnoremap <C-_> <C-w>_
 
-function! Make_Big()
-    set columns=170
-endfunction
-nmap <leader>rt :call Make_Big()<cr>
-function! Make_Little()
-    set columns=85
-endfunction
-nmap <leader>ro :call Make_Little()<cr>
+" function! Make_Big()
+    " set columns=170
+" endfunction
+" nmap <leader>rt :call Make_Big()<cr>
+" function! Make_Little()
+    " set columns=85
+" endfunction
+" nmap <leader>ro :call Make_Little()<cr>
 
 
 " List out the syntax for the word under the cursor
