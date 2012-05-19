@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 #
-# Consider integrating features like those in [gitstats](http://gitstats.sourceforge.net/).
-
 require 'pry'
 require 'colored'
 
@@ -29,6 +27,10 @@ class RepoWrapper
     @path = path
   end
 
+  def run_cmd_in_path cmd, path=@path
+    Dir.chdir(path) { `#{cmd}` }
+  end
+
   def summarize
     print title.ljust(25)
     print folder.ljust(15)
@@ -41,16 +43,16 @@ class RepoWrapper
   end
 
   def dirty?
-    dirty = Dir.chdir(@path) { `git status -s` }
+    dirty = run_cmd_in_path "git status -s"
     dirty != ''
   end
 
   def last_commit(relative=true)
     if relative
-      ago = Dir.chdir(@path) { `git log -1 --pretty="%cr"` }
+      ago = run_cmd_in_path 'git log -1 --pretty="%cr"'
       ago.sub! " ago", ''
     else
-      ago = Dir.chdir(@path) { `git log -1 --pretty="%at"` }
+      ago = run_cmd_in_path 'git log -1 --pretty="%at"'
     end
     ago.chomp!
   end
@@ -69,12 +71,12 @@ class RepoWrapper
   end
 
   def readme?
-    files = Dir.chdir(@path) { `ls` }
+    files = run_cmd_in_path "ls"
     return (files.match /readme/i)
   end
 
   def on_github?
-    remotes = Dir.chdir(@path) { `git remote -v | grep 'github\.com'` }
+    remotes = run_cmd_in_path "git remote -v | grep 'github\.com'"
     return remotes != ""
   end
 end
