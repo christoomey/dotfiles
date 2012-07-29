@@ -1,0 +1,3 @@
+# Default args for 'rails new command'. No Test::Unit, and no auto bundle install
+--skip-bundle
+-T
