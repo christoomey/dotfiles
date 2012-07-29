@@ -15,6 +15,7 @@
 	aa = add --all
     glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
     dc = diff --cached
+    cm = commit -m
     cam = commit -am
     cob = checkout -b
 	df = diff --word-diff
@@ -22,10 +23,17 @@
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore
-[format]
-    pretty=format:%C(yellow)%h%Creset -%C(blue)%d%Creset %s %Cgreen(%ar)
 [clean]
 	requireForce = false
+[url "git@heroku.com:"]
+    # $ git remote add heroku:sushi.git
+    insteadOf = heroku:
+[url "git://github.com/"]
+    # Read-only
+    insteadOf = gh:
+[url "git@github.com:"]
+    # With write access
+    insteadOf = wgh:
 [user]
 	name = Chris Toomey
 	email = chris@ctoomey.com
