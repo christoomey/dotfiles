@@ -1,0 +1,5 @@
+" Handlebars - Syntax support for handlebars js templates
+
+Bundle "nono/vim-handlebars"
+
+" vim:ft=vim
