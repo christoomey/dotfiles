@@ -1,0 +1,5 @@
+" Lucius - Colorscheme definition. Dark & light.
+
+Bundle "vim-scripts/Lucius"
+
+" vim:ft=vim
