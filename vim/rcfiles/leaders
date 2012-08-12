@@ -5,16 +5,18 @@
 " I have it in the main vimrc now
 
 function! ListMapShaddows()
-     silent! redir @a
-     silent! nmap <LEADER>
-     silent! redir END
-     silent! new
-     silent! put! a
-     silent! g/^s*$/d
-     silent! %s/^.*,//
-     silent! normal ggVg
-     silent! sort
-     silent! let lines = getline(1,"$")
+    silent! redir @a
+    silent! nmap <LEADER>
+    silent! redir END
+    silent! new
+    silent! put! a
+    silent! g/^s*$/d
+    "improved substitute below to only remove up to the first comma
+    silent! %s/^[^,]*,//
+    silent! normal! ggVg
+    silent! sort
+    "last step is to get out of visual line mode
+    silent! normal! V
 endfunction
 
 " vim:ft=vim
