@@ -6,4 +6,6 @@ nmap <LEADER>st :Gstatus<CR>
 nmap <LEADER>df :Gdiff<CR>
 nmap <LEADER>git :Git<space>
 
+autocmd FileType gitcommit setl spell
+
 " vim:ft=vim
