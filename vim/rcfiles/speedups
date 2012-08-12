@@ -9,6 +9,12 @@ nnoremap ; :
 vnoremap ; :
 cnoremap ; :
 
+" Quicker movement while in insert mode
+imap <C-e> <C-o>A
+imap <C-a> <C-o>I
+imap <C-f> <C-o>a
+imap <C-b> <C-o>h
+
 " Use j/k to start, then scroll through autocomplete options
 inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
 inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
@@ -78,9 +84,6 @@ nnoremap <C-l> <C-w>l
 
 "Make Y yank to end of line (like D, or C)
 nmap Y y$
-
-"Allow Ctrl-f to paste current register in insert mode
-imap <C-f> <C-r>"
 
 " Easy access to the start of the line
 nnoremap 0 ^
