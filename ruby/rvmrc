@@ -1,2 +1,3 @@
 rvm_project_rvmrc=1
 rvm_project_rvmrc_default=1
+rvm_trust_rvmrcs_flag=1
