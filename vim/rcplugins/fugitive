@@ -2,7 +2,7 @@
 
 Bundle "tpope/vim-fugitive"
 
-nmap <LEADER>st :Gstatus<CR>
+nmap <LEADER>st :only<CR>:Gstatus<CR>
 nmap <LEADER>df :Gdiff<CR>
 nmap <LEADER>git :Git<space>
 

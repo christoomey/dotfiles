@@ -57,7 +57,7 @@ if has('gui_running')
 else
     set nocursorline nocursorcolumn
     try
-        colorscheme lucius
+        colorscheme jellybeans
     catch /^Vim\%((\a\+)\)\=:E185/
         " deal with it
     endtry
