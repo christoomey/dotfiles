@@ -7,5 +7,20 @@ let g:no_turbux_mappings=1
 nmap <leader>rn :call SendFocusedTestToTmux(expand('%:p'), line('.'))<cr>
 nmap <leader>ra :call SendTestToTmux(expand('%:p'))<cr>
 nmap <leader>rt :call Send_to_Tmux("bundle exec rspec spec\n")<cr>
+nmap <leader>rt :call Send_to_Tmux("bundle exec rspec spec\n")<cr>
+
+nmap <leader>tmx :call TmuxCommand()<cr>
+nmap <leader>ftmx :let g:tmux_command=''<cr>
+
+let g:tmux_command = ''
+function! TmuxCommand()
+    " Query for a command to send to tmux, then send. Future calls to function
+    " just send to tmux
+    echohl String
+    if g:tmux_command == ''
+        let g:tmux_command = input("Tmux command: ")
+    endif
+    call Send_to_Tmux("" . g:tmux_command . "\n")
+endfunction
 
 " vim:ft=vim
