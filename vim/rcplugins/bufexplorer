@@ -1,6 +1,6 @@
 " Bufexplorer - Provides a list of buffers for organization
 
-Bundle "edsono/vim-bufexplorer"
+Bundle "vim-scripts/bufexplorer.zip"
 
 nmap <LEADER>be :BufExplorer<CR>
 let g:bufExplorerDefaultHelp=1       " Show default help.
