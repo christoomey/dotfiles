@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 export DISABLE_AUTO_UPDATE="true"
 
 export BUNDLER_EDITOR='vim'
-alias vim=/Applications/MacVim.app/Contents/MacOS/Vim
+# alias vim=/Applications/MacVim.app/Contents/MacOS/Vim
 
 # Prevent correct of git slog
 alias rspec='nocorrect rspec'
@@ -24,7 +24,7 @@ alias cld='cd +1'
 function csd() { cd +$1 }
 
 # Setup hub for git meets github goodness
-function git(){hub $@}
+# function git(){hub $@}
 # alias git=hub
 # if type compdef >/dev/null; then
    # compdef hub=git
