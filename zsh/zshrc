@@ -59,7 +59,7 @@ function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
 
 # Growl notify function
 function growl {
-    growlnotify -s "That long running thing is done" -m "Finished!" 
+    growlnotify -s "That long running thing is done" -m "Finished!"
 }
 
 function mkcd() {
@@ -94,6 +94,9 @@ function ackjs {
 }
 
 function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(production_app_name)}
+
+# cjt command -- my grab bag based on https://github.com/37signals/sub
+[[ -f ~/code/cjt/bin/cjt ]] && eval "$(/Users/nation/code/cjt/bin/cjt init -)"
 
 # Convenice aliases
 alias ls="ls -FG"
