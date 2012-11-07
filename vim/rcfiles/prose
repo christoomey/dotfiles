@@ -1,0 +1,42 @@
+" Prose (blogging, readmes, any other markdown) configurations
+"------------------------
+
+" Setup spell checking, and use <Ctrl>s to open spelling completion menu
+au BufEnter,BufNewFile *.md set filetype=markdown
+au BufEnter,BufNewFile *.mkd set filetype=markdown
+" au filetype markdown setl spell
+nnoremap <c-s> i<C-x>s
+nnoremap <LEADER>more i<!--more--><ESC>
+nnoremap <leader>gf gqip
+
+function! MarkdownLink(link_text)
+    echohl String
+    let my_link_text = (a:link_text == "") ? input("Link text: ") : a:link_text
+    let url = input("URL: ")
+
+    " Create the link at the current position
+    exec "normal a" . "[" . my_link_text . "][]"
+    " Set a mark for the current position
+    exec "normal mu"
+    " Append the link url definition to the bottom of the document
+    exec "normal Go" . "[" . my_link_text . "]: " . url
+    " Return to the location of the mark
+    exec "normal `u"
+endfunction
+
+function! VisualMarkdownLink()
+    normal! gv
+    normal "ud
+    let linkText = @u
+    call MarkdownLink(linkText)
+endfunction
+
+function! WordToMarkdownLink()
+    normal viw
+    call VisualMarkdownLink()
+endfunction
+
+vnoremap <C-k> :call VisualMarkdownLink()<cr>
+inoremap <C-k> <C-o>:call VisualMarkdownLink()<cr>
+
+" vim:ft=vim
