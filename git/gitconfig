@@ -7,6 +7,7 @@
 	st = status -sb
 	unstage = reset
 	unchange = checkout --
+    b = branch
     co = checkout
     mylog = log --graph --abbrev-commit --date=relative --all
     l = "!source ~/.githelpers && pretty_git_log"

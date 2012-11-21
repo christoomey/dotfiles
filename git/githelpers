@@ -15,7 +15,7 @@
 
 HASH="%C(green)%h%Creset"
 RELATIVE_TIME="%C(yellow)(%ar)%Creset"
-REFS="%C(blue)%d%Creset"
+REFS="%C(red)%d%Creset"
 SUBJECT="%s"
 
 FORMAT="$HASH}$RELATIVE_TIME}$REFS $SUBJECT"
