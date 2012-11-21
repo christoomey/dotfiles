@@ -4,10 +4,17 @@
 " Setup spell checking, and use <Ctrl>s to open spelling completion menu
 au BufEnter,BufNewFile *.md set filetype=markdown
 au BufEnter,BufNewFile *.mkd set filetype=markdown
-" au filetype markdown setl spell
-nnoremap <c-s> i<C-x>s
+au filetype markdown call MarkdownMode()
+
 nnoremap <LEADER>more i<!--more--><ESC>
 nnoremap <leader>gf gqip
+
+function! MarkdownMode()
+    setl spell              " Enable spell checking
+    nnoremap <buffer> <leader>sp ea<C-x><C-s>
+    nnoremap <buffer> <LEADER>more i<!--more--><ESC>
+    nnoremap <buffer> <leader>gf gqip
+endfunction
 
 function! MarkdownLink(link_text)
     echohl String
