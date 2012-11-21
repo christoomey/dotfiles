@@ -18,12 +18,16 @@ set softtabstop=4               "     specific settings via autocmd
 " Toggle paste mode
 nmap <silent> ,p :set invpaste<CR>:set paste?<CR>
 
-" Not sure what this was doing, but it made gVim on windows angry
-" au VimEnter * source ~/.vimrc
+" Maps to toggle vimdiff on and off to compare buffers
+nmap <leader>dt :diffthis<cr>
+nmap <leader>do :diffoff<cr>
 
 " Disable sound/visual bell on errors
 " May need additional config about audible bell
 set t_vb=
+
+" Set modeline to 1 to allow rcfiles to be recognized as vim files
+set modelines=1
 
 " I save constantly and hate swap files in my prject dirs
 set nobackup
