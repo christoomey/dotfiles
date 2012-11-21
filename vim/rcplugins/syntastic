@@ -1,0 +1,5 @@
+" Syntastic - Framework for various syntax checking / linting tools
+
+Bundle "scrooloose/syntastic"
+
+" vim:ft=vim
