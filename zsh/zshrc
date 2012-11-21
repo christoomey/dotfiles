@@ -1,8 +1,9 @@
 # Path to your oh-my-zsh configuration.
 export ZSH=$HOME/.oh-my-zsh
-
-# Let oh-my-zsh auto update
-export DISABLE_AUTO_UPDATE="true"
+plugins=(rvm zsh-syntax-highlighting vagrant heroku brew bundler gem)
+export DISABLE_AUTO_UPDATE="true" # Don't let oh-my-zsh auto update
+export ZSH_THEME="cjt" # Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
+source $ZSH/oh-my-zsh.sh
 
 export BUNDLER_EDITOR='vim'
 # alias vim=/Applications/MacVim.app/Contents/MacOS/Vim
@@ -30,9 +31,6 @@ function csd() { cd +$1 }
    # compdef hub=git
 # fi
 
-# Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'random' for fun
-export ZSH_THEME="cjt"
-
 # Toggle airport for wifi from the terminal
 airport() { networksetup -setairportpower airport $1 }
 
@@ -47,23 +45,29 @@ h(){cd ~/$1;}
 compctl -W ~/ -/ h
 
 # List all symlinks in current directory #TODO where do they point?
-lns() {
-    find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }'
-}
-lnsm() {
-    find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }'
-}
+lns() { find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }' }
+lnsm() { find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }' }
 
 # Serve the current directory. Pass in a port, or use default 8000
 function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
 
 # Growl notify function
-function growl {
-    growlnotify -s "That long running thing is done" -m "Finished!"
-}
+function growl { growlnotify -s "That long running thing is done" -m "Finished!" }
 
-function mkcd() {
-    mkdir $1 && cd $1
+function mkcd() { mkdir $1 && cd $1 }
+
+function g {
+    if [[ $# > 0 ]]; then
+        git $@
+    else
+        git status --short --branch
+    fi
+}
+compdef g=git
+
+function current_branch() {
+    ref=$(git symbolic-ref HEAD 2> /dev/null) || return
+    echo ${ref#refs/heads/}
 }
 
 function gitup {
@@ -89,9 +93,7 @@ function gitlag {
     echo "Master branch currently behind by $lag commits"
 }
 
-function ackjs {
-    ack $1 --js app/assets/javascripts
-}
+function ackjs { ack $1 --js app/assets/javascripts }
 
 function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(production_app_name)}
 
@@ -100,13 +102,13 @@ function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(p
 
 # Convenice aliases
 alias ls="ls -FG"
+alias l="ls -l"
 alias la="ls -la"
 
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
 
 alias jp='python -mjson.tool'
-
 
 # Markdown preview to html with local css
 function mkd2tmphtml {
@@ -147,11 +149,6 @@ alias stm="script/tmux-rails"
 export HISTIGNORE="fg*"
 bindkey -s '\C-g' 'fg\n'
 # bind '"\C-g": "fg %-\n"'  ----The Bash way
-
-# Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git git-flow rvm zsh-syntax-highlighting vagrant heroku brew bundler gem)
-
-source $ZSH/oh-my-zsh.sh
 
 # Don't attempt spelling autocorrect
 unsetopt correct_all

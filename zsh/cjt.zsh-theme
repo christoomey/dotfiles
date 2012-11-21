@@ -52,6 +52,6 @@ fi
 
 PROMPT='
 %{$GREEN_BOLD%}$sshing%{$WHITE%} %{$YELLOW%}${PWD/#$HOME/~}%{$RESET_COLOR%}$(jobbies) \
-%{$BLUE%}$(current_branch)$(git_prompt_short_sha)$(parse_git_dirty)%{$RESET_COLOR%}
+%{$GREEN%}$(current_branch)$(git_prompt_short_sha)$(parse_git_dirty)%{$RESET_COLOR%}
 %{$BLUE%}>%{$RESET_COLOR%} '
 RPROMPT='[%{$GREEN%}$(rvm-prompt v g)%{$WHITE%}]'
