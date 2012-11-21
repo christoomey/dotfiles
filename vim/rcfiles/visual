@@ -28,15 +28,6 @@ if has('gui_running')
     " Hightlight the current row. Index-guide plugin covers columns
     set cursorline
 
-    " Version 7.3 of the vim, with things like margins
-    if version >= 703
-        " Add a margin on the left to highlight past 79
-        " hi ColorColumn guibg=#5C5558
-        " set colorcolumn=79,80,81,82
-        set colorcolumn=
-		hi ColorColumn ctermbg=lightgrey guibg=#5C5558
-    endif
-
     " MacVim is very pretty
     if has('gui_macvim')
         set transparency=8
@@ -61,6 +52,13 @@ else
     catch /^Vim\%((\a\+)\)\=:E185/
         " deal with it
     endtry
+endif
+
+" Version 7.3 of the vim, with things like margins
+if version >= 703
+    " Add a margin on the left to highlight past 80+
+    set colorcolumn=80
+    " hi ColorColumn ctermbg=lightgrey guibg=#5C5558
 endif
 
 set vb

@@ -73,7 +73,8 @@ set splitbelow " Split windows, ie Help, make more sense to me below
 au filetype help wincmd _ " Maximze the help on open
 
 " Easy navigation for editing and cding
-nmap <Leader>e :e ~/code/
+nmap <Leader>ec :e ~/code/
+nmap <Leader>er :call CD_Git_Root()<cr>:e<space><C-d>
 nmap <Leader>cd :cd ~/code/
 
 " Speedy window jumping
@@ -108,8 +109,5 @@ nnoremap gp `[v`]
 
 " Go to position of last edit. Mnem: 'Go to Edit'
 nnoremap ge `.
-
-" Quick insertion of a datetime stamp for daily log
-nnoremap <LEADER>dt :r! date +"\%Y-\%m-\%d \%H:\%M:\%S"
 
 " vim:ft=vim
