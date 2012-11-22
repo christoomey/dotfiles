@@ -1,0 +1,17 @@
+" Copy & Paste
+"------------------------
+"
+" Copy and paste seems super broke on OS X
+
+" For some reason Vim no longer wants to talk to the OS X pasteboard through
+" "*.
+" " Computers are bullshit.
+function! g:CopyVisualText()
+    normal! gv
+    silent '<,'>w !pbcopy
+endfunction
+
+vnoremap <leader>cp :<c-u>call g:CopyVisualText()<cr>
+nnoremap <leader>p :r!pbpaste<cr>
+
+" vim:ft=vim

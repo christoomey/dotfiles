@@ -15,9 +15,6 @@ set tabstop=4                   " Four spaces per tab as default
 set shiftwidth=4                "     then override with per filteype
 set softtabstop=4               "     specific settings via autocmd
 
-" Toggle paste mode
-nmap <silent> ,p :set invpaste<CR>:set paste?<CR>
-
 " Maps to toggle vimdiff on and off to compare buffers
 nmap <leader>dt :diffthis<cr>
 nmap <leader>do :diffoff<cr>
