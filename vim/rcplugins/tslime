@@ -1,6 +1,0 @@
-" Tslime - Push content from Vim to another tmux pane
-"
-
-Bundle "brandonbloom/tslime.vim"
-
-" vim:ft=vim
