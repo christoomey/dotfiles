@@ -1,0 +1,27 @@
+" Turbux - Determine proper test to run based on current file
+
+Bundle "christoomey/vim-turbux"
+
+let g:turbux_use_vtr = 1
+let g:no_turbux_mappings = 1
+nnoremap <leader>ra :call TurbuxRunAllFromRoot()<cr>
+nnoremap <leader>rt :call TurbuxRunFocusedFromRoot()<cr>
+
+function! FilenameRelativeRepoRoot()
+    call CD_Git_Root()
+    let filename_relative_root = expand('%')
+    return filename_relative_root
+endfunction
+
+function! TurbuxRunAllFromRoot()
+    let filename_relative_root = FilenameRelativeRepoRoot()
+    call SendTestToTmux(filename_relative_root)
+endfunction
+
+function! TurbuxRunFocusedFromRoot()
+    let filename_relative_root = FilenameRelativeRepoRoot()
+    let current_line = line('.')
+    call SendFocusedTestToTmux(filename_relative_root, current_line)
+endfunction
+
+" vim:ft=vim
