@@ -22,7 +22,7 @@ function! MarkdownLink(link_text)
     let url = input("URL: ")
 
     " Create the link at the current position
-    exec "normal a" . "[" . my_link_text . "][]"
+    exec "normal i" . "[" . my_link_text . "][]"
     " Set a mark for the current position
     exec "normal mu"
     " Append the link url definition to the bottom of the document
