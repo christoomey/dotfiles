@@ -46,6 +46,7 @@ cnoremap <C-F>      <Right>
 cnoremap <C-N>      <End>
 cnoremap <C-P>      <Up>
 
-nmap <leader>hello :echo 'function'<cr>
+" Replace the <cedit> command to pop into the 'command-line window'
+set cedit=<C-Y>
 
 " vim:ft=vim
