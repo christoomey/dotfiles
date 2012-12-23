@@ -25,20 +25,20 @@ function! Command_T_Work() "Go from the ~/code repo
     CommandT
 endfunction
 
-nmap <LEADER>fow :call Command_T_Work()<CR>
-nmap <LEADER>fop :call Command_T_Local()<CR>
-nmap <leader>gv :call CD_Git_Root()<cr>\|:CommandT app/views<cr>
-nmap <leader>gc :call CD_Git_Root()<cr>\|:CommandT app/controllers<cr>
-nmap <leader>gm :call CD_Git_Root()<cr>\|:CommandT app/models<cr>
-nmap <leader>gj :call CD_Git_Root()<cr>\|:CommandT app/assets/javascripts<cr>
-nmap <leader>gy :call CD_Git_Root()<cr>\|:CommandT app/assets/stylesheets<cr>
-nmap <leader>gs :call CD_Git_Root()<cr>\|:CommandT spec<cr>
-nmap <leader>gt :call CD_Git_Root()<cr>\|:CommandT app/assets/templates<cr>
-nmap <leader>gl :call CD_Git_Root()<cr>\|:CommandT app/lib<cr>
-nmap <LEADER>ctb :CommandTBuffer<CR>
-nmap <LEADER>ctf :CommandTFlush<CR>
+" nmap <LEADER>fow :call Command_T_Work()<CR>
+" nmap <LEADER>fop :call Command_T_Local()<CR>
+" nmap <leader>gv :call CD_Git_Root()<cr>\|:CommandT app/views<cr>
+" nmap <leader>gc :call CD_Git_Root()<cr>\|:CommandT app/controllers<cr>
+" nmap <leader>gm :call CD_Git_Root()<cr>\|:CommandT app/models<cr>
+" nmap <leader>gj :call CD_Git_Root()<cr>\|:CommandT app/assets/javascripts<cr>
+" nmap <leader>gy :call CD_Git_Root()<cr>\|:CommandT app/assets/stylesheets<cr>
+" nmap <leader>gs :call CD_Git_Root()<cr>\|:CommandT spec<cr>
+" nmap <leader>gt :call CD_Git_Root()<cr>\|:CommandT app/assets/templates<cr>
+" nmap <leader>gl :call CD_Git_Root()<cr>\|:CommandT app/lib<cr>
+" nmap <LEADER>ctb :CommandTBuffer<CR>
+" nmap <LEADER>ctf :CommandTFlush<CR>
 
-nmap <LEADER>rf :CommandT /Users/nation/.vim/rcfiles<cr>
-nmap <LEADER>rp :CommandT /Users/nation/.vim/rcplugins<cr>
+" nmap <LEADER>rf :CommandT /Users/nation/.vim/rcfiles<cr>
+" nmap <LEADER>rp :CommandT /Users/nation/.vim/rcplugins<cr>
 
 " vim:ft=vim

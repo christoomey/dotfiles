@@ -2,4 +2,28 @@
 
 Bundle "kien/ctrlp.vim"
 
+let g:ctrlp_match_window_bottom = 0
+let g:ctrlp_working_path_mode = 'r'
+let g:ctrlp_match_window_reversed = 0
+let g:ctrlp_mruf_default_order = 1
+let g:ctrlp_max_height = 45
+let g:ctrlp_max_files = 300
+let g:ctrlp_max_depth = 10
+let g:ctrlp_prompt_mappings = {
+\ 'MarkToOpen()':         ['<c-z>', '<c-x>'],
+\ 'PrtExit()':            ['<esc>', '<c-c>', '<c-g>', '<C-@>', '<c-space>'],
+\ }
+
+nmap <leader>gv :CtrlPClearCache<cr>:CtrlP app/views<cr>
+nmap <leader>gc :CtrlPClearCache<cr>:CtrlP app/controllers<cr>
+nmap <leader>gm :CtrlPClearCache<cr>:CtrlP app/models<cr>
+nmap <leader>gj :CtrlPClearCache<cr>:CtrlP app/assets/javascripts<cr>
+nmap <leader>gy :CtrlPClearCache<cr>:CtrlP app/assets/stylesheets<cr>
+nmap <leader>gs :CtrlPClearCache<cr>:CtrlP spec<cr>
+nmap <leader>gt :CtrlPClearCache<cr>:CtrlP app/assets/templates<cr>
+nmap <leader>gl :CtrlPClearCache<cr>:CtrlP app/lib<cr>
+
+nmap <LEADER>rf :CtrlP /Users/nation/.vim/rcfiles<cr>
+nmap <LEADER>rp :CtrlP /Users/nation/.vim/rcplugins<cr>
+
 " vim:ft=vim
