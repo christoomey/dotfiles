@@ -14,6 +14,13 @@ function! MarkdownMode()
     nnoremap <buffer> <leader>sp ea<C-x><C-s>
     nnoremap <buffer> <LEADER>more i<!--more--><ESC>
     nnoremap <buffer> <leader>gf gqip
+    nnoremap <buffer> <leader>mkd :call OpenCurrentFileInMarked()<cr>
+endfunction
+
+function! OpenCurrentFileInMarked()
+    let current_file = expand('%')
+    let open_cmd = join(["open -a Marked", current_file])
+    call system(open_cmd)
 endfunction
 
 function! MarkdownLink(link_text)
