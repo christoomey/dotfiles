@@ -9,12 +9,6 @@ nnoremap ; :
 vnoremap ; :
 cnoremap ; :
 
-" Quicker movement while in insert mode
-imap <C-e> <C-o>A
-imap <C-a> <C-o>I
-imap <C-f> <C-o>a
-imap <C-b> <C-o>h
-
 " Use j/k to start, then scroll through autocomplete options
 inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
 inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
@@ -74,6 +68,7 @@ au filetype help wincmd _ " Maximze the help on open
 
 " Easy navigation for editing and cding
 nmap <Leader>ec :e ~/code/
+nmap <Leader>eh :e ~/
 nmap <Leader>er :call CD_Git_Root()<cr>:e<space><C-d>
 nmap <Leader>cd :cd ~/code/
 
