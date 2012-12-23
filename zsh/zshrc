@@ -137,7 +137,11 @@ function tn {
     else
         session_name=$1
     fi
-    tmux new -s $session_name
+    tmux new-session -d -s $session_name -n vim
+    tmux send-keys -t $session_name 'vim' C-m
+    echo "Starting tmux session for $session_name"
+    sleep 1s
+    tmux attach-session -t $session_name
 }
 alias stm="script/tmux-rails"
 
