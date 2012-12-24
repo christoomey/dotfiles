@@ -3,11 +3,9 @@
 Bundle "tpope/vim-surround"
 
 function! SurroundRequote()
-    let [single_quote, double_quote] = [1,2]
-    let column = virtcol('.')
-    let line = getline('.')
+    let [single_quote, double_quote, matched_quote] = [1,2,0]
+    let [column, line] = [virtcol('.'), getline('.')]
     let offset = 1
-    let matched_quote = "No match yet"
     while offset < 30
         let left_index = column - offset
         let right_index = column + offset
@@ -29,20 +27,27 @@ function! SurroundRequote()
         endif
         let offset += 1
     endwhile
-
-    if matched_quote == single_quote || matched_quote == double_quote
+    if matched_quote
         call SwapSurroundingQuotes(matched_quote)
     endif
 endfunction
 
 function! SwapSurroundingQuotes(current_quote)
-    execute "normal mm"
     let [single_quote, double_quote] = [1,2]
-    if a:current_quote == single_quote
-        execute "normal cs" . "'" . '"'
-    elseif a:current_quote == double_quote
-        execute "normal cs" . '"' . "'"
+    if a:current_quote != single_quote && a:current_quote != double_quote
+        return
     endif
+    call CacheCursorLocation()
+    let quote_sequence = a:current_quote == single_quote ? "'\"" : "\"'"
+    execute "normal cs" . quote_sequence
+    call RestoreCursorLocation()
+endfunction
+
+function! CacheCursorLocation()
+    execute "normal mm"
+endfunction
+
+function! RestoreCursorLocation()
     execute "normal `m"
 endfunction
 
