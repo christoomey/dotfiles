@@ -2,4 +2,50 @@
 
 Bundle "tpope/vim-surround"
 
+function! SurroundRequote()
+    let [single_quote, double_quote] = [1,2]
+    let column = virtcol('.')
+    let line = getline('.')
+    let offset = 1
+    let matched_quote = "No match yet"
+    while offset < 30
+        let left_index = column - offset
+        let right_index = column + offset
+        if left_index >= 0
+            if line[left_index - 1] == '"'
+                let matched_quote = double_quote
+                break
+            elseif line[left_index - 1] == "'"
+                let matched_quote = single_quote
+                break
+            endif
+        endif
+        if line[right_index - 1] == '"'
+            let matched_quote = double_quote
+            break
+        elseif line[right_index - 1] == "'"
+            let matched_quote = single_quote
+            break
+        endif
+        let offset += 1
+    endwhile
+
+    if matched_quote == single_quote || matched_quote == double_quote
+        call SwapSurroundingQuotes(matched_quote)
+    endif
+endfunction
+
+function! SwapSurroundingQuotes(current_quote)
+    execute "normal mm"
+    let [single_quote, double_quote] = [1,2]
+    if a:current_quote == single_quote
+        execute "normal cs" . "'" . '"'
+    elseif a:current_quote == double_quote
+        execute "normal cs" . '"' . "'"
+    endif
+    execute "normal `m"
+endfunction
+
+nmap <leader>cs :call SurroundRequote()<cr>
+
 " vim:ft=vim
