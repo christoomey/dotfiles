@@ -2,47 +2,47 @@
 
 Bundle "tpope/vim-surround"
 
+let [s:single_quote, s:double_quote, s:no_match] = [1,2,0]
 function! SurroundRequote()
-    let [single_quote, double_quote, matched_quote] = [1,2,0]
+    let matched_quote = s:no_match
     let [column, line] = [virtcol('.'), getline('.')]
     let offset = 1
     while offset < 30
-        let matched_quote = QuoteStyle(line, column, offset)
+        let matched_quote = s:QuoteStyle(line, column, offset)
         if matched_quote
-            call SwapSurroundingQuotes(matched_quote)
+            call s:SwapSurroundingQuotes(matched_quote)
             break
         endif
         let offset += 1
     endwhile
-    Pulse
 endfunction
 
-function! SwapSurroundingQuotes(current_quote)
-    let [single_quote, double_quote] = [1,2]
-    if a:current_quote != single_quote && a:current_quote != double_quote
+function! s:SwapSurroundingQuotes(current_quote)
+    if a:current_quote != s:single_quote && a:current_quote != s:double_quote
         return
     endif
-    call CacheCursorLocation()
-    let quote_sequence = a:current_quote == single_quote ? "'\"" : "\"'"
+    call s:CacheCursorLocation()
+    let quote_sequence = a:current_quote == s:single_quote ? "'\"" : "\"'"
     execute "normal cs" . quote_sequence
-    call RestoreCursorLocation()
+    call s:RestoreCursorLocation()
 endfunction
 
-function! QuoteStyle(line, column, offset)
-    let [single_quote, double_quote, no_match] = [1,2,0]
-    if a:line[a:column - a:offset - 1] == "'" || a:line[a:column + a:offset - 1] == "'"
-        return single_quote
-    elseif a:line[a:column - a:offset - 1] == '"' || a:line[a:column + a:offset - 1] == '"'
-        return double_quote
+function! s:QuoteStyle(line, column, offset)
+    let left_character = a:line[a:column - a:offset - 1]
+    let right_character = a:line[a:column + a:offset - 1]
+    if left_character == "'" || right_character == "'"
+        return s:single_quote
+    elseif left_character == '"' || right_character == '"'
+        return s:double_quote
     endif
-    return no_match
+    return s:no_match
 endfunction
 
-function! CacheCursorLocation()
+function! s:CacheCursorLocation()
     execute "normal mm"
 endfunction
 
-function! RestoreCursorLocation()
+function! s:RestoreCursorLocation()
     execute "normal `m"
 endfunction
 
