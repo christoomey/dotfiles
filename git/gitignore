@@ -1,6 +1,7 @@
 .DS_Store
 *~
 *.swp
+.sass-cache/
 
 # Python related
 *.pyc
