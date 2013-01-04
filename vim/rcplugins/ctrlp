@@ -14,16 +14,26 @@ let g:ctrlp_prompt_mappings = {
 \ 'PrtExit()':            ['<esc>', '<c-c>', '<c-g>', '<C-@>', '<c-space>'],
 \ }
 
-nmap <leader>gv :CtrlPClearCache<cr>:CtrlP app/views<cr>
-nmap <leader>gc :CtrlPClearCache<cr>:CtrlP app/controllers<cr>
-nmap <leader>gm :CtrlPClearCache<cr>:CtrlP app/models<cr>
-nmap <leader>gj :CtrlPClearCache<cr>:CtrlP app/assets/javascripts<cr>
-nmap <leader>gy :CtrlPClearCache<cr>:CtrlP app/assets/stylesheets<cr>
-nmap <leader>gs :CtrlPClearCache<cr>:CtrlP spec<cr>
-nmap <leader>gt :CtrlPClearCache<cr>:CtrlP app/assets/templates<cr>
-nmap <leader>gl :CtrlPClearCache<cr>:CtrlP app/lib<cr>
+function! CtrlpRelativeRoot(path)
+    call CD_Git_Root()
+    let rails_root = getcwd()
+    execute join([":CtrlP", rails_root.'/'.a:path])
+endfunction
 
-nmap <LEADER>rf :CtrlP /Users/nation/.vim/rcfiles<cr>
-nmap <LEADER>rp :CtrlP /Users/nation/.vim/rcplugins<cr>
+nnoremap <leader>gj :call CtrlpRelativeRoot("app/assets/javascripts")<cr>
+nnoremap <leader>gv :call CtrlpRelativeRoot("app/views")<cr>
+nnoremap <leader>gc :call CtrlpRelativeRoot("app/controllers")<cr>
+nnoremap <leader>gm :call CtrlpRelativeRoot("app/models")<cr>
+nnoremap <leader>gj :call CtrlpRelativeRoot("app/assets/javascripts")<cr>
+nnoremap <leader>gy :call CtrlpRelativeRoot("app/assets/stylesheets")<cr>
+nnoremap <leader>gs :call CtrlpRelativeRoot("spec")<cr>
+nnoremap <leader>gt :call CtrlpRelativeRoot("app/assets/templates")<cr>
+nnoremap <leader>gl :call CtrlpRelativeRoot("app/lib")<cr>
+
+nnoremap <LEADER>rf :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcfiles<cr>
+nnoremap <LEADER>rp :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcplugins<cr>
+
+nmap <LEADER>rf :CtrlP ~/.vim/rcfiles<cr>
+nmap <LEADER>rp :CtrlP ~/.vim/rcplugins<cr>
 
 " vim:ft=vim
