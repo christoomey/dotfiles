@@ -15,7 +15,11 @@ function! ExtractVariable()
     " Replace selected text with the variable name
     exec "normal c" . name
     " Define the variable on the line above
-    exec "normal! O" . name . " = "
+    if &ft == "vim"
+        exec "normal! Olet " . name . " = "
+    else
+        exec "normal! O" . name . " = "
+    endif
     " Paste the original selected text to be the variable value
     normal! $p
 endfunction

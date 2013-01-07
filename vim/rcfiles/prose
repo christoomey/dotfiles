@@ -21,6 +21,8 @@ function! MarkdownMode()
     nnoremap <buffer> <LEADER>more i<!--more--><ESC>
     nnoremap <buffer> <leader>gf gqip
     nnoremap <buffer> <leader>mkd :call OpenCurrentFileInMarked()<cr>
+    nnoremap <buffer> <leader>bld mm"bciw**b**<esc>`m2l
+    nnoremap <buffer> <leader>em mm"bciw*b*<esc>`m2l
 endfunction
 
 function! OpenCurrentFileInMarked()
