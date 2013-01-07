@@ -1,11 +1,7 @@
 " Copy & Paste
 "------------------------
 "
-" Copy and paste seems super broke on OS X
-
-" For some reason Vim no longer wants to talk to the OS X pasteboard through
-" "*.
-" " Computers are bullshit.
+" For some reason Vim no longer wants to talk to the OS X pasteboard through *
 function! g:CopyVisualText()
     normal! gv
     silent '<,'>w !pbcopy
@@ -13,5 +9,12 @@ endfunction
 
 vnoremap <leader>cp :<c-u>call g:CopyVisualText()<cr>
 nnoremap <leader>p :r!pbpaste<cr>
+nnoremap <leader>ca :call CopyEntireFile()<cr>
+
+function! CopyEntireFile()
+    normal mmggVG,cp`m
+    echohl String | echon "Buffer contents copied!" | echohl None
+endfunction
+
 
 " vim:ft=vim
