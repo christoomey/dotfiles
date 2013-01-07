@@ -8,6 +8,7 @@
 	unstage = reset
 	unchange = checkout --
     b = branch
+    rom = remote add origin
     co = checkout
     mylog = log --graph --abbrev-commit --date=relative --all
     l = "!source ~/.githelpers && pretty_git_log"
