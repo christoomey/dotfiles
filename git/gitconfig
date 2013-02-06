@@ -8,7 +8,6 @@
 	unstage = reset
 	unchange = checkout --
     b = branch
-    rom = remote add origin
     co = checkout
     mylog = log --graph --abbrev-commit --date=relative --all
     l = "!source ~/.githelpers && pretty_git_log"
@@ -22,7 +21,9 @@
     cam = commit -am
     cob = checkout -b
 	df = diff --word-diff
+    rom = remote add origin
     pom = push origin master
+    bom = branch --set-upstream master origin/master
 [core]
 	editor = /usr/bin/vim
 	excludesfile = /Users/nation/.gitignore

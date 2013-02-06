@@ -97,6 +97,12 @@ function gitlag {
     echo "Master branch currently behind by $lag commits"
 }
 
+# Stolen from Gary Bernhardt
+# Use C-x C-e to edit the current command line
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '\C-y' edit-command-line
+
 function ackjs { ack $1 --js app/assets/javascripts }
 
 function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(production_app_name)}
@@ -143,9 +149,6 @@ function tn {
         session_name=$1
     fi
     tmux new-session -d -s $session_name -n vim
-    # tmux send-keys -t $session_name 'vim' C-m
-    echo "Starting tmux session for $session_name"
-    sleep 1s
     tmux attach-session -t $session_name
 }
 alias stm="script/tmux-rails"
