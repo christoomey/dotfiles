@@ -11,9 +11,9 @@ set history=1000  		        " Remember last 1000 commands
 set nu                          " Show line numbers
 set scrolloff=4                 " Keep at least 4 lines below cursor
 set expandtab                   " Convert <tab> to spaces (2 or 4)
-set tabstop=4                   " Four spaces per tab as default
-set shiftwidth=4                "     then override with per filteype
-set softtabstop=4               "     specific settings via autocmd
+set tabstop=2                   " Two spaces per tab as default
+set shiftwidth=2                "     then override with per filteype
+set softtabstop=2               "     specific settings via autocmd
 
 " Maps to toggle vimdiff on and off to compare buffers
 nmap <leader>dt :diffthis<cr>
