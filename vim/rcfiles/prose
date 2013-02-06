@@ -2,8 +2,6 @@
 "------------------------
 
 " Setup spell checking, and use <Ctrl>s to open spelling completion menu
-au BufEnter,BufNewFile *.md set filetype=markdown
-au BufEnter,BufNewFile *.mkd set filetype=markdown
 au filetype markdown call MarkdownMode()
 
 if exists("+spelllang")
