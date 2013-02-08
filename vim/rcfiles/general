@@ -32,11 +32,11 @@ set nowritebackup
 set noswapfile
 
 " Auto change the directory to the current file I'm working on
-if version >= 703
-    set autochdir " Need to use this vs 'lcd %:p:h' for fugitive to work
-else
-    autocmd BufEnter * lcd %:p:h " Fights fugitive
-endif
+" if version >= 703
+    " set autochdir " Need to use this vs 'lcd %:p:h' for fugitive to work
+" else
+    " autocmd BufEnter * lcd %:p:h " Fights fugitive
+" endif
 
 " Allow command line editing like emacs
 cnoremap <C-A>      <Home>
