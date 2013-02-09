@@ -1,0 +1,5 @@
+" CtrlP Generic - A CtrlP style fuzzy match window for arbitrary lists
+
+Bundle "christoomey/ctrlp-generic"
+
+" vim:ft=vim

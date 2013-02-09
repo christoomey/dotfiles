@@ -1,0 +1,5 @@
+" Scriptease - Collection of helpful maps and commands for vimscript
+
+Bundle "tpope/vim-scriptease"
+
+" vim:ft=vim
