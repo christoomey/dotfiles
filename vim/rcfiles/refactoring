@@ -3,11 +3,8 @@
 
 " Borrowed from Gary Bernhardt's vimrc
 function! ExtractVariable()
-    echohl String
-    let name = input("Variable name: ")
-    if name == ''
-        return
-    endif
+    echohl String | let name = input("Variable name: ") | echohl None
+    if name == '' | return | endif
 
     " Enter visual mode (input() takes us out of it)
     normal! gv

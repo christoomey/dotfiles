@@ -13,5 +13,7 @@ au FileType ebury setl setl sw=2 sts=2 ts=2 " Two spaces per tab
 " Easy hash rocket insertion
 imap <C-l> <space>=><space>
 
+nmap <leader>rdb ccrequire 'pry'; binding.pry
+
 
 " vim:ft=vim

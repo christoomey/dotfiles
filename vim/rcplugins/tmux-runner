@@ -3,6 +3,11 @@
 Bundle "christoomey/vim-tmux-runner"
 
 let g:VtrUseVtrMaps = 1
-let g:VtrGitCdUpOnOpen = 1
+let g:VtrGitCdUpOnOpen = 0
+let g:VtrPercentage = 30
+
+nmap <leader>fs :VtrFlushCommand<cr>:VtrSendCommandToRunner<cr>
+nmap <C-f> :VtrSendLineToRunner<cr>
+vmap <C-f> <Esc>:VtrSendSelectedToRunner<cr>
 
 " vim:ft=vim
