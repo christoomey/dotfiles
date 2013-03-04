@@ -3,6 +3,9 @@
 *.swp
 .sass-cache/
 
+zeus.json
+zeus_custom.rb
+
 # Python related
 *.pyc
 

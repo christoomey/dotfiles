@@ -11,7 +11,8 @@
   co = checkout
   mylog = log --graph --abbrev-commit --date=relative --all
   l = "!source ~/.githelpers && pretty_git_log"
-  sl = "!git l -15"
+  sl = log --oneline --decorate -l 15
+  ; sl = "!git l -15"
   sla = "!git l --all -15"
   unreleased = "!git l production/master..master"
 	aa = add --all
@@ -27,7 +28,7 @@
   copysha = "!git rev-parse HEAD | pbcopy"
 [core]
 	editor = /usr/bin/vim
-	excludesfile = /Users/nation/.gitignore
+	excludesfile = ~/.gitignore
 [clean]
 	requireForce = false
 [url "git@heroku.com:"]
@@ -42,3 +43,5 @@
 [user]
 	name = Chris Toomey
 	email = chris@ctoomey.com
+[push]
+	default = upstream
