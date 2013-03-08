@@ -11,7 +11,7 @@
   co = checkout
   mylog = log --graph --abbrev-commit --date=relative --all
   l = "!source ~/.githelpers && pretty_git_log"
-  sl = log --oneline --decorate -l 15
+  sl = "!git --no-pager log --oneline --decorate --all --graph -15"
   ; sl = "!git l -15"
   sla = "!git l --all -15"
   unreleased = "!git l production/master..master"
@@ -23,8 +23,7 @@
   cob = checkout -b
 	df = diff --word-diff
   rom = remote add origin
-  pom = push origin master
-  bom = branch --set-upstream master origin/master
+  pom = push -u origin master
   copysha = "!git rev-parse HEAD | pbcopy"
 [core]
 	editor = /usr/bin/vim

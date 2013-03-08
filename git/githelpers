@@ -15,10 +15,11 @@
 
 HASH="%C(green)%h%Creset"
 RELATIVE_TIME="%C(yellow)(%ar)%Creset"
+AUTHOR="%C(bold blue)<%an>%Creset"
 REFS="%C(red)%d%Creset"
 SUBJECT="%s"
 
-FORMAT="$HASH}$RELATIVE_TIME}$REFS $SUBJECT"
+FORMAT="$HASH}$RELATIVE_TIME}$AUTHOR}$REFS $SUBJECT"
 
 show_git_head() {
     pretty_git_log -1
