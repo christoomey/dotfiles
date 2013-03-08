@@ -1,0 +1,5 @@
+" TextObj User - Provide the ability to define custom textobjs
+
+Bundle "kana/vim-textobj-user"
+
+" vim:ft=vim
