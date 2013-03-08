@@ -1,0 +1,5 @@
+" MagicTags - Automatically create and update tags files in rails projects
+
+Bundle "christoomey/magictags"
+
+" vim:ft=vim
