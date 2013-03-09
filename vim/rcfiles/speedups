@@ -38,15 +38,6 @@ onoremap <C-@> <Esc>
 cnoremap <C-@> <C-c>
 inoremap <C-@> <Esc>`^
 
-" Move current line up
-nnoremap <A-k> :m-2<cr>
-" Move current line down
-nnoremap <A-j> :m+<cr>
-" Move visual selection up
-vnoremap <A-k> :m-2<cr>gv
-" Move visual selection down
-vnoremap <A-j> :m'>+<cr>gv
-
 " Setup nice command tab completion
 set wildmenu
 set wildmode=list:longest,full
@@ -69,8 +60,9 @@ au filetype help wincmd _ " Maximze the help on open
 " Easy navigation for editing and cding
 nmap <Leader>ec :e ~/code/
 nmap <Leader>eh :e ~/
-nmap <Leader>er :call CD_Git_Root()<cr>:e<space><C-d>
 nmap <Leader>cd :cd ~/code/
+nmap <Leader>er :e <C-r>=expand("%:p:h")<cr>/
+nmap <leader>sav :sav <C-r>=expand("%:p:h")<cr>/
 
 " Speedy window jumping
 nnoremap <C-j> <C-w>j
