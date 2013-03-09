@@ -52,8 +52,14 @@ alias zs="zeus start"
 # Serve the current directory. Pass in a port, or use default 8000
 function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
 
+alias pow=powder
+
+alias ql='qlmanage -p "$@" > /dev/null'
+
 # Growl notify function
 function growl { growlnotify -s "That long running thing is done" -m "Finished!" }
+
+function trash() { mv $1 ~/.Trash }
 
 function mkcd() { mkdir $1 && cd $1 }
 
@@ -105,8 +111,11 @@ zle -N edit-command-line
 bindkey '\C-y' edit-command-line
 
 function ackjs { ack $1 --js app/assets/javascripts }
+function ackvim { ack $1 -a ~/code/dotfiles/vim/vimrc ~/code/dotfiles/vim/rcplugins/ ~/code/dotfiles/vim/rcfiles/ }
 
 function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(production_app_name)}
+
+function heroku_url { heroku apps:info -r $1 | grep -i web  | tr -s ' ' | cut -d ' ' -f 3 }
 
 # cjt command -- my grab bag based on https://github.com/37signals/sub
 [[ -f ~/code/cjt/bin/cjt ]] && eval "$(/Users/nation/code/cjt/bin/cjt init -)"
@@ -131,6 +140,9 @@ function mkd2tmphtml {
 
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"
+
+function pgstart { pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start }
+function pgstop { pg_ctl -D /usr/local/var/postgres stop }
 
 # Tmux aliases
 alias tls="tmux list-sessions"
@@ -167,7 +179,7 @@ bindkey -s '\C-g' 'fg\n'
 unsetopt correct_all
 
 # Customize to your needs...
-export PATH=$HOME/local/bin:$PATH:$HOME/mbin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@rails3/bin:/Users/nation/.rvm/gems/ruby-1.9.2-p0@global/bin:/Users/nation/.rvm/rubies/ruby-1.9.2-p0/bin:/Users/nation/.rvm/bin:/Users/nation/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/usr/X11/bin
+export PATH=$HOME/local/bin:$PATH:$HOME/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/usr/X11/bin
 
 # use .localrc for settings specific to one system
 [[ -f ~/.localrc ]] && . ~/.localrc
@@ -175,3 +187,9 @@ export PATH=$HOME/local/bin:$PATH:$HOME/mbin:/Users/nation/.rvm/gems/ruby-1.9.2-
 [[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm
 
 PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+
+hitch() {
+  command hitch "$@"
+  if [[ -s "$HOME/.hitch_export_authors" ]] ; then source "$HOME/.hitch_export_authors" ; fi
+}
+alias unhitch='hitch -u'
