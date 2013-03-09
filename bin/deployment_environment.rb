@@ -17,6 +17,8 @@ class DeploymentEnvironment
       }
     when 'tail'
       system "heroku logs --tail --remote #{@environment}"
+    when 'url'
+      system "heroku apps:info -r #{@environment} | grep -i web  | tr -s ' ' | cut -d ' ' -f 3"
     else
       system "heroku #{@subcommands.join(' ')} --remote #{@environment}"
     end
