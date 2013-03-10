@@ -49,6 +49,9 @@ function rspec() {
   echo $?
 }
 alias zs="zeus start"
+
+function dash(){open dash://"$@"}
+
 # Serve the current directory. Pass in a port, or use default 8000
 function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
 
