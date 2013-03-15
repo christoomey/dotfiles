@@ -1,0 +1,31 @@
+#!/bin/sh
+#/ Usage: git pr [<branch>]
+#/ Open the pull request page for <branch>, or the current branch if not
+#/ specified. Lands on the new pull request page when no PR exists yet.
+#/ The branch must already be pushed
+
+# Based on script from @rtomayko
+set -e
+
+# usage message
+if [ "$1" == "--help" -o "$1" == '-h' ]; then
+    grep ^#/ "$0" | cut -c4-
+    exit
+fi
+
+remote_url=$(git config --get remote.origin.url)
+repo_with_owner=$(echo $remote_url | perl -pe's/(git@|https:\/\/)?github.com(:|\/)(\w+)\/(\w+)(.git)?/$3\/$4/')
+
+# figure out the branch
+branch=${1:-"$(git symbolic-ref HEAD | sed 's@refs/heads/@@')"}
+
+# check that the branch exists in the origin remote first
+if git rev-parse "refs/remotes/origin/$branch" 1>/dev/null 2>&1; then
+    # escape forward slashes
+    branch=${branch//\//\%2f}
+
+    exec open "https://github.com/$repo_with_owner/pull/$branch"
+else
+    echo "error: branch '$branch' does not exist on the origin remote." 1>&2
+    echo "       try again after pushing the branch"
+fi
