@@ -1,31 +1,61 @@
-#!/bin/sh
+#!/usr/bin/env ruby
 #/ Usage: git pr [<branch>]
 #/ Open the pull request page for <branch>, or the current branch if not
 #/ specified. Lands on the new pull request page when no PR exists yet.
-#/ The branch must already be pushed
+#/ The local branch must be tracking the remote branch.
 
-# Based on script from @rtomayko
-set -e
+# Based on script from @rtomayko. Translated into ruby and now uses branch
+# tracking rather than expecting local and remote branch to have same name
 
-# usage message
-if [ "$1" == "--help" -o "$1" == '-h' ]; then
-    grep ^#/ "$0" | cut -c4-
-    exit
-fi
+def remote_url
+  remote_url = chomped_system_call('git config --get remote.origin.url')
+  repo_with_owner = remote_url.match(/:(.*)\.git/)
 
-remote_url=$(git config --get remote.origin.url)
-repo_with_owner=$(echo $remote_url | perl -pe's/(git@|https:\/\/)?github.com(:|\/)(\w+)\/(\w+)(.git)?/$3\/$4/')
+  if repo_with_owner
+    repo_with_owner[1]
+  else
+    die 'Unable to determine repo/owner for remote origin'
+  end
+end
 
-# figure out the branch
-branch=${1:-"$(git symbolic-ref HEAD | sed 's@refs/heads/@@')"}
+def remote_tracking_branch
+  command = 'git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null'
+  tracking = chomped_system_call(command)
 
-# check that the branch exists in the origin remote first
-if git rev-parse "refs/remotes/origin/$branch" 1>/dev/null 2>&1; then
-    # escape forward slashes
-    branch=${branch//\//\%2f}
+  if tracking == '@{u}'
+    die 'Current local branch not setup to track remote branch.'
+  else
+    branch_without_remote_name(tracking)
+  end
+end
 
-    exec open "https://github.com/$repo_with_owner/pull/$branch"
-else
-    echo "error: branch '$branch' does not exist on the origin remote." 1>&2
-    echo "       try again after pushing the branch"
-fi
+def branch_without_remote_name(branch_and_remote)
+  branch = branch_and_remote.match(/origin\/(.*)/)
+
+  if branch
+    branch[1]
+  else
+    die 'Expected remote to be \'origin\''
+  end
+end
+
+def chomped_system_call(command)
+  `#{command}`.chomp
+end
+
+def open_pull_request_for_repo_branch(repo, branch)
+  system("open https://github.com/#{repo}/pull/#{branch}")
+end
+
+def main
+  repo = remote_url
+  branch = remote_tracking_branch
+  open_pull_request_for_repo_branch(repo, branch)
+end
+
+def die(msg)
+  puts msg
+  exit 1
+end
+
+main
