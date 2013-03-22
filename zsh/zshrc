@@ -13,9 +13,6 @@ alias git='nocorrect git'
 alias guard='nocorrect guard'
 alias be='bundle exec'
 
-# Fix up octopress rake issue
-alias rake="noglob rake"
-
 # automatically pushd
 setopt auto_pushd
 export dirstacksize=10
@@ -44,10 +41,18 @@ function rspec() {
   if [ -S .zeus.sock ]; then
     zeus rspec "$@"
   else
-    be command rspec "$@"
+    bundle exec command rspec "$@"
   fi
-  echo $?
 }
+
+function rake() {
+  if [ -S .zeus.sock ]; then
+    zeus rake "$@"
+  else
+    bundle exec command rake "$@"
+  fi
+}
+
 alias zs="zeus start"
 
 function dash(){open dash://"$@"}
@@ -159,13 +164,18 @@ function ta {
     fi
 }
 function tn {
-    if [ -z "$1" ]; then
-        session_name=$(basename `pwd`)
-    else
-        session_name=$1
-    fi
-    tmux new-session -d -s $session_name -n vim
-    tmux attach-session -t $session_name
+  if [ -z "$1" ]; then
+      session_name=$(basename `pwd`)
+  else
+      session_name=$1
+  fi
+  tmux new-session -d -s $session_name -n vim
+  if [ -f zeus.json ]; then
+    tmux new-window -t $session_name -n zeus
+    tmux send-keys -t $session_name:2 'zeus start' C-m
+    tmux select-window -t $session_name:1
+  fi
+  tmux attach-session -t $session_name
 }
 alias stm="script/tmux-rails"
 
