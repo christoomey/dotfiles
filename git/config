@@ -21,7 +21,7 @@
   rmdeleted = "!git rm $(git ls-files --deleted)"
   dc = diff --cached
   cm = commit -m
-  cam = commit -am
+  ca = commit --amend
   cob = checkout -b
 	df = diff --word-diff
   rom = remote add origin
