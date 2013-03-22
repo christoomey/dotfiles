@@ -28,7 +28,8 @@ nnoremap <leader>gj :call CtrlpRelativeRoot("app/assets/javascripts")<cr>
 nnoremap <leader>gy :call CtrlpRelativeRoot("app/assets/stylesheets")<cr>
 nnoremap <leader>gs :call CtrlpRelativeRoot("spec")<cr>
 nnoremap <leader>gt :call CtrlpRelativeRoot("app/assets/templates")<cr>
-nnoremap <leader>gl :call CtrlpRelativeRoot("app/lib")<cr>
+nnoremap <leader>gl :call CtrlpRelativeRoot("lib")<cr>
+nnoremap <leader>gw :call CtrlpRelativeRoot("app/workers")<cr>
 
 nnoremap <LEADER>rf :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcfiles<cr>
 nnoremap <LEADER>rp :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcplugins<cr>
