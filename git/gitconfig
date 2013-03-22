@@ -11,12 +11,14 @@
   co = checkout
   mylog = log --graph --abbrev-commit --date=relative --all
   l = "!source ~/.githelpers && pretty_git_log"
-  sl = "!git --no-pager log --oneline --decorate --all --graph -15"
-  ; sl = "!git l -15"
-  sla = "!git l --all -15"
+  sl = "!git --no-pager log --oneline --decorate --graph -20"
+  sla = "!git --no-pager log --oneline --decorate --all --graph -25"
+  slall = "!git log --oneline --decorate --all --graph"
   unreleased = "!git l production/master..master"
+  upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
 	aa = add --all
   glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
+  rmdeleted = "!git rm $(git ls-files --deleted)"
   dc = diff --cached
   cm = commit -m
   cam = commit -am
