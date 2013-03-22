@@ -1,3 +1,5 @@
+require File.join(File.dirname(__FILE__), 'deploy')
+
 class DeploymentEnvironment
   def initialize(subcommands)
     @subcommands = subcommands
@@ -19,6 +21,8 @@ class DeploymentEnvironment
       system "heroku logs --tail --remote #{@environment}"
     when 'url'
       system "heroku apps:info -r #{@environment} | grep -i web  | tr -s ' ' | cut -d ' ' -f 3"
+    when 'deploy'
+      Deployer.new(@environment, @subcommands).run
     else
       system "heroku #{@subcommands.join(' ')} --remote #{@environment}"
     end
