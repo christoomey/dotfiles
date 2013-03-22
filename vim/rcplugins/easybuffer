@@ -1,0 +1,14 @@
+" Easy Buffer - Buffer list
+
+Bundle "troydm/easybuffer.vim"
+
+nnoremap <leader>be :EasyBufferHorizontal<cr>
+
+autocmd FileType easybuffer call s:EasyBufferSettings()
+
+function! s:EasyBufferSettings()
+  setl foldlevel=999
+  nmap <buffer>q <Plug>Kwbd
+endfunction
+
+" vim:ft=vim
