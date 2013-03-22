@@ -44,10 +44,7 @@ set wildmode=list:longest,full
 set wildignore+=*.pyc
 
 " Easy re-sourcing of vimrc
-map <leader>rs :execute "source " . my_vimrc<CR>
-map <leader>re :execute "edit " . my_vimrc<CR>
 map <leader>sop :source %<cr>
-" Command-T mappings for rcfiles (,rf) and rcplugins (,rp)
 
 " Help File funtimes, <enter> to follow tag, delete for back
 au filetype help nnoremap <buffer><cr> <c-]>

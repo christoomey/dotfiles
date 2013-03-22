@@ -10,15 +10,12 @@ set smartcase                   " ...except if you use UCase
 nmap <F4> :silent noh<CR>
 nnoremap <LEADER>rh :silent noh<CR>
 
-" Replace settings
-set gdefault "Replace all occurences of pattern in a line
-
 " Mappings for quick search & replace. Global set to default
 " Do a / search first, then leave pattern empty in :s// to use last
 " In order, they are `all`, `visual`, `confirm`, `word`
-map <Leader>sra :%s///<Left>
-map <Leader>srv :s///<Left>
-map <Leader>src :%s//c<Left><Left>
+map <Leader>sra :%s///g<left><left>
+map <Leader>srv :s///g<left><left>
+map <Leader>src :%s//gc<Left><Left><left>
 
 " Global helper. First, compose a search to find all the relevant lines. Then
 " compose a macro in @q register. Then hit up this mapping to start the global
