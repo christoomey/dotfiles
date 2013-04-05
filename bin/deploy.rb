@@ -7,7 +7,7 @@ class Deployer
   end
 
   def run
-    heroku_remote_or_die
+    heroku_remote_targeted
     master_or_die
     working_directory_clean_or_die
     index_clean_or_die
@@ -16,18 +16,18 @@ class Deployer
 
   private
 
+  def heroku_remote_targeted
+    unless heroku_remotes.include? @remote
+      die "'#{@remote}' does not seem to be a heroku app"
+    end
+  end
+
   def heroku_remotes
     remotes = `git remote`.split.map(&:chomp)
 
     remotes.select do |remote|
       url = `git config --get remote.#{remote}.url`
       url =~ /heroku/
-    end
-  end
-
-  def heroku_remote_or_die
-    unless heroku_remotes.include? @remote
-      die "'#{@remote}' does not seem to be a heroku app"
     end
   end
 
@@ -79,8 +79,7 @@ class Deployer
     else
       deploy_cmd = "git push #{@remote} master"
     end
-    puts "Would deploy now, using [#{deploy_cmd}]"
-    # system(deploy_cmd)
+    system(deploy_cmd)
   end
 
   def test_and_push
