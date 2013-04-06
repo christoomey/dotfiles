@@ -18,6 +18,7 @@
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
 	aa = add --all
   glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
+  getpr = "!sh -c 'git fetch origin pull/$0/head:pr-$0 && git co pr-$0'"
   rmdeleted = "!git rm $(git ls-files --deleted)"
   dc = diff --cached
   cm = commit -m
@@ -26,6 +27,7 @@
 	df = diff --word-diff
   rom = remote add origin
   pom = push -u origin master
+  rpo = remote prune origin
   copysha = "!git rev-parse HEAD | pbcopy"
 [core]
 	editor = /usr/bin/vim
