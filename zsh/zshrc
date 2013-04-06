@@ -54,6 +54,7 @@ function rake() {
 }
 
 alias zs="zeus start"
+alias zc="zeus console"
 
 function dash(){open dash://"$@"}
 
