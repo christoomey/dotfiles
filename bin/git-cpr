@@ -111,14 +111,14 @@ class ClosesPullRequests
   end
 
   def run_or_print(gc)
+    puts "  ->  #{gc.cmd}"
     if @pretending
-      puts "  ->  #{gc.cmd}"
       gc.pretend_resp
     else
       if gc.type == :command
         system(gc.cmd)
       else
-        `#{cmd}`
+        `#{gc.cmd}`.chomp
       end
     end
   end
