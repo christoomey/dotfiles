@@ -14,10 +14,6 @@ set tabstop=2                   " Two spaces per tab as default
 set shiftwidth=2                "     then override with per filteype
 set softtabstop=2               "     specific settings via autocmd
 
-" Maps to toggle vimdiff on and off to compare buffers
-nmap <leader>dt :diffthis<cr>
-nmap <leader>do :diffoff<cr>
-
 set relativenumber
 
 " Disable sound/visual bell on errors
