@@ -14,7 +14,17 @@ set tabstop=2                   " Two spaces per tab as default
 set shiftwidth=2                "     then override with per filteype
 set softtabstop=2               "     specific settings via autocmd
 
+" Use relativenumber, but provide easy toggle
 set relativenumber
+nnoremap <leader>nu :call ToggleRelativeNumber()<cr>
+nnoremap <leader>rn :call ToggleRelativeNumber()<cr>
+function! ToggleRelativeNumber()
+  if &relativenumber
+    set number
+  else
+    set relativenumber
+  endif
+endfunction
 
 " Disable sound/visual bell on errors
 " May need additional config about audible bell
@@ -27,21 +37,6 @@ set modelines=1
 set nobackup
 set nowritebackup
 set noswapfile
-
-" Auto change the directory to the current file I'm working on
-" if version >= 703
-    " set autochdir " Need to use this vs 'lcd %:p:h' for fugitive to work
-" else
-    " autocmd BufEnter * lcd %:p:h " Fights fugitive
-" endif
-
-" Allow command line editing like emacs
-cnoremap <C-A>      <Home>
-cnoremap <C-B>      <Left>
-cnoremap <C-E>      <End>
-cnoremap <C-F>      <Right>
-cnoremap <C-N>      <End>
-cnoremap <C-P>      <Up>
 
 " Replace the <cedit> command to pop into the 'command-line window'
 set cedit=<C-Y>
