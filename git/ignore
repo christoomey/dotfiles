@@ -2,6 +2,7 @@
 *~
 *.swp
 .sass-cache/
+tags
 
 zeus.json
 zeus_custom.rb
