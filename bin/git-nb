@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# Usage: git nb <local-branch-name>
+#
+# Creates a local branch, then immediately pushes to origin with initials
+# prefix to the branch name and sets up tracking
+
+
+def main
+  local_branch_name = ARGV[0]
+  return if local_branch_name.nil?
+
+  system("git checkout -b #{local_branch_name}")
+  system("git push -u origin #{local_branch_name}:cjt-#{local_branch_name}")
+end
+
+main
