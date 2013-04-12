@@ -75,6 +75,9 @@ function mkrvm() {
     mkdir $1 && echo "rvm use 1.9.3@$1 --create" > $1/.rvmrc && cd $1
 }
 
+eval "$(hub alias -s)"
+compdef g=hub
+[[ -s $HOME/.hub.zsh_completion ]] && source $HOME/.hub.zsh_completion
 function g {
     if [[ $# > 0 ]]; then
         git $@
@@ -82,8 +85,6 @@ function g {
         git status --short --branch
     fi
 }
-eval "$(hub alias -s)"
-compdef g=hub
 
 function current_branch() {
     ref=$(git symbolic-ref HEAD 2> /dev/null) || return
