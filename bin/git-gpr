@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# Usage: `git gpr <pull-request-number>`
+#
+# Checkout a pull request locally with proper upstream tracking configured
+# to point at the remote branch the pull request is tracking. This makes it
+# straightforward to push / pull subsequent commits if the pull request is
+# updated.
+#
+# Note, this is intended to be used when working with collaborators using a
+# shared repo, feature branch workflow similar to what is described in this
+# blog post: http://scottchacon.com/2011/08/31/github-flow.html.
+#
+# If the pull requests originate from forks of your repo, the hub gem offers
+# a better option with its github aware checkout command:
+# 'git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name`
+
+class PullFetcher
+  def initialize(args)
+    @pr_number = parse_pr_number(args[0])
+    @local_branch_name = parse_local_branch_name(args[1])
+  end
+
+  def run
+    fetch_and_checkout
+    config_tracking
+  end
+
+  private
+
+  def parse_pr_number(number)
+    if number.nil?
+      puts "Pull request number required. Usage: `git gpr <pull-req-number>`"
+      exit 1
+    else
+      number
+    end
+  end
+
+  def parse_local_branch_name(name)
+    if name.nil?
+      "pr-#{@pr_number}"
+    else
+      name
+    end
+  end
+
+  def fetch_and_checkout
+    `git fetch origin`
+    `git fetch origin pull/#{@pr_number}/head:#{@local_branch_name}`
+    `git checkout #{@local_branch_name}`
+  end
+
+  def config_tracking
+    `git branch --set-upstream #{@local_branch_name} #{remote_branch_name}`
+  end
+
+  def remote_branch_name
+    pr_tip_commit = `git rev-parse #{@local_branch_name}`.strip
+    `git branch -r --contains #{pr_tip_commit}`.split.first.strip
+  end
+end
+
+PullFetcher.new(ARGV).run
