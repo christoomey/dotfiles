@@ -19,7 +19,7 @@
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
 	aa = add --all
   glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
-  getpr = "!sh -c 'git fetch origin pull/$0/head:pr-$0 && git co pr-$0'"
+  getpr = "!sh -c 'git fetch origin pull/$0/head:pr-$0 && git branch --set-upstream pr-$0 origin/pull/$0/head && git co pr-$0'"
   rmdeleted = "!git rm $(git ls-files --deleted)"
   bhist = "!git --no-pager reflog $(git rev-parse --abbrev-ref HEAD)"
   dc = diff --cached
