@@ -1,0 +1,5 @@
+" Command Line
+"------------------------
+
+cnoremap <C-k> <up>
+cnoremap <C-j> <down>
