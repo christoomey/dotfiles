@@ -27,6 +27,7 @@
   ca = commit --amend
   cob = checkout -b
 	df = diff --word-diff
+  rbc = rebase --continue
   rom = remote add origin
   pom = push -u origin master
   rpo = remote prune origin
