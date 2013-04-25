@@ -6,21 +6,9 @@ export ZSH_THEME="cjt" # Zsh theme, loaded from ~/.oh-my-zsh/themese. Set to 'ra
 source $ZSH/oh-my-zsh.sh
 
 export BUNDLER_EDITOR='vim'
-# alias vim=/Applications/MacVim.app/Contents/MacOS/Vim
 
 # Prevent correct of git slog
-alias guard='nocorrect guard'
 alias be='bundle exec'
-
-# automatically pushd
-setopt auto_pushd
-export dirstacksize=10
-alias lsd='dirs -v'
-alias cld='cd +1'
-function csd() { cd +$1 }
-
-# Toggle airport for wifi from the terminal
-airport() { networksetup -setairportpower airport $1 }
 
 ## case-insensitive (all),partial-word and then substring completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
@@ -64,16 +52,9 @@ alias pow=powder
 
 alias ql='qlmanage -p "$@" > /dev/null'
 
-# Growl notify function
-function growl { growlnotify -s "That long running thing is done" -m "Finished!" }
-
 function trash() { mv $1 ~/.Trash }
 
 function mkcd() { mkdir $1 && cd $1 }
-
-function mkrvm() {
-    mkdir $1 && echo "rvm use 1.9.3@$1 --create" > $1/.rvmrc && cd $1
-}
 
 eval "$(hub alias -s)"
 compdef g=hub
@@ -104,16 +85,6 @@ function gitcount {
     echo "  -> Total commits to date: $commit_count"
 }
 
-function gitopen {
-    url=`git remote show origin | grep 'Fetch' | sed 's/.*git:\/\/\(.*\).git$/http:\/\/\1/'`
-    open $url
-}
-
-function gitlag {
-    lag=`git fetch && git log --pretty=oneline master..origin/master | wc -l | awk '{print $1}'`
-    echo "Master branch currently behind by $lag commits"
-}
-
 # Stolen from Gary Bernhardt
 # Use C-x C-e to edit the current command line
 autoload -U edit-command-line
@@ -127,9 +98,6 @@ function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(p
 
 function heroku_url { heroku apps:info -r $1 | grep -i web  | tr -s ' ' | cut -d ' ' -f 3 }
 
-# cjt command -- my grab bag based on https://github.com/37signals/sub
-[[ -f ~/code/cjt/bin/cjt ]] && eval "$(/Users/nation/code/cjt/bin/cjt init -)"
-
 # Convenice aliases
 alias ls="ls -FG"
 alias l="ls -l"
@@ -137,16 +105,6 @@ alias la="ls -la"
 
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
-
-alias jp='python -mjson.tool'
-
-# Markdown preview to html with local css
-function mkd2tmphtml {
-    tempfile="/tmp/$$.html";
-    pandoc $1 -t html -c $HOME/.pandoc-mkd-style.css > $tempfile;
-    open $tempfile;
-    return 0;
-}
 
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"
@@ -173,9 +131,9 @@ function tn {
   fi
   tmux new-session -d -s $session_name -n vim
   if [ -f zeus.json ]; then
-    tmux new-window -t $session_name -n zeus
-    tmux send-keys -t $session_name:2 'zeus start' C-m
-    tmux select-window -t $session_name:1
+    tmux new-window -t $session_name -n zeus 'zeus start' C-m
+    # tmux split-window -t lplive:2.0 -h 'be foreman start web' C-m
+    # tmux select-window -t $session_name:1
   fi
   tmux attach-session -t $session_name
 }
@@ -202,9 +160,3 @@ export PATH=$HOME/local/bin:$PATH:$HOME/bin:/usr/local/mysql/bin:/opt/local/bin:
 [[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm
 
 PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-
-hitch() {
-  command hitch "$@"
-  if [[ -s "$HOME/.hitch_export_authors" ]] ; then source "$HOME/.hitch_export_authors" ; fi
-}
-alias unhitch='hitch -u'
