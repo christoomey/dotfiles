@@ -22,6 +22,7 @@ map <Leader>src :%s//gc<Left><Left><left>
 " fun times.
 nmap <leader>gg :g//normal <C-r>q
 vmap <leader>gg :g//normal <C-r>q
+nmap <leader>gp :g//p<cr>
 
 " Search for selected text, forwards or backwards.
 " http://vim.wikia.com/wiki/Search_for_visually_selected_text
