@@ -13,7 +13,7 @@
 # production open
 # watch production ps
 
-require File.join(File.dirname(__FILE__), 'deployment_environment')
+require File.join(File.dirname(__FILE__), 'heroku_environment')
 
 class Production < DeploymentEnvironment
   def initialize(subcommands)
