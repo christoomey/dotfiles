@@ -61,12 +61,6 @@ nmap <Leader>cd :cd ~/code/
 nmap <Leader>er :e <C-r>=expand("%:p:h")<cr>/
 nmap <leader>sav :sav <C-r>=expand("%:p:h")<cr>/
 
-" Speedy window jumping
-nnoremap <C-j> <C-w>j
-nnoremap <C-h> <C-w>h
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
-
 "Make Y yank to end of line (like D, or C)
 nmap Y y$
 
