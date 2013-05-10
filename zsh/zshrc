@@ -19,9 +19,9 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
 
 # Quick jumping to ~/code & $HOME directories
 c(){cd ~/code/$1;}
-compctl -W ~/code -/ c
+compctl -M 'm:{a-z}={A-Z}' -W ~/code -/ c
 h(){cd ~/$1;}
-compctl -W ~/ -/ h
+compctl -M 'm:{a-z}={A-Z}' -W ~/ -/ h
 
 # List all symlinks in current directory #TODO where do they point?
 lns() { find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }' }
