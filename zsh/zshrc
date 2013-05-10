@@ -7,6 +7,9 @@ source $ZSH/oh-my-zsh.sh
 
 export BUNDLER_EDITOR='vim'
 
+alias vim='mvim -v'
+alias vi='mvim -v'
+
 # Prevent correct of git slog
 alias be='bundle exec'
 
