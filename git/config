@@ -34,7 +34,7 @@
   rpo = remote prune origin
   copysha = "!git rev-parse HEAD | pbcopy"
 [core]
-	editor = /usr/bin/vim
+	editor = mvim -v
 	excludesfile = ~/.gitignore
 [clean]
 	requireForce = false
