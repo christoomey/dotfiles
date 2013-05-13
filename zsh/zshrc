@@ -88,6 +88,9 @@ function gitcount {
     echo "  -> Total commits to date: $commit_count"
 }
 
+alias iphonesim='open /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
+function ipaddress { ifconfig en0 | grep 'inet\s' | awk '{print $2}' }
+
 # Stolen from Gary Bernhardt
 # Use C-x C-e to edit the current command line
 autoload -U edit-command-line
@@ -111,9 +114,6 @@ alias sz='source ~/.zshrc'
 
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"
-
-function pgstart { pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start }
-function pgstop { pg_ctl -D /usr/local/var/postgres stop }
 
 # Tmux aliases
 alias tls="tmux list-sessions"
@@ -140,7 +140,6 @@ function tn {
   fi
   tmux attach-session -t $session_name
 }
-alias stm="script/tmux-rails"
 
 # Some fun with switching the foreground terminal process
 # Use Ctrl-z to freeze current fg process (ie vim), do something else
