@@ -1,5 +1,0 @@
-" AutoComplPop - Automatic popup of completion window
-
-Bundle "vim-scripts/AutoComplPop"
-
-" vim:ft=vim

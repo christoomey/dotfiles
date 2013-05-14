@@ -1,0 +1,7 @@
+" YouCompleteMe - Intelligent completion with fuzzy matching
+
+let g:ycm_dont_warn_on_startup = 0
+
+Bundle 'Valloric/YouCompleteMe'
+
+" vim:ft=vim
