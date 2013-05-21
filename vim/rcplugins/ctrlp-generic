@@ -2,4 +2,18 @@
 
 Bundle "christoomey/ctrlp-generic"
 
+function! s:DirSelect()
+  let cwd_contents = split(system('ls -F'), '\n')
+  let dirs = map(filter(cwd_contents, 'v:val =~ "\/$"'), 'v:val[0:-1]')
+  call CtrlPGeneric(dirs, 'SelectFromDir')
+endfunction
+
+function! SelectFromDir(selected_dir)
+  execute 'CtrlP ' . a:selected_dir
+endfunction
+
+command! CtrlPDirSelect call s:DirSelect()
+
+nmap <leader>cpd :CtrlPDirSelect<cr>
+
 " vim:ft=vim

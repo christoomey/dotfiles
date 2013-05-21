@@ -8,7 +8,7 @@ let g:ctrlp_match_window_reversed = 0
 let g:ctrlp_mruf_default_order = 1
 let g:ctrlp_max_height = 45
 let g:ctrlp_max_files = 300
-let g:ctrlp_max_depth = 10
+let g:ctrlp_max_depth = 99
 let g:ctrlp_prompt_mappings = {
 \ 'MarkToOpen()':         ['<c-z>', '<c-x>'],
 \ 'PrtExit()':            ['<esc>', '<c-c>', '<c-g>', '<C-@>', '<c-space>'],
@@ -20,16 +20,16 @@ function! CtrlpRelativeRoot(path)
     execute join([":CtrlP", rails_root.'/'.a:path])
 endfunction
 
-nnoremap <leader>gj :call CtrlpRelativeRoot("app/assets/javascripts")<cr>
-nnoremap <leader>gv :call CtrlpRelativeRoot("app/views")<cr>
 nnoremap <leader>gc :call CtrlpRelativeRoot("app/controllers")<cr>
-nnoremap <leader>gm :call CtrlpRelativeRoot("app/models")<cr>
+nnoremap <leader>gf :call CtrlpRelativeRoot("features")<cr>
 nnoremap <leader>gj :call CtrlpRelativeRoot("app/assets/javascripts")<cr>
-nnoremap <leader>gy :call CtrlpRelativeRoot("app/assets/stylesheets")<cr>
+nnoremap <leader>gl :call CtrlpRelativeRoot("lib")<cr>
+nnoremap <leader>gm :call CtrlpRelativeRoot("app/models")<cr>
 nnoremap <leader>gs :call CtrlpRelativeRoot("spec")<cr>
 nnoremap <leader>gt :call CtrlpRelativeRoot("app/assets/templates")<cr>
-nnoremap <leader>gl :call CtrlpRelativeRoot("lib")<cr>
+nnoremap <leader>gv :call CtrlpRelativeRoot("app/views")<cr>
 nnoremap <leader>gw :call CtrlpRelativeRoot("app/workers")<cr>
+nnoremap <leader>gy :call CtrlpRelativeRoot("app/assets/stylesheets")<cr>
 
 nnoremap <LEADER>rf :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcfiles<cr>
 nnoremap <LEADER>rp :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcplugins<cr>
