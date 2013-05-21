@@ -82,6 +82,9 @@ nmap k gk
 vnoremap > >gv
 vnoremap < <gv
 
+nnoremap > >>
+nnoremap < <<
+
 " Reselect pasted text. Mnem: 'Get pasted'
 nnoremap gp `[v`]
 
