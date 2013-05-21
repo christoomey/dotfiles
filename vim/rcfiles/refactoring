@@ -3,22 +3,24 @@
 
 " Borrowed from Gary Bernhardt's vimrc
 function! ExtractVariable()
-    echohl String | let name = input("Variable name: ") | echohl None
-    if name == '' | return | endif
+  echohl String | let name = input("Variable name: ") | echohl None
+  if name == '' | return | endif
 
-    " Enter visual mode (input() takes us out of it)
-    normal! gv
+  " Enter visual mode (input() takes us out of it)
+  normal! gv
 
-    " Replace selected text with the variable name
-    exec "normal c" . name
-    " Define the variable on the line above
-    if &ft == "vim"
-        exec "normal! Olet " . name . " = "
-    else
-        exec "normal! O" . name . " = "
-    endif
-    " Paste the original selected text to be the variable value
-    normal! $p
+  " Replace selected text with the variable name
+  exec "normal c" . name
+  " Define the variable on the line above
+  if &ft == "vim"
+    exec "normal! Olet " . name . " = "
+  elseif &ft == 'javascript'
+    exec "normal! Ovar " . name . " = "
+  else
+    exec "normal! O" . name . " = "
+  endif
+  " Paste the original selected text to be the variable value
+  normal! $p
 endfunction
 vnoremap <LEADER>ev :call ExtractVariable()<cr>
 
