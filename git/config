@@ -13,7 +13,7 @@
   mylog = log --graph --abbrev-commit --date=relative --all
   l = "!source ~/.githelpers && pretty_git_log"
   sl = "!git --no-pager log --oneline --decorate --graph -20"
-  sla = "!git --no-pager log --oneline --decorate --all --graph -25"
+  sla = "!git --no-pager log --oneline --decorate --all --graph -35"
   slall = "!git log --oneline --decorate --all --graph"
   unreleased = "!git l production/master..master"
   lnames = "!git --no-pager show --name-only $1"
@@ -26,8 +26,8 @@
   cm = commit -m
   ca = commit --amend
   cob = checkout -b
-	df = diff --word-diff
-  dc = diff --word-diff --cached
+	df = diff --word-diff --color-words
+  dc = diff --word-diff --cached --color-words
   rbc = rebase --continue
   rom = remote add origin
   pom = push -u origin master

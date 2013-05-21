@@ -14,7 +14,7 @@ def remote_url
   if repo_with_owner
     repo_with_owner[1]
   else
-    die 'Unable to determine repo/owner for remote origin'
+    die 'Unable to determine repo/owner for remote origin. Using https?'
   end
 end
 
