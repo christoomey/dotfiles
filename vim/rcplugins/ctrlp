@@ -37,4 +37,6 @@ nnoremap <LEADER>rp :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcplugins<cr>
 nmap <LEADER>rf :CtrlP ~/.vim/rcfiles<cr>
 nmap <LEADER>rp :CtrlP ~/.vim/rcplugins<cr>
 
+nnoremap <leader>cpt :CtrlPTag<cr>
+
 " vim:ft=vim

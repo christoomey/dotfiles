@@ -2,4 +2,7 @@
 
 Bundle "christoomey/magictags"
 
+nnoremap <cr> <c-]>
+nnoremap <bs> <c-t>
+
 " vim:ft=vim

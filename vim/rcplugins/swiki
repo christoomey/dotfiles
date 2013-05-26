@@ -4,4 +4,7 @@ Bundle "christoomey/vim-swiki"
 
 let g:swiki_root = "~/Dropbox/wiki"
 
+nmap <leader>wki :call OpenWikiIndex()<cr>
+nmap <leader>wkc :CtrlP ~/Dropbox/wiki<cr>
+
 " vim:ft=vim

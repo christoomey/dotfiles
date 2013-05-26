@@ -18,4 +18,6 @@ function! AckProject()
     endif
 endfunction
 
+nmap <leader>qc :cclose<cr>
+
 " vim:ft=vim
