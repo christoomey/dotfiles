@@ -1,0 +1,11 @@
+" Vim Rspec - Run specs from within vim
+
+Bundle "thoughtbot/vim-rspec"
+
+let g:rspec_command = "call VtrSendCommand('zeus rspec {spec}')"
+
+map <Leader>ra :call RunCurrentSpecFile()<CR>
+map <Leader>rt :call RunNearestSpec()<CR>
+map <Leader>rl :call RunLastSpec()<CR>
+
+" vim:ft=vim
