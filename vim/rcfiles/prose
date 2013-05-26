@@ -12,6 +12,20 @@ set spellfile=~/.vim/spell/en.utf-8.add
 nnoremap <LEADER>more i<!--more--><ESC>
 nnoremap <leader>gf gqip
 
+function! WrapCurrentWord(format)
+  normal! gv
+  if a:format == 'bold'
+    let wrapping = '**'
+  else
+    let wrapping = '_'
+  endif
+
+  execute 'normal! "ac' . wrapping . 'a' . wrapping
+endfunction
+
+vnoremap <C-b> :call WrapCurrentWord("bold")<cr>
+vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
+
 function! MarkdownMode()
     setl spell              " Enable spell checking
     nnoremap <buffer> <leader>ns ]s
@@ -29,34 +43,22 @@ function! OpenCurrentFileInMarked()
     call system(open_cmd)
 endfunction
 
-function! MarkdownLink(link_text)
-    echohl String
-    let my_link_text = (a:link_text == "") ? input("Link text: ") : a:link_text
-    let url = input("URL: ")
-
-    " Create the link at the current position
-    exec "normal i" . "[" . my_link_text . "][]"
-    " Set a mark for the current position
-    exec "normal mu"
-    " Append the link url definition to the bottom of the document
-    exec "normal Go" . "[" . my_link_text . "]: " . url
-    " Return to the location of the mark
-    exec "normal `u"
-endfunction
-
-function! VisualMarkdownLink()
+" Create a markdown formatted link with the visually selected word as the
+" anchor text. If auto_link == 1, then use the current item in the system
+" clipboard, else prompt for the URL
+function! ConvertVisualSelectionToLink(auto_link)
     normal! gv
-    normal "ud
-    let linkText = @u
-    call MarkdownLink(linkText)
+    if a:auto_link
+      normal! "lc[l](=system('pbpaste'))
+    else
+      let url = input("URL: ")
+      if url != ''
+        execute 'normal! "lc[l](' . url . ')'
+      endif
+    endif
 endfunction
 
-function! WordToMarkdownLink()
-    normal viw
-    call VisualMarkdownLink()
-endfunction
-
-vnoremap <C-k> :call VisualMarkdownLink()<cr>
-inoremap <C-k> <C-o>:call VisualMarkdownLink()<cr>
+" vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
+vnoremap <C-k> :call ConvertVisualSelectionToLink(0)<cr>
 
 " vim:ft=vim
