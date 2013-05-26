@@ -3,8 +3,11 @@
 "
 " For some reason Vim no longer wants to talk to the OS X pasteboard through *
 function! g:CopyVisualText()
-    normal! gv
-    silent '<,'>w !pbcopy
+  let cur_register_contents = @c
+  normal! gv
+  normal! "cy
+  normal! gv
+  silent call system('pbcopy', @c)
 endfunction
 
 vnoremap <leader>cp :<c-u>call g:CopyVisualText()<cr>
@@ -15,6 +18,5 @@ function! CopyEntireFile()
     normal mmggVG,cp`m
     echohl String | echon "Buffer contents copied!" | echohl None
 endfunction
-
 
 " vim:ft=vim
