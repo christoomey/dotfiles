@@ -1,0 +1,37 @@
+#!/bin/bash
+# from https://gist.github.com/SlexAxton/4989674
+
+gifify() {
+  if [[ -n "$1" ]]; then
+    if [[ $2 == '--good' ]]; then
+      ffmpeg -i $1 -r 10 -vcodec png out-static-%05d.png
+      time convert -verbose +dither -layers Optimize -resize 600x600\> out-static*.png  GIF:- | gifsicle --colors 128 --delay=5 --loop --optimize=3 --multifile - > $1.gif
+      rm out-static*.png
+    else
+      ffmpeg -i $1 -s 600x400 -pix_fmt rgb24 -r 10 -f gif - | gifsicle --optimize=3 --delay=3 > $1.gif
+    fi
+  else
+    echo "proper usage: gifify <input_movie.mov>. You DO need to include extension."
+  fi
+}
+
+install_osx() {
+  brew install ffmpeg
+  brew tap phinze/homebrew-cask
+  brew install brew-cask
+  brew cask install x-quartz
+  open /usr/local/Cellar/x-quartz/2.7.4/XQuartz.pkg
+  # click through the stuff
+  brew install gifsicle
+  brew install imagemagick
+  
+  # I had a weird problem with Convert/imagemagick where I had to do:
+  # ln -s /usr/local/Cellar/libtool/2.4.2/lib/libltdl.7.dylib libltdl.7.dylib
+}
+
+case "$*" in
+  --install) install_osx ;;
+          *) gifify ;;
+esac
+
+# vim: ft=sh
