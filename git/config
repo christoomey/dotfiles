@@ -9,11 +9,12 @@
 	unchange = checkout --
   b = branch
   co = checkout
+  cb = checkout -b
   master = checkout master
   mylog = log --graph --abbrev-commit --date=relative --all
   l = "!source ~/.githelpers && pretty_git_log"
   sl = "!git --no-pager log --oneline --decorate --graph -20"
-  sla = "!git --no-pager log --oneline --decorate --all --graph -35"
+  sla = "!git --no-pager log --oneline --decorate --all --graph -30"
   slall = "!git log --oneline --decorate --all --graph"
   unreleased = "!git l production/master..master"
   lnames = "!git --no-pager show --name-only $1"
