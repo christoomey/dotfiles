@@ -104,6 +104,9 @@ alias la="ls -la"
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
 
+# Load .env file into shell session for config vars
+function envup { export `cat .env` }
+
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"
 
