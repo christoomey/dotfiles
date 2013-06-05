@@ -2,7 +2,7 @@
 
 Bundle "christoomey/magictags"
 
-nnoremap <cr> <c-]>
-nnoremap <bs> <c-t>
+au FileType ruby nnoremap <buffer> <cr> <c-]>
+au FileType ruby nnoremap <buffer> <bs> <c-t>
 
 " vim:ft=vim
