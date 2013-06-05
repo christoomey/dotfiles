@@ -4,6 +4,7 @@
 "Enable indent folding
 set foldenable
 set foldmethod=indent
+set foldlevel=999
 
 " Quick fold to level 1, especially useful for Coffeescript class files
 nmap <LEADER>fld :set foldlevel=1<cr>

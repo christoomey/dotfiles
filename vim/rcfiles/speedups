@@ -70,10 +70,6 @@ nnoremap 0 ^
 " Quickly open a second window to view files side by side
 nmap <LEADER>vn :vnew<CR><C-w>=
 
-" Thesaurus lookup for the |word| under the cursor
-nnoremap <LEADER>th :silent !open
-    \ http://thesaurus.com/browse/<cword><CR>
-
 " Move one line at a time, aka 'fine ajdustment'
 nmap j gj
 nmap k gk

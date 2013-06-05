@@ -16,7 +16,7 @@ imap <C-l> <space>=><space>
 " Convert 1.8 hash syntax to 1.9 syntax
 nmap <leader>19 :%s/:\([^ ]*\)\(\s*\)=>/\1:/gc<cr>
 
-nmap <leader>rdb ccrequire 'pry'; binding.pry
+nmap <leader>pry ccrequire 'pry'; binding.pry
 
 
 " vim:ft=vim
