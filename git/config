@@ -27,6 +27,8 @@
   cm = commit -m
   ca = commit --amend
   cob = checkout -b
+  ps = push
+  pl = pull
 	df = diff --word-diff --color-words
   dc = diff --word-diff --cached --color-words
   rbc = rebase --continue
