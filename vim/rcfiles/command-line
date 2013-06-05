@@ -3,3 +3,9 @@
 
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
+
+cnoremap <C-h> ~/
+
+cnoremap %% <C-R>=expand('%:h').'/'<cr>
+
+" vim:ft=vim
