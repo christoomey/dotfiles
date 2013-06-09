@@ -1,6 +1,6 @@
 " MagicTags - Automatically create and update tags files in rails projects
 
-Bundle "christoomey/magictags"
+Bundle "thoughtbot/vim-magictags"
 
 au FileType ruby nnoremap <buffer> <cr> <c-]>
 au FileType ruby nnoremap <buffer> <bs> <c-t>
