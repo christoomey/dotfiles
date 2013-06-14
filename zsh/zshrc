@@ -51,15 +51,13 @@ function trash() { mv $1 ~/.Trash }
 
 function mkcd() { mkdir $1 && cd $1 }
 
-eval "$(hub alias -s)"
-compdef g=hub
-[[ -s $HOME/.hub.zsh_completion ]] && source $HOME/.hub.zsh_completion
+compdef g=git
 function g {
-    if [[ $# > 0 ]]; then
-        git $@
-    else
-        git status --short --branch
-    fi
+  if [[ $# > 0 ]]; then
+    git $@
+  else
+    git status --short --branch
+  fi
 }
 
 function current_branch() {
@@ -103,6 +101,8 @@ alias la="ls -la"
 
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
+
+export OPSCODE_USER=christoomey
 
 # Load .env file into shell session for config vars
 function envup { export `cat .env` }
