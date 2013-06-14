@@ -24,6 +24,8 @@
   npr = 'pull-request'
   rmdeleted = "!git rm $(git ls-files --deleted)"
   bhist = "!git --no-pager reflog $(git rev-parse --abbrev-ref HEAD)"
+  compare = "!hub compare"
+  browse = "!hub browse"
   cm = commit -m
   ca = commit --amend
   cob = checkout -b
