@@ -16,5 +16,6 @@ nnoremap <leader>rs :VtrSendCommandToRunner rake<cr>
 nmap <leader>osr :VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>
 
 nnoremap <leader>sd :VtrSendCtrlD<cr>
+nnoremap <leader>sf :VtrSendCommandToRunner ruby =expand('%')<cr><cr>
 
 " vim:ft=vim
