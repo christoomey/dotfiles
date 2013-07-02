@@ -11,3 +11,5 @@ zeus_custom.rb
 *.pyc
 
 .vagrant
+
+.env
