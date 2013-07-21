@@ -1,12 +1,12 @@
 [color]
-	branch = auto
-	diff = auto
-	interactive = auto
-	status = auto
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
 [alias]
-	st = status -sb
-	unstage = reset
-	unchange = checkout --
+  st = status -sb
+  unstage = reset
+  unchange = checkout --
   b = branch
   co = checkout
   cb = checkout -b
@@ -19,7 +19,7 @@
   unreleased = "!git l production/master..master"
   lnames = "!git --no-pager show --name-only $1"
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
-	aa = add --all
+  aa = add --all
   glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
   npr = 'pull-request'
   rmdeleted = "!git rm $(git ls-files --deleted)"
@@ -33,7 +33,7 @@
   pl = pull
   plr = pull --rebase
   ri = rebase -i
-	df = diff --word-diff --color-words
+  df = diff --word-diff --color-words
   dc = diff --word-diff --cached --color-words
   rbc = rebase --continue
   rom = remote add origin
@@ -41,10 +41,10 @@
   rpo = remote prune origin
   copysha = "!git rev-parse HEAD | pbcopy"
 [core]
-	editor = mvim -v
-	excludesfile = ~/.gitignore
+  editor = mvim -v
+  excludesfile = ~/.gitignore
 [clean]
-	requireForce = false
+  requireForce = false
 [url "git@heroku.com:"]
   # $ git remote add heroku:sushi.git
   insteadOf = heroku:
@@ -55,9 +55,9 @@
   # With write access
   insteadOf = wgh:
 [user]
-	name = Chris Toomey
-	email = chris@ctoomey.com
+  name = Chris Toomey
+  email = chris@ctoomey.com
 [push]
-	default = upstream
+  default = upstream
 [merge]
   ff = only
