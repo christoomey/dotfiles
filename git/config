@@ -9,20 +9,13 @@
   bhist = "!git --no-pager reflog $(git rev-parse --abbrev-ref HEAD)"
   browse = "!hub browse"
   ca = commit --amend
-  cb = checkout -b
   cm = commit -m
-  co = checkout
-  cob = checkout -b
   compare = "!hub compare"
   copysha = "!git rev-parse HEAD | pbcopy"
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
-  glog = log --all -15 --graph --pretty=oneline --abbrev-commit --decorate
-  l = "!source ~/.githelpers && pretty_git_log"
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
-  mylog = log --graph --abbrev-commit --date=relative --all
-  npr = 'pull-request'
   pl = pull
   plr = pull --rebase
   pom = push -u origin master
