@@ -2,4 +2,6 @@
 
 Bundle "nelstrom/vim-markdown-folding"
 
+let g:markdown_fold_style = 'nested'
+
 " vim:ft=vim

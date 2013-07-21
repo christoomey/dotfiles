@@ -2,6 +2,9 @@
 
 Bundle "kien/ctrlp.vim"
 
+" Make CtrlP use ag for listing the files. Way faster and no useless files.
+let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
 let g:ctrlp_match_window_bottom = 0
 let g:ctrlp_working_path_mode = 'r'
 let g:ctrlp_match_window_reversed = 0
@@ -31,12 +34,10 @@ nnoremap <leader>gv :call CtrlpRelativeRoot("app/views")<cr>
 nnoremap <leader>gw :call CtrlpRelativeRoot("app/workers")<cr>
 nnoremap <leader>gy :call CtrlpRelativeRoot("app/assets/stylesheets")<cr>
 
-nnoremap <LEADER>rf :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcfiles<cr>
-nnoremap <LEADER>rp :CtrlP C:\Users\toomeych\code\dotfiles\vim\rcplugins<cr>
-
 nmap <LEADER>rf :CtrlP ~/.vim/rcfiles<cr>
 nmap <LEADER>rp :CtrlP ~/.vim/rcplugins<cr>
 
 nnoremap <leader>cpt :CtrlPTag<cr>
+nnoremap <leader>cpl :CtrlP =expand('%:p:h')<cr><cr>
 
 " vim:ft=vim

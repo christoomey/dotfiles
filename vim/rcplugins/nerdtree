@@ -2,7 +2,8 @@
 
 Bundle "scrooloose/nerdtree"
 
-nnoremap <LEADER>nt :NERDTreeToggle<CR>
+nnoremap <LEADER>ntt :NERDTreeToggle<cr>
+nnoremap <LEADER>ntl :NERDTreeToggle =expand('%:p:h')<cr><cr>
 " TODO remap the keys for better motion in the tree (space=>fold)
 
 " vim:ft=vim

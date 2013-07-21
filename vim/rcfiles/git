@@ -24,28 +24,4 @@ function! CD_Git_Root()
 endfunction
 nnoremap <LEADER>gr :call CD_Git_Root()<cr>
 
-" Define the wildignore from gitignore. Primarily for CommandT
-function! WildignoreFromGitignore()
-    silent call CD_Git_Root()
-    let gitignore = '.gitignore'
-    if filereadable(gitignore)
-        let igstring = ''
-        for oline in readfile(gitignore)
-            let line = substitute(oline, '\s|\n|\r', '', "g")
-            if line =~ '^#' | con | endif
-            if line == '' | con  | endif
-            if line =~ '^!' | con  | endif
-            if line =~ '/$' | let igstring .= "," . line . "*" | con | endif
-            let igstring .= "," . line
-        endfor
-        let execstring = "set wildignore=".substitute(igstring,'^,','',"g")
-        execute execstring
-        echo 'Wildignore defined from gitignore in: '.getcwd()
-    else
-        echo 'Unable to find gitignore'
-    endif
-endfunction
-nnoremap <LEADER>cti :call WildignoreFromGitignore()<cr>
-nnoremap <LEADER>cwi :set wildignore=''<cr>:echo 'Wildignore cleared'<cr>
-
 " vim:ft=vim

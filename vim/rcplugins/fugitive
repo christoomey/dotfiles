@@ -3,8 +3,16 @@
 Bundle "tpope/vim-fugitive"
 
 nmap <LEADER>st :only<CR>:Gstatus<CR>
-nmap <LEADER>df :Gdiff<CR>
-nmap <LEADER>git :Git<space>
+nmap <LEADER>df :GitDiff<cr>
+nmap <LEADER>gb :Gblame<CR>
+
+function! s:GitDiff()
+  nmap <leader>nd ]s
+  nmap <leader>dp :diffput 1<cr>
+  Gdiff
+endfunction
+
+command! GitDiff call s:GitDiff()
 
 autocmd FileType gitcommit setl spell
 

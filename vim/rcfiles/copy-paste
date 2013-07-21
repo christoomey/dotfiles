@@ -11,6 +11,7 @@ function! g:CopyVisualText()
 endfunction
 
 vnoremap <leader>cp :<c-u>call g:CopyVisualText()<cr>
+nnoremap <leader>cw mmviw:<c-u>call g:CopyVisualText()<cr><esc>`m
 nnoremap <leader>p :r!pbpaste<cr>
 nnoremap <leader>ca :call CopyEntireFile()<cr>
 

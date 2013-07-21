@@ -5,4 +5,6 @@ for tab_number in [1,2,3]
   execute 'map <silent> <C-w>' . tab_number . ' :tabnext ' . tab_number . '<cr>'
 endfor
 
+nnoremap <C-w>n :tabnew<cr>
+
 " vim:ft=vim

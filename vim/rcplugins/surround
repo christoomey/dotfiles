@@ -46,6 +46,6 @@ function! s:RestoreCursorLocation()
     execute "normal `m"
 endfunction
 
-nmap <leader>cs :call SurroundRequote()<cr>
+nmap <leader>c' :call SurroundRequote()<cr>
 
 " vim:ft=vim

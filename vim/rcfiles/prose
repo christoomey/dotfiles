@@ -26,15 +26,27 @@ endfunction
 vnoremap <C-b> :call WrapCurrentWord("bold")<cr>
 vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
 
+function! CodeBlock()
+  let language = input('Language: ')
+  execute 'normal! i``` ' . language
+  execute 'normal! o```'
+  normal O
+  startinsert
+endfunction
+nnoremap <silent><leader>cb :call CodeBlock()<cr>
+
 function! MarkdownMode()
-    setl spell              " Enable spell checking
-    nnoremap <buffer> <leader>ns ]s
-    nnoremap <buffer> <leader>sp ea<C-x><C-s>
-    nnoremap <buffer> <LEADER>more i<!--more--><ESC>
-    nnoremap <buffer> <leader>gf gqip
-    nnoremap <buffer> <leader>mkd :call OpenCurrentFileInMarked()<cr>
-    nnoremap <buffer> <leader>bld mm"bciw**b**<esc>`m2l
-    nnoremap <buffer> <leader>em mm"bciw*b*<esc>`m2l
+  setlocal spell              " Enable spell checking
+  setlocal foldlevel=1
+  nnoremap <buffer> <leader>ns ]s
+  nnoremap <buffer> <leader>sp ea<C-x><C-s>
+  nnoremap <buffer> <LEADER>more i<!--more--><ESC>
+  nnoremap <buffer> <leader>gf gqip
+  nnoremap <buffer> <leader>md :call OpenCurrentFileInMarked()<cr>
+  nnoremap <buffer> <leader>bld mm"bciw**b**<esc>`m2l
+  nnoremap <buffer> <leader>em mm"bciw*b*<esc>`m2l
+  nnoremap <buffer> <leader>u1 yypVr=o<cr><esc>
+  nnoremap <buffer> <leader>u2 yypVr-o<cr><esc>
 endfunction
 
 function! OpenCurrentFileInMarked()
@@ -49,16 +61,18 @@ endfunction
 function! ConvertVisualSelectionToLink(auto_link)
     normal! gv
     if a:auto_link
-      normal! "lc[l](=system('pbpaste'))
+      let url = system('pbpaste')
     else
       let url = input("URL: ")
-      if url != ''
-        execute 'normal! "lc[l](' . url . ')'
-      endif
+    endif
+    if url != ''
+      " execute 'normal! "lc[l](' . url . ')'
+      execute 'normal! "lc[l][]'
+      execute 'normal! mmGo[l]: ' . url . '`m'
     endif
 endfunction
 
-" vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
-vnoremap <C-k> :call ConvertVisualSelectionToLink(0)<cr>
+vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
+" vnoremap <C-k> :call ConvertVisualSelectionToLink(0)<cr>
 
 " vim:ft=vim

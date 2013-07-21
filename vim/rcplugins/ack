@@ -20,4 +20,6 @@ endfunction
 
 nmap <leader>qc :cclose<cr>
 
+let g:ackprg = 'ag --nogroup --nocolor --column'
+
 " vim:ft=vim
