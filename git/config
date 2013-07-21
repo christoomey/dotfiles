@@ -31,6 +31,8 @@
   cob = checkout -b
   ps = push
   pl = pull
+  plr = pull --rebase
+  ri = rebase -i
 	df = diff --word-diff --color-words
   dc = diff --word-diff --cached --color-words
   rbc = rebase --continue
