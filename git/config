@@ -10,6 +10,7 @@
   browse = "!hub browse"
   ca = commit --amend
   cm = commit -m
+  co = checkout
   compare = "!hub compare"
   copysha = "!git rev-parse HEAD | pbcopy"
   dc = diff --word-diff --cached --color-words
