@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+def main
+  versions = bundle_paths.map { |path| bundle_descriptor path }
+  write_versions_file versions
+end
+
+def write_versions_file(versions)
+  path = File.expand_path('~/.vim/bundle-versions.txt')
+  open(path, 'w') { |file| file.write(versions.join("\n")) }
+end
+
+def bundle_descriptor(path)
+  Dir.chdir(path) do
+    sha = `git --no-pager log --pretty=format:'%H %ad %d' --abbrev-commit --date=short -1`
+    bundle = path.split('/').last.ljust(40)
+    bundle + sha
+  end
+end
+
+def bundle_paths
+  bundles_path = File.expand_path('~/.vim/bundles')
+  Dir[File.join(bundles_path, '*')]
+end
+
+main
