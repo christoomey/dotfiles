@@ -85,12 +85,6 @@ function gitcount {
 alias iphonesim='open /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
 function ipaddress { ifconfig en0 | grep 'inet\s' | awk '{print $2}' }
 
-# Stolen from Gary Bernhardt
-# Use C-x C-e to edit the current command line
-autoload -U edit-command-line
-zle -N edit-command-line
-bindkey '\C-y' edit-command-line
-
 function ackjs { ack $1 --js app/assets/javascripts }
 function ackvim { ack $1 -a ~/code/dotfiles/vim/vimrc ~/code/dotfiles/vim/rcplugins/ ~/code/dotfiles/vim/rcfiles/ }
 
