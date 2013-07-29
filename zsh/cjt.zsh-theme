@@ -32,17 +32,6 @@ ZSH_THEME_GIT_PROMPT_AHEAD=" %{$RED%}(!)"
 ZSH_THEME_GIT_PROMPT_SHA_BEFORE=" %{$WHITE%}[%{$YELLOW%}"
 ZSH_THEME_GIT_PROMPT_SHA_AFTER="%{$WHITE%}]"
 
-
-# Show job count for backgrounded jobs
-function jobbies() {
-    job_count=$#jobstates
-    if [ $job_count -gt "0" ]; then
-        echo ${job_count}
-    else
-        echo ""
-    fi
-}
-
 # Only display host if this is via SSH
 if [[ -n $SSH_CONNECTION ]]; then
     sshing="%n@%m"
@@ -51,7 +40,7 @@ else
 fi
 
 PROMPT='
-%{$GREEN_BOLD%}$sshing%{$WHITE%} %{$YELLOW%}${PWD/#$HOME/~}%{$RESET_COLOR%}$(jobbies) \
+%{$GREEN_BOLD%}$sshing%{$WHITE%} %{$YELLOW%}${PWD/#$HOME/~}%{$RESET_COLOR%} \
 %{$GREEN%}$(current_branch)$(git_prompt_short_sha)$(parse_git_dirty)%{$RESET_COLOR%}
-%{$BLUE%}>%{$RESET_COLOR%} '
+%(?.%{$fg[green]%}.%{$fg[red]%})%B$%b '
 RPROMPT='[%{$GREEN%}$(rvm-prompt v g)%{$WHITE%}]'
