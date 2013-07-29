@@ -15,30 +15,25 @@
 " Want to set this before any others
 let mapleader = ","
 
-" Setup the vim configuration directory path, ie ~/.vim, C:\...\vimfiles
-if has('win16') || has('win32') || has('win64')
-    let my_vim_dir = $USERPROFILE . "/.vim"
-    let my_vimrc = $VIM . "/_vimrc"
-else
-    let my_vim_dir = $HOME . "/.vim"
-    let my_vimrc = $HOME . "/.vimrc"
-endif
-
+function! s:SourceConfigFilesIn(directory)
+  let directory_splat = '~/.vim/' . a:directory . '/*'
+  for config_file in split(glob(directory_splat), '\n')
+    if filereadable(config_file)
+        execute 'source' config_file
+    endif
+  endfor
+endfunction
 
 " Setup Vundle to manage my bundles
 "-----------------------------------
 filetype off " required!
-execute "set rtp+=" . my_vim_dir . "/bundles/vundle/"
-call vundle#rc(my_vim_dir . "/bundles/")
+set rtp+=~/.vim/bundles/vundle/
+call vundle#rc("~/.vim/bundles/")
 
 
 " Plugins are each listed in their own file. Loop and source ftw
 "----------------------------------------------------------------
-for rcplugin in split(glob(my_vim_dir . '/rcplugins/*'), '\n')
-    if filereadable(rcplugin)
-        execute 'source' rcplugin
-    endif
-endfor
+call s:SourceConfigFilesIn('rcplugins')
 
 
 filetype plugin indent on " required!
@@ -47,8 +42,4 @@ syntax on
 
 " Vimrc is split accross multiple files, so loop over and source each
 "---------------------------------------------------------------------
-for rcfile in split(glob(my_vim_dir . '/rcfiles/*'), '\n')
-    if filereadable(rcfile)
-        execute 'source' rcfile
-    endif
-endfor
+call s:SourceConfigFilesIn('rcfiles')
