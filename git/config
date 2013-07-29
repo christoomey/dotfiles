@@ -26,9 +26,10 @@
   rmdeleted = "!git rm $(git ls-files --deleted)"
   rom = remote add origin
   rpo = remote prune origin
+  si = status --ignored
   sl = "!git --no-pager log --oneline --decorate --graph -20"
   sla = "!git --no-pager log --oneline --decorate --all --graph -30"
-  slall = "!git log --oneline --decorate --all --graph"
+  slap = "log --oneline --decorate --all --graph"
   st = status -sb
   unchange = checkout --
   unreleased = "!git l production/master..master"
