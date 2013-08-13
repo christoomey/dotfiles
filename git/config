@@ -9,6 +9,7 @@
   bhist = "!git --no-pager reflog $(git rev-parse --abbrev-ref HEAD)"
   browse = "!hub browse"
   ca = commit --amend
+  car = commit --amend --no-edit
   cm = commit -m
   co = checkout
   compare = "!hub compare"
@@ -23,6 +24,8 @@
   ps = push
   rbc = rebase --continue
   ri = rebase -i
+  rid = rebase -i dev
+  rim = rebase -i master
   rmdeleted = "!git rm $(git ls-files --deleted)"
   rom = remote add origin
   rpo = remote prune origin
