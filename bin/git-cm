@@ -6,5 +6,5 @@
 if [[ $# > 0 ]]; then
     git commit -m "$@"
 else
-    git commit
+    git commit -v
 fi
