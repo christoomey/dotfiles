@@ -6,6 +6,7 @@ let g:VtrUseVtrMaps = 1
 let g:VtrGitCdUpOnOpen = 0
 let g:VtrPercentage = 30
 
+nnoremap <leader>va :VtrAttachToPane<cr>
 nmap <leader>fs :VtrFlushCommand<cr>:VtrSendCommandToRunner<cr>
 nmap <C-f> :VtrSendLineToRunner<cr>
 vmap <C-f> <Esc>:VtrSendSelectedToRunner<cr>
@@ -16,7 +17,7 @@ nnoremap <leader>rs :VtrSendCommandToRunner rake<cr>
 nmap <leader>osr :VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>
 
 nnoremap <leader>sd :VtrSendCtrlD<cr>
-nnoremap <leader>sq :VtrSendCommandToRunner q<cr>
+nnoremap <leader>q :VtrSendCommandToRunner q<cr>
 nnoremap <leader>sf :VtrSendCommandToRunner ruby =expand('%')<cr><cr>
 
 " vim:ft=vim
