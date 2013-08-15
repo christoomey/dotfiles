@@ -8,6 +8,8 @@ class DeploymentEnvironment
 
   def run
     case @subcommand
+    when nil
+      system "heroku run console --remote #{@environment}"
     when 'backup'
       system "heroku pgbackups:capture --expire --remote #{@environment}"
     when 'console'
@@ -19,6 +21,8 @@ class DeploymentEnvironment
       }
     when 'tail'
       system "heroku logs --tail --remote #{@environment}"
+    when 'lv'
+      system "heroku addons:open papertrail --remote #{@environment}"
     when 'url'
       system "heroku apps:info -r #{@environment} | grep -i web  | tr -s ' ' | cut -d ' ' -f 3"
     when 'deploy'
