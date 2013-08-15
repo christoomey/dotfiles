@@ -39,10 +39,29 @@ function rake() {
   fi
 }
 
-alias zs="zeus start"
-alias zc="zeus console"
+function z {
+  if [[ $# > 0 ]]; then
+    zeus $@
+  else
+    if [ -S .zeus.sock ]; then
+      zeus console
+    else
+      zeus start
+    fi
+  fi
+}
+# alias zc="zeus console"
+# alias zr="zeus rake"
 
-function dash(){open dash://"$@"}
+function rsup() {
+  app_name=$(basename `pwd`)
+  port=`cat ~/.pow/$app_name 2> /dev/null`
+  if [[ -n $port ]]; then
+    bundle exec rails s -p $port
+  else
+    bundle exec rails s
+  fi
+}
 
 # Serve the current directory. Pass in a port, or use default 8000
 function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
