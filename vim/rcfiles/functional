@@ -1,0 +1,43 @@
+" Functional vimscript helpers
+"-----------------------------
+"
+" Taken from http://learnvimscriptthehardway.stevelosh.com/chapters/39.html
+
+function! Sorted(l)
+    let new_list = deepcopy(a:l)
+    call sort(new_list)
+    return new_list
+endfunction
+
+function! Reversed(l)
+    let new_list = deepcopy(a:l)
+    call reverse(new_list)
+    return new_list
+endfunction
+
+function! Append(l, val)
+    let new_list = deepcopy(a:l)
+    call add(new_list, a:val)
+    return new_list
+endfunction
+
+function! Assoc(l, i, val)
+    let new_list = deepcopy(a:l)
+    let new_list[a:i] = a:val
+    return new_list
+endfunction
+
+function! Pop(l, i)
+    let new_list = deepcopy(a:l)
+    call remove(new_list, a:i)
+    return new_list
+endfunction
+
+function! Mapped(list, fn)
+    let new_list = deepcopy(a:list)
+    let FuncRef = function(a:fn)
+    call map(new_list, string(FuncRef) . '(v:val)')
+    return new_list
+endfunction
+
+" vim:ft=vim
