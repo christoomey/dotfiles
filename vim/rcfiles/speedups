@@ -74,13 +74,6 @@ nmap <LEADER>vn :vnew<CR><C-w>=
 nmap j gj
 nmap k gk
 
-" Better visual indentation control (reslect region after shift)
-vnoremap > >gv
-vnoremap < <gv
-
-nnoremap > >>
-nnoremap < <<
-
 " Reselect pasted text. Mnem: 'Get pasted'
 nnoremap gp `[v`]
 
