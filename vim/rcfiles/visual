@@ -57,18 +57,12 @@ endif
 " Version 7.3 of the vim, with things like margins
 if version >= 703
     " Add a margin on the left to highlight past 80+
-    set colorcolumn=80
+    set colorcolumn=81
     " hi ColorColumn ctermbg=lightgrey guibg=#5C5558
 endif
 
 set vb
 
-" Shift +/- directly to resize a window
-nnoremap _ 10<C-w><
-nnoremap + 10<C-w>>
-" Use +/- directly to resize a window
-nnoremap - 4<C-w>-
-nnoremap = 4<C-w>+
 " Easy access to maximizing
 nnoremap <C-_> <C-w>_
 

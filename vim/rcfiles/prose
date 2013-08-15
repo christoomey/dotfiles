@@ -40,6 +40,7 @@ function! MarkdownMode()
   setlocal foldlevel=1
   nnoremap <buffer> <leader>ns ]s
   nnoremap <buffer> <leader>sp ea<C-x><C-s>
+  nnoremap <buffer> <leader>sf mm[s1z=`m
   nnoremap <buffer> <LEADER>more i<!--more--><ESC>
   nnoremap <buffer> <leader>gf gqip
   nnoremap <buffer> <leader>md :call OpenCurrentFileInMarked()<cr>
