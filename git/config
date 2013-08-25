@@ -16,8 +16,10 @@
   copysha = "!git rev-parse HEAD | pbcopy"
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
+  dup = "!git checkout dev && git pull && git checkout -"
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
+  mup = "!git checkout master && git pull && git checkout -"
   pl = pull
   plr = pull --rebase
   pom = push -u origin master
@@ -26,6 +28,8 @@
   ri = rebase -i
   rid = rebase -i dev
   rim = rebase -i master
+  rod = rebase dev
+  rom = rebase master
   rmdeleted = "!git rm $(git ls-files --deleted)"
   rom = remote add origin
   rpo = remote prune origin
