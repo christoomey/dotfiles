@@ -63,5 +63,3 @@
   default = upstream
 [merge]
   ff = only
-[help]
-  autocorrect = 1
