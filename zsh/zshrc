@@ -124,7 +124,13 @@ alias sz='source ~/.zshrc'
 export OPSCODE_USER=christoomey
 
 # Load .env file into shell session for config vars
-function envup { export `cat .env` }
+function envup {
+  if [ -f .env ]; then
+    export `cat .env`
+  else
+    return 1
+  fi
+}
 
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"

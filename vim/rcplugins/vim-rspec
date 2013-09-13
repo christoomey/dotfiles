@@ -3,6 +3,7 @@
 Bundle "thoughtbot/vim-rspec"
 
 let g:rspec_command = "call VtrSendCommand('zeus rspec {spec}')"
+" let g:rspec_command = "call VtrSendCommand('rspec {spec}')"
 
 map <Leader>ra :call RunCurrentSpecFile()<CR>
 map <Leader>t :call RunNearestSpec()<CR>
