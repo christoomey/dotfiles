@@ -36,8 +36,11 @@ endfunction
 nnoremap <silent><leader>cb :call CodeBlock()<cr>
 
 function! MarkdownMode()
-  setlocal spell              " Enable spell checking
-  setlocal foldlevel=1
+  " setlocal spell        " Enable spell checking
+  setlocal foldlevel=1  " Start with top heading open, other levels folded
+  setlocal wrap         " Soft wrap lines that hit the edge
+  setlocal linebreak    " Use word boundaries to break lines
+  setlocal textwidth=0  " Do not hard wrap
   nnoremap <buffer> <leader>ns ]s
   nnoremap <buffer> <leader>sp ea<C-x><C-s>
   nnoremap <buffer> <leader>sf mm[s1z=`m
@@ -46,8 +49,10 @@ function! MarkdownMode()
   nnoremap <buffer> <leader>md :call OpenCurrentFileInMarked()<cr>
   nnoremap <buffer> <leader>bld mm"bciw**b**<esc>`m2l
   nnoremap <buffer> <leader>em mm"bciw*b*<esc>`m2l
-  nnoremap <buffer> <leader>u1 yypVr=o<cr><esc>
-  nnoremap <buffer> <leader>u2 yypVr-o<cr><esc>
+  " Heading / underline funcitons
+  nnoremap <buffer> <leader>u1 mmyypVr=`m<cr><esc>
+  nnoremap <buffer> <leader>u2 mmyypVr-`m<cr><esc>
+  nnoremap <buffer> <leader>u3 mm0i### <esc>`m4l
 endfunction
 
 function! OpenCurrentFileInMarked()
@@ -72,6 +77,14 @@ function! ConvertVisualSelectionToLink(auto_link)
       execute 'normal! mmGo[l]: ' . url . '`m'
     endif
 endfunction
+
+function! s:TitleCaseCurrentLine()
+  normal mm
+  s/\<\(\w\)\(\w*\)\>/\u\1\L\2/g
+  normal `m
+endfunction
+command! TitleCaseCurrentLine call s:TitleCaseCurrentLine()
+nmap gt :TitleCaseCurrentLine<cr>
 
 vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
 " vnoremap <C-k> :call ConvertVisualSelectionToLink(0)<cr>
