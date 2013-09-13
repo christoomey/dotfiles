@@ -15,6 +15,7 @@ imap <C-l> <space>=><space>
 
 " Convert 1.8 hash syntax to 1.9 syntax
 nmap <leader>19 :%s/:\([^ ]*\)\(\s*\)=>/\1:/gc<cr>
+nmap <leader>18 :%s/\(\w\+\):\s/:\1 => /gc<cr>
 
 nmap <leader>bp orequire 'pry'; binding.pry<esc>^
 
