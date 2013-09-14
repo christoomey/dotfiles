@@ -1,7 +1,0 @@
-" KWBDI - Kills the current buffer, but maintains the window layout
-
-Bundle "vim-scripts/kwbdi.vim"
-
-" Uses <LEADER>bd to dump buffer w/o closing window
-
-" vim:ft=vim

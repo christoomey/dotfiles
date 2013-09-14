@@ -1,0 +1,7 @@
+" KWBD - Close buffer while preserving window layout
+
+Bundle "rgarver/Kwbd.vim"
+
+nnoremap <leader>bd :Kwbd<cr>
+
+" vim:ft=vim
