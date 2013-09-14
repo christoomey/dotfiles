@@ -16,4 +16,23 @@ command! GitDiff call s:GitDiff()
 autocmd FileType gitcommit setl spell
 autocmd BufRead,BufNewFile */.git/COMMIT_EDITMSG wincmd _
 
+
+" Fast editing of conflicted files during a git rebase or merge
+function! s:GitNextConflict()
+  Gwrite
+  argdelete %
+  call s:NextOrQuit()
+endfunction
+
+function! s:NextOrQuit()
+  if empty(argv())
+    quit
+  else
+    bdelete
+  endif
+endfunction
+
+command! GitNextConflict call s:GitNextConflict()
+nnoremap <leader>gnc :GitNextConflict<cr>
+
 " vim:ft=vim

@@ -13,10 +13,12 @@
   cm = commit -m
   co = checkout
   compare = "!hub compare"
+  conflicts = "!git ls-files -u | awk '{print $4}' | sort -u"
   copysha = "!git rev-parse HEAD | pbcopy"
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
   dup = "!git checkout dev && git pull && git checkout -"
+  edit-conflicts = "!vim `git conflicts`"
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
   mup = "!git checkout master && git pull && git checkout -"
