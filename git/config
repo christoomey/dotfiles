@@ -63,3 +63,5 @@
   default = upstream
 [merge]
   ff = only
+[commit]
+  template = ~/.gitmessage
