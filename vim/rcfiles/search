@@ -11,11 +11,9 @@ nmap <F4> :silent noh<CR>
 nnoremap <LEADER>rh :silent noh<CR>
 
 " Mappings for quick search & replace. Global set to default
-" Do a / search first, then leave pattern empty in :s// to use last
-" In order, they are `all`, `visual`, `confirm`, `word`
-map <Leader>sra :%s///g<left><left>
-map <Leader>srv :s///g<left><left>
-map <Leader>src :%s//gc<Left><Left><left>
+" Do a / search first, then leave pattern empty in :s// to use previous
+map <Leader>sr :%s///g<left><left>
+map <Leader>sr :s///g<left><left>
 
 " Global helper. First, compose a search to find all the relevant lines. Then
 " compose a macro in @q register. Then hit up this mapping to start the global

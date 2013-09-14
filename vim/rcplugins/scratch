@@ -2,7 +2,6 @@
 
 Bundle "vim-scripts/scratch.vim"
 
-nmap <leader>srb :Sscratch<cr>:setf ruby<cr>
 nmap <leader>sb :Sscratch<cr>
 nmap <leader>svb :Sscratch<cr>:setf vim<cr>
 
