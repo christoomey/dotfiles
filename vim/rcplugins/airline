@@ -1,0 +1,5 @@
+" Airline - Nice statusline with flexible config
+
+Bundle 'bling/vim-airline'
+
+" vim:ft=vim
