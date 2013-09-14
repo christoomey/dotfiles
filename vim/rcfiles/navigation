@@ -1,0 +1,8 @@
+" Naviagation
+"------------
+
+" Show the path to the current file
+command! ShowPath echo substitute(expand('%:p'), getcwd().'/', '', '')
+nnoremap <leader>sp :ShowPath<cr>
+
+" vim:ft=vim
