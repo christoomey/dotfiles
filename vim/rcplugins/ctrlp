@@ -42,8 +42,11 @@ nnoremap <leader>gy :call CtrlpRelativeRoot("app/assets/stylesheets")<cr>
 nmap <LEADER>rf :CtrlP ~/.vim/rcfiles<cr>
 nmap <LEADER>rp :CtrlP ~/.vim/rcplugins<cr>
 
+
 nnoremap <leader>cpt :CtrlPTag<cr>
 
+" Use current directory as base for CtrlP, but expose <leader>cpr for root
 let g:ctrlp_cmd = 'CtrlP =expand("%:p:h")<cr>'
+nnoremap <leader>cpr :CtrlP =system('git rev-parse --show-toplevel')<cr><bs><cr>
 
 " vim:ft=vim
