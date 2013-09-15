@@ -1,0 +1,16 @@
+" Helpful Speedups
+"-----------------
+
+au filetype help call HelpFileMode()
+
+function! HelpFileMode()
+  wincmd _ " Maximze the help on open
+  " Help File funtimes, <enter> to follow tag, delete for back
+  nnoremap <buffer><cr> <c-]>
+  nnoremap <buffer><bs> <c-T>
+  nnoremap <buffer>q :q<CR>
+  " nnoremap <tab>
+  setlocal nonumber
+endfunction
+
+" vim:ft=vim

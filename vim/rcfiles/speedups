@@ -46,14 +46,6 @@ set wildignore+=*.pyc
 " Easy re-sourcing of vimrc
 map <leader>sop :source %<cr>
 
-" Help File funtimes, <enter> to follow tag, delete for back
-au filetype help nnoremap <buffer><cr> <c-]>
-au filetype help nnoremap <buffer><bs> <c-T>
-au filetype help nnoremap <buffer>q :q<CR>
-au filetype help set nonumber
-set splitbelow " Split windows, ie Help, make more sense to me below
-au filetype help wincmd _ " Maximze the help on open
-
 " Easy navigation for editing and cding
 nmap <Leader>ec :e ~/code/
 nmap <Leader>eh :e ~/
