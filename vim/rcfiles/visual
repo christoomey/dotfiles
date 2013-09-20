@@ -66,6 +66,8 @@ set vb
 " Easy access to maximizing
 nnoremap <C-_> <C-w>_
 
+set splitbelow
+
 " function! Make_Big()
     " set columns=170
 " endfunction
