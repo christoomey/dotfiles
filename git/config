@@ -21,6 +21,7 @@
   edit-conflicts = "!vim `git conflicts`"
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
+  mb = "!git merge-base HEAD $1"
   mup = "!git checkout master && git pull && git checkout -"
   pl = pull
   plr = pull --rebase
