@@ -62,6 +62,7 @@ function rsup() {
     bundle exec rails s
   fi
 }
+function ropen() { open "http://`basename $(pwd)`.dev" }
 
 # Serve the current directory. Pass in a port, or use default 8000
 function simple_serve { $(which python) -m SimpleHTTPServer ${1:-8000} }
@@ -132,6 +133,9 @@ function envup {
   fi
 }
 
+# Allow [ or ] whereever you want
+unsetopt nomatch
+
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"
 
@@ -139,6 +143,11 @@ export DISABLE_AUTO_TITLE="true"
 alias tls="tmux list-sessions"
 alias tka="tmux kill-session"
 function tb { tmux break-pane -d -t $1 }
+function tk {
+  current_session=$(tmux display-message -p '#S')
+  tmux switch-client -n
+  tmux kill-session -t "$current_session"
+}
 function ta {
     if [ -z "$1" ]; then
         tmux attach
@@ -160,15 +169,6 @@ function tn {
   fi
   tmux attach-session -t $session_name
 }
-
-# Some fun with switching the foreground terminal process
-# Use Ctrl-z to freeze current fg process (ie vim), do something else
-# in the shell, ie manpage lookup, then use Ctrl-g to get back to vim
-# ref: http://oinopa.com/2010/10/24/laptop-driven-development.html
-# TODO Get Ctrl-f set as the freeze command
-export HISTIGNORE="fg*"
-bindkey -s '\C-g' 'fg\n'
-# bind '"\C-g": "fg %-\n"'  ----The Bash way
 
 # Don't attempt spelling autocorrect
 unsetopt correct_all
