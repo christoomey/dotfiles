@@ -2,8 +2,8 @@
 
 Bundle "tpope/vim-commentary"
 
-xmap <leader>cm  <Plug>Commentary
-nmap <leader>cm  <Plug>Commentary
-nmap <leader>cmc <Plug>CommentaryLine
+nmap cm  <Plug>Commentary
+" `cml` works with the above, but I mistype it often
+nmap mcl <Plug>CommentaryLine
 
 " vim:ft=vim
