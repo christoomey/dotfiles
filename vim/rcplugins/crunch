@@ -1,0 +1,5 @@
+" Crunch - Plain text caluclations
+
+Bundle 'arecarn/crunch'
+
+" vim:ft=vim
