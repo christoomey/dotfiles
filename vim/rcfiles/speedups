@@ -4,7 +4,7 @@
 " Quick toggle between two files
 nnoremap <leader><leader> <C-^>
 
-" I have almost no need for semicolons, but the colon, I love
+" I have almost no need for semicolons, but command mode I need
 nnoremap ; :
 vnoremap ; :
 cnoremap ; :
@@ -12,14 +12,6 @@ cnoremap ; :
 " Use j/k to start, then scroll through autocomplete options
 inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
 inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
-
-" Open url on current line
-function! OpenUrl ()
-  let line = getline (".")
-  let url = matchstr (line, "http[^ ,;\t)]*")
-  execute "silent !open " . url
-endfunction
-nmap <leader>op :call OpenUrl()<cr>
 
 " For reformatting files.
 nmap <leader>gq maggVGgq`a

@@ -42,7 +42,7 @@ if has('gui_running')
         set guifont=Consolas:h10
     elseif has('mac')
         if !exists('g:vimrc_loaded')
-            set guifont=Consolas:h12
+          set guifont=Menlo:h18
         endif
     endif
 else
