@@ -18,6 +18,8 @@ nmap <leader>osr :VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>
 
 nnoremap <leader>sd :VtrSendCtrlD<cr>
 nnoremap <leader>q :VtrSendCommandToRunner q<cr>
-nnoremap <leader>sf :VtrSendCommandToRunner ruby =expand('%')<cr><cr>
+nnoremap <leader>sf :w<cr>:VtrSendCommandToRunner ruby =expand('%')<cr><cr>
+nnoremap <leader>sl :VtrSendCommandToRunner <cr>
+nnoremap <leader>zr :call system("tmux resize-pane -Z -t 1")<cr>
 
 " vim:ft=vim
