@@ -12,4 +12,14 @@ nnoremap <leader>clw :only<cr>
 " automatically rebalance windows on vim resize
 autocmd VimResized * :wincmd =
 
+function! MkdirForCurrentFile()
+  let path = substitute(expand('%:h'), getcwd(), '', '')
+  echo path
+  silent !mkdir -p %:h
+  redraw!
+  echohl String | echo 'Created directory structure: "'. path . '"' | echohl None
+endfunction
+
+nnoremap <leader>mkd :call MkdirForCurrentFile()<cr>
+
 " vim:ft=vim
