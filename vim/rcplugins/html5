@@ -1,0 +1,5 @@
+" HTML5 - Filetype settings for html5
+
+Bundle "othree/html5.vim"
+
+" vim:ft=vim
