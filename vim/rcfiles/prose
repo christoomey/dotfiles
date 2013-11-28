@@ -28,21 +28,12 @@ endfunction
 vnoremap <C-b> :call WrapCurrentWord("bold")<cr>
 vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
 
-function! CodeBlock()
-  let language = input('Language: ')
-  execute 'normal! i``` ' . language
-  execute 'normal! o```'
-  normal O
-  startinsert
-endfunction
-nnoremap <silent><leader>cb :call CodeBlock()<cr>
-
 function! MarkdownMode()
   " setlocal spell        " Enable spell checking
   setlocal foldlevel=1  " Start with top heading open, other levels folded
   setlocal wrap         " Soft wrap lines that hit the edge
   setlocal linebreak    " Use word boundaries to break lines
-  setlocal textwidth=0  " Do not hard wrap
+  setlocal textwidth=78
   nnoremap <buffer> <leader>ns ]s
   nnoremap <buffer> <leader>sp ea<C-x><C-s>
   nnoremap <buffer> <leader>sf mm[s1z=`m
@@ -55,6 +46,11 @@ function! MarkdownMode()
   nnoremap <buffer> <leader>u1 mmyypVr=`m<cr><esc>
   nnoremap <buffer> <leader>u2 mmyypVr-`m<cr><esc>
   nnoremap <buffer> <leader>u3 mm0i### <esc>`m4l
+  command! OpenMarkdownLink call s:OpenLink()
+  nnoremap <buffer> <cr> :OpenMarkdownLink<cr>
+  nnoremap <buffer> <tab> /\v\[.{-}\]\[\]<cr>:noh<cr>l
+  nnoremap <buffer> <S-tab> h?\v\[.{-}\]\[\]<cr>:noh<cr>l
+  nnoremap <buffer> <leader>fw mm1z=`m
 endfunction
 
 function! OpenCurrentFileInMarked()
@@ -67,6 +63,12 @@ endfunction
 " anchor text. If auto_link == 1, then use the current item in the system
 " clipboard, else prompt for the URL
 function! ConvertVisualSelectionToLink(auto_link)
+    " Desired behavior:
+    "   - Uses motion (<leader>al:motion:) to def text to link (or visual sel)
+    "   - Place formatted link above next H2 section marker
+    "     - supports either dash underline or ## syntax to designate H2
+    "   - If near end, place text on last line
+    "   - Ensure newline between section content and links if at end
     normal! gv
     if a:auto_link
       let url = system('pbpaste')
@@ -74,10 +76,33 @@ function! ConvertVisualSelectionToLink(auto_link)
       let url = input("URL: ")
     endif
     if url != ''
-      " execute 'normal! "lc[l](' . url . ')'
+      normal mm
       execute 'normal! "lc[l][]'
-      execute 'normal! mmGo[l]: ' . url . '`m'
+      let current_line = line('.')
+      let markdown_h2_pattern = '\v^(\w+.*\n-+|#{2,3}\s+\w+)'
+      let next_match_line = search(markdown_h2_pattern)
+      if next_match_line == 0 || next_match_line < current_line
+        let target_line = line('$')
+      else
+        let target_line = next_match_line - 2
+      endif
+      let formatted_link = '[' . @l . ']: ' . url
+      call append(target_line, formatted_link)
+      call s:EnsureLineAbove(target_line)
+      normal `m
     endif
+endfunction
+vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
+
+function! s:EnsureLineAbove(target_line)
+  if !s:ContentsAreEmptyOrLink(getline(a:target_line))
+    call append(a:target_line, '')
+  endif
+endfunction
+
+function! s:ContentsAreEmptyOrLink(contents)
+  let contents_are_link = match(a:contents, '\v\[.*\]:\s')
+  return (a:contents == '') || (contents_are_link != -1)
 endfunction
 
 function! s:TitleCaseCurrentLine()
@@ -88,7 +113,16 @@ endfunction
 command! TitleCaseCurrentLine call s:TitleCaseCurrentLine()
 nmap gt :TitleCaseCurrentLine<cr>
 
-vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
-" vnoremap <C-k> :call ConvertVisualSelectionToLink(0)<cr>
+function! s:OpenLink()
+  normal mm
+  normal "ayi]
+  let pattern = '\[' . getreg('a') . '\]:\s\(.*\)$'
+  " let pattern = '\v^\[' . getreg('a') . '\]: (.*)$'
+  let line_num = search(pattern)
+  let line = getline(line_num)
+  let url = matchlist(line, pattern)[1]
+  call system('open ' . url)
+  normal `m
+endfunction
 
 " vim:ft=vim
