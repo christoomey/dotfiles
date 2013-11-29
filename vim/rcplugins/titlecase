@@ -1,0 +1,5 @@
+" Titlecase - Titlecasing operator
+
+Bundle "christoomey/vim-titlecase"
+
+" vim:ft=vim
