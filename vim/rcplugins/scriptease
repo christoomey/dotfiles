@@ -1,4 +1,4 @@
-" Scriptease - Collection of helpful maps and commands for vimscript
+" Scriptease - Plugin for working with plugins
 
 Bundle "tpope/vim-scriptease"
 
