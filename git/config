@@ -13,12 +13,12 @@
   cm = commit -m
   co = checkout
   compare = "!hub compare"
-  conflicts = "!git ls-files -u | awk '{print $4}' | sort -u"
+  conflicts = !git ls-files -u | awk '{print $4}' | sort -u
   copysha = "!git rev-parse HEAD | pbcopy"
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
   dup = "!git checkout dev && git pull && git checkout -"
-  edit-conflicts = "!vim `git conflicts`"
+  edit-conflicts = !$VISUAL `git conflicts`
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
   mb = "!git merge-base HEAD $1"
@@ -49,8 +49,6 @@
 [core]
   editor = mvim -v
   excludesfile = ~/.gitignore
-[clean]
-  requireForce = false
 [url "git@heroku.com:"]
   # $ git remote add heroku:sushi.git
   insteadOf = heroku:
