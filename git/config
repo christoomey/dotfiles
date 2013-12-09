@@ -15,6 +15,7 @@
   compare = "!hub compare"
   conflicts = !git ls-files -u | awk '{print $4}' | sort -u
   copysha = "!git rev-parse HEAD | pbcopy"
+  count = !git log --oneline | wc -l | awk '{print $1}'
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
   dup = "!git checkout dev && git pull && git checkout -"

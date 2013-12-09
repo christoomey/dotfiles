@@ -105,11 +105,6 @@ function gitup {
     fi
 }
 
-function gitcount {
-    commit_count=`git log --pretty=oneline | wc -l | awk '{print $1}'`
-    echo "  -> Total commits to date: $commit_count"
-}
-
 alias iphonesim='open /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
 function ipaddress { ifconfig en0 | grep 'inet\s' | awk '{print $2}' }
 
