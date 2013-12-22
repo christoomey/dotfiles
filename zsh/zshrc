@@ -25,12 +25,6 @@ alias be='bundle exec'
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
     'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
-# Quick jumping to ~/code & $HOME directories
-c(){cd ~/code/$1;}
-compctl -M 'm:{a-z}={A-Z}' -W ~/code -/ c
-h(){cd ~/$1;}
-compctl -M 'm:{a-z}={A-Z}' -W ~/ -/ h
-
 # List all symlinks in current directory #TODO where do they point?
 lns() { find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }' }
 lnsm() { find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }' }
@@ -172,6 +166,10 @@ function tn {
   fi
   tmux attach-session -t $session_name
 }
+
+for zsh_source in $HOME/.zsh/config/*.zsh; do
+  source $zsh_source
+done
 
 # Don't attempt spelling autocorrect
 unsetopt correct_all
