@@ -10,9 +10,6 @@ au FileType ruby setl sw=2 sts=2 ts=2 " Two spaces per tab
 " Set .erb html files
 au FileType ebury setl setl sw=2 sts=2 ts=2 " Two spaces per tab
 
-" Easy hash rocket insertion
-imap <C-l> <space>=><space>
-
 " Convert 1.8 hash syntax to 1.9 syntax
 nmap <leader>19 :%s/:\([^ ]*\)\(\s*\)=>/\1:/gc<cr>
 nmap <leader>18 :%s/\(\w\+\):\s/:\1 => /gc<cr>
