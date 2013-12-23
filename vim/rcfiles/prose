@@ -30,7 +30,6 @@ vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
 
 function! MarkdownMode()
   " setlocal spell        " Enable spell checking
-  setlocal foldlevel=1  " Start with top heading open, other levels folded
   setlocal wrap         " Soft wrap lines that hit the edge
   setlocal linebreak    " Use word boundaries to break lines
   setlocal textwidth=78
@@ -51,10 +50,14 @@ function! MarkdownMode()
   nnoremap <buffer> <tab> :JumpToNextLink<cr>
   nnoremap <buffer> <S-tab> :JumpToNextLinkBackward<cr>
   nnoremap <buffer> <leader>fw mm1z=`m
+  " Define link text
+  inoremap <C-i> <C-o>mm
+  inoremap <C-l> <esc>mlv`ml<C-k>`l4la
 endfunction
 
 function! s:JumpToNextLink(direction)
-  let link_pattern = '\v\[\S.{-}\]\[\]'
+  " let link_pattern = '\v\[\S.{-}\]\[\]'
+  let link_pattern = '\v\[\S.{-}\n?.{-}\]\[\]'
   call s:ShiftCursorColumn(-1) " in case we are currently in a link
   let link_found = search(link_pattern, a:direction)
   if link_found
@@ -126,12 +129,11 @@ endfunction
 function! s:OpenLink()
   normal mm
   normal "ayi]
-  let pattern = '\[' . getreg('a') . '\]:\s\(.*\)$'
-  " let pattern = '\v^\[' . getreg('a') . '\]: (.*)$'
+  let pattern = '\v^\[' . getreg('a') . '\]: (.*)$'
   let line_num = search(pattern)
   let line = getline(line_num)
   let url = matchlist(line, pattern)[1]
-  call system('open ' . url)
+  call system('unsetopt nomatch && open ' . url)
   normal `m
 endfunction
 
