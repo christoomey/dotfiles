@@ -10,7 +10,6 @@
   browse = "!hub browse"
   ca = commit --amend
   car = commit --amend --no-edit
-  cm = commit -m
   co = checkout
   compare = "!hub compare"
   conflicts = !git ls-files -u | awk '{print $4}' | sort -u
@@ -20,6 +19,7 @@
   df = diff --word-diff --color-words
   dup = "!git checkout dev && git pull && git checkout -"
   edit-conflicts = !$VISUAL `git conflicts`
+  glog = log -i -E --grep
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
   mb = "!git merge-base HEAD $1"
@@ -40,6 +40,7 @@
   si = status --ignored
   sl = "!git --no-pager log --oneline --decorate --graph -20"
   sla = "!git --no-pager log --oneline --decorate --all --graph -30"
+  sal = !git sla # Accepting that I will continue to mistype this
   slp = "log --oneline --decorate --graph"
   slap = "log --oneline --decorate --all --graph"
   st = status -sb
