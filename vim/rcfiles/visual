@@ -7,12 +7,8 @@ catch
     " No colors for me
 endtry
 
+colorscheme jellybeans
 if has('gui_running')
-    try
-        colorscheme ctwombat
-    catch /^Vim\%((\a\+)\)\=:E185/
-        " deal with it
-    endtry
     set guioptions-=r "Hide the right side scrollbar
     set guioptions-=L "Hide the left side scrollbar
     set guioptions-=T "Hide toolbars...this is vim for craps sake
@@ -47,11 +43,6 @@ if has('gui_running')
     endif
 else
     set nocursorline nocursorcolumn
-    try
-        colorscheme jellybeans
-    catch /^Vim\%((\a\+)\)\=:E185/
-        " deal with it
-    endtry
 endif
 
 " Version 7.3 of the vim, with things like margins
