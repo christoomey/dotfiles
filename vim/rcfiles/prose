@@ -81,8 +81,8 @@ function! OpenCurrentFileInMarked()
 endfunction
 
 function! ConvertVisualSelectionToLink(...)
-
     if a:0 == 0
+      normal gv"vy
       call <sid>SearchForTerm()
       return
     else
@@ -161,21 +161,43 @@ endfunction
 
 function! s:DisplaySearchResults(results)
   let g:search_results = a:results
-  let formatted = map(copy(a:results), 'v:val.url[0:35] . " -- " . v:val.titleNoFormatting')
+  let map_expression = '[v:val.url, "  -> " .v:val.titleNoFormatting, ""]'
+  let formatted = Flatten(map(copy(a:results), map_expression))
   silent pedit search-results
   wincmd P
-  setl buftype=nofile
-  setl noswapfile
+  setlocal buftype=nofile
+  setlocal noswapfile
+  setlocal nowrap
   nnoremap <buffer> q :q!<cr>
-  nnoremap <buffer> <cr> :call SelectSearchResult(g:search_results[line('.') - 1].url)<cr>
+  nnoremap <buffer> <cr> :call SelectSearchResult()<cr>
+  nnoremap <buffer> j jj<cr>
+  nnoremap <buffer> <C-o> :call OpenLinkOnCurrentLine()<cr>
   normal ggdG
   call append(0, formatted)
   normal ddgg
 endfunction
 
-function! SelectSearchResult(selected)
+function! OpenLinkOnCurrentLine()
+  call system('open ' . expand('<cWORD>'))
+endfunction
+
+function! SelectSearchResult()
+  let selected = g:search_results[line('.') / 3].url
   bdelete
-  call ConvertVisualSelectionToLink(a:selected)
+  call ConvertVisualSelectionToLink(selected)
+endfunction
+
+function! Flatten(list)
+  let val = []
+  for elem in a:list
+    if type(elem) == type([])
+      call extend(val, Flatten(elem))
+    else
+      call add(val, elem)
+    endif
+    unlet elem
+  endfor
+  return val
 endfunction
 
 " vim:ft=vim
