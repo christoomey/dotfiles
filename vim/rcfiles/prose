@@ -80,40 +80,31 @@ function! OpenCurrentFileInMarked()
     call system(open_cmd)
 endfunction
 
-" Create a markdown formatted link with the visually selected word as the
-" anchor text. If auto_link == 1, then use the current item in the system
-" clipboard, else prompt for the URL
-function! ConvertVisualSelectionToLink(auto_link)
-    " Desired behavior:
-    "   - Uses motion (<leader>al:motion:) to def text to link (or visual sel)
-    "   - Place formatted link above next H2 section marker
-    "     - supports either dash underline or ## syntax to designate H2
-    "   - If near end, place text on last line
-    "   - Ensure newline between section content and links if at end
-    normal! gv
-    if a:auto_link
-      let url = system('pbpaste')
+function! ConvertVisualSelectionToLink(...)
+
+    if a:0 == 0
+      call <sid>SearchForTerm()
+      return
     else
-      let url = input("URL: ")
+      let url = a:1
     endif
-    if url != ''
-      normal mm
-      execute 'normal! "lc[l][]'
-      let current_line = line('.')
-      let markdown_h2_pattern = '\v^(\w+.*\n-+|#{2,3}\s+\w+)'
-      let next_match_line = search(markdown_h2_pattern)
-      if next_match_line == 0 || next_match_line < current_line
-        let target_line = line('$')
-      else
-        let target_line = next_match_line - 2
-      endif
-      let formatted_link = '[' . @l . ']: ' . url
-      call append(target_line, formatted_link)
-      call s:EnsureLineAbove(target_line)
-      normal `m
+    normal gv
+    normal mm
+    execute 'normal! "lc[l][]'
+    let current_line = line('.')
+    let markdown_h2_pattern = '\v^(\w+.*\n-+|#{2,3}\s+\w+)'
+    let next_match_line = search(markdown_h2_pattern)
+    if next_match_line == 0 || next_match_line < current_line
+      let target_line = line('$')
+    else
+      let target_line = next_match_line - 2
     endif
+    let formatted_link = '[' . @l . ']: ' . url
+    call append(target_line, formatted_link)
+    call s:EnsureLineAbove(target_line)
+    normal `m
 endfunction
-vnoremap <C-k> :call ConvertVisualSelectionToLink(1)<cr>
+vnoremap <C-k> :call ConvertVisualSelectionToLink()<cr>
 
 function! s:EnsureLineAbove(target_line)
   if !s:ContentsAreEmptyOrLink(getline(a:target_line))
@@ -126,6 +117,21 @@ function! s:ContentsAreEmptyOrLink(contents)
   return (a:contents == '') || (contents_are_link != -1)
 endfunction
 
+function! BumpToPosition(pos)
+  let current_line = line('.')
+  execute "normal ddgg" . a:pos . "jkP"
+  call cursor(current_line, 0)
+endfunction
+nmap <leader>1 :call BumpToPosition(1)<cr>
+nmap <leader>2 :call BumpToPosition(2)<cr>
+nmap <leader>3 :call BumpToPosition(3)<cr>
+nmap <leader>4 :call BumpToPosition(4)<cr>
+nmap <leader>5 :call BumpToPosition(5)<cr>
+nmap <leader>6 :call BumpToPosition(6)<cr>
+nmap <leader>7 :call BumpToPosition(7)<cr>
+nmap <leader>8 :call BumpToPosition(8)<cr>
+nmap X mm:call cursor(line('.'), 4)<cr>rx`m
+
 function! s:OpenLink()
   normal mm
   normal "ayi]
@@ -135,6 +141,41 @@ function! s:OpenLink()
   let url = matchlist(line, pattern)[1]
   call system('unsetopt nomatch && open ' . url)
   normal `m
+endfunction
+
+function! s:SearchForTerm()
+  let search_prompt = "Search term (leave blank to use clipboard): "
+  echohl String | let term = input(search_prompt) | echohl None
+  if term == ''
+    call ConvertVisualSelectionToLink(system('pbpaste'))
+    return
+  endif
+  let encoded_term = webapi#http#encodeURI(term)
+  let api_url = 'http://ajax.googleapis.com/ajax/services/search/web?v=1.0&filter=1&rsz=small&q='
+  let request_url = api_url . encoded_term
+  let response = webapi#http#get(request_url)
+  let content = webapi#json#decode(response.content)
+  let results = content.responseData.results
+  call <sid>DisplaySearchResults(results)
+endfunction
+
+function! s:DisplaySearchResults(results)
+  let g:search_results = a:results
+  let formatted = map(copy(a:results), 'v:val.url[0:35] . " -- " . v:val.titleNoFormatting')
+  silent pedit search-results
+  wincmd P
+  setl buftype=nofile
+  setl noswapfile
+  nnoremap <buffer> q :q!<cr>
+  nnoremap <buffer> <cr> :call SelectSearchResult(g:search_results[line('.') - 1].url)<cr>
+  normal ggdG
+  call append(0, formatted)
+  normal ddgg
+endfunction
+
+function! SelectSearchResult(selected)
+  bdelete
+  call ConvertVisualSelectionToLink(a:selected)
 endfunction
 
 " vim:ft=vim
