@@ -17,6 +17,27 @@ autocmd FileType gitcommit setl spell
 autocmd BufRead,BufNewFile */.git/COMMIT_EDITMSG wincmd _
 
 
+" Fancy git conflict resolution
+function! s:Conflicted()
+  args `git ls-files -u \| awk '{print $4}' \| sort -u`
+  " Merger
+endfunction
+
+function! s:TabEdit(parent)
+  Gtabedit :1
+  diffthis
+  execute 'Gvsplit :' . {'upstream': 2, 'local': 3}[a:parent]
+  diffthis
+  wincmd r
+endfunction
+
+function! s:Merger()
+  Gdiff
+  call s:TabEdit('upstream')
+  call s:TabEdit('local')
+  tabfirst
+endfunction
+
 " Fast editing of conflicted files during a git rebase or merge
 function! s:GitNextConflict()
   Gwrite
@@ -29,10 +50,13 @@ function! s:NextOrQuit()
     quit
   else
     bdelete
+    Merger
   endif
 endfunction
 
-command! GitNextConflict call s:GitNextConflict()
+command! Conflicted call <sid>Conflicted()
+command! Merger call <sid>Merger()
+command! GitNextConflict call <sid>GitNextConflict()
 nnoremap <leader>gnc :GitNextConflict<cr>
 
 " vim:ft=vim
