@@ -69,3 +69,5 @@
   ff = only
 [commit]
   template = ~/.gitmessage
+[github]
+	user = christoomey
