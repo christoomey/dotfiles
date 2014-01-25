@@ -1,0 +1,7 @@
+" Conflicted - Easy git conflict resolution
+
+Bundle "christoomey/vim-conflicted"
+
+nnoremap <leader>gnc :GitNextConflict<cr>
+
+" vim:ft=vim
