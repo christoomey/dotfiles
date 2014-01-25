@@ -26,7 +26,7 @@ if has('gui_running')
 
     " MacVim is very pretty
     if has('gui_macvim')
-        set transparency=8
+        " set transparency=8
 
         " Fullscreen options
         set fuoptions=maxvert
@@ -59,15 +59,14 @@ nnoremap <C-_> <C-w>_
 
 set splitbelow
 
-" function! Make_Big()
-    " set columns=170
-" endfunction
-" nmap <leader>rt :call Make_Big()<cr>
-" function! Make_Little()
-    " set columns=85
-" endfunction
-" nmap <leader>ro :call Make_Little()<cr>
-
+" Use line cursor in insert mode, block in normal (only in tmux)
+if exists('$TMUX')
+    let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
+    let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+else
+    let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+    let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+endif
 
 " List out the syntax for the word under the cursor
 function! SyntaxGroup()
