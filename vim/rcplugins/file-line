@@ -1,0 +1,5 @@
+" File Line - Accept file_name.rb:23 style files
+
+Bundle "bogado/file-line"
+
+" vim:ft=vim
