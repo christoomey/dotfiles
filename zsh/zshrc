@@ -68,6 +68,7 @@ alias ql='qlmanage -p "$@" > /dev/null'
 function trash() { mv $1 ~/.Trash }
 
 function mkcd() { mkdir $1 && cd $1 }
+function mkgit() { mkdir $1 && cd $1 && git init }
 
 compdef g=git
 function g {
@@ -107,13 +108,15 @@ function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(p
 
 function heroku_url { heroku apps:info -r $1 | grep -i web  | tr -s ' ' | cut -d ' ' -f 3 }
 
-# Convenice aliases
+# Convenience aliases
 alias ls="ls -FG"
 alias l="ls -l"
 alias la="ls -la"
 
 alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
+
+alias pgrep='pgrep -lf' # long output, match against full args list
 
 export OPSCODE_USER=christoomey
 
