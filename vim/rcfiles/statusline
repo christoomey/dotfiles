@@ -16,10 +16,11 @@ set statusline= " Clear the statusline for vimrc reloads
 
 set stl=%*                       " Normal statusline highlight
 set stl+=%{InsertSpace()}        " Put a leading space in
+
 set stl+=%1* 				     " Red highlight
 set stl+=%{HasPaste()}           " Red show paste
-
 set stl+=%*                      " Return to normal stl hilight
+
 set stl+=%t                      " Filename
 
 set stl+=%2* 				     " Red highlight
@@ -49,6 +50,11 @@ set statusline+=%{SlSpace()}     " Vim-space plugin current setting
 set stl+=\ \ Col:%c              " Column number
 set stl+=\ \ Line:%l/%L          " Line # / total lines
 set stl+=\ \ %P%{InsertSpace()}  " Single space buffer
+
+" set stl+=%2* 				             " Yello highlight
+set stl+=%{ConflictedVersion()}           " Red show paste
+" set stl+=%*                      " Return to normal stl hilight
+
 
 function! SlSpace()
     if exists("*GetSpaceMovement")
