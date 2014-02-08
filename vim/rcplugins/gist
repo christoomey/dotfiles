@@ -1,0 +1,6 @@
+" Gist - Access and edit gists locally
+
+Bundle 'mattn/webapi-vim'
+Bundle 'mattn/gist-vim'
+
+" vim:ft=vim
