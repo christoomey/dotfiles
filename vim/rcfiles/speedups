@@ -55,13 +55,28 @@ nnoremap 0 ^
 nmap <LEADER>vn :vnew<CR><C-w>=
 
 " Move one line at a time, aka 'fine ajdustment'
-nmap j gj
-nmap k gk
+nnoremap j gj
+nnoremap k gk
 
 " Reselect pasted text. Mnem: 'Get pasted'
 nnoremap gp `[v`]
 
 " Go to position of last edit. Mnem: 'Go to Edit'
 nnoremap ge `.
+
+function! s:RefreshBrowser()
+  let activate_cmd = "'tell app \"Google Chrome\" to activate'"
+  let reload_cmd = "'tell app \"System Events\" to keystroke \"r\" using {command down}'"
+  call s:CallOsascript(activate_cmd)
+  call s:CallOsascript(reload_cmd)
+endfunction
+
+function! s:CallOsascript(cmd)
+  let cmd_prefix = 'osascript -e'
+  let full_command = join([cmd_prefix, a:cmd])
+  call system(full_command)
+endfunction
+command! RefreshBrowser call <SID>RefreshBrowser()
+nmap <leader>rb :RefreshBrowser<cr>
 
 " vim:ft=vim
