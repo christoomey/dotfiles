@@ -1,0 +1,5 @@
+" System Copy - Motion / text obj aware copy to system clipboard
+
+Bundle "christoomey/vim-system-copy"
+
+" vim:ft=vim
