@@ -1,5 +1,0 @@
-" Sparkup - Text expansion for html markup
-
-Bundle "kogakure/vim-sparkup"
-
-" vim:ft=vim

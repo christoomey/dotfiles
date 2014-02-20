@@ -1,0 +1,5 @@
+" Emmet - Text expansion for html markup
+
+Bundle 'mattn/emmet-vim'
+
+" vim:ft=vim
