@@ -2,11 +2,6 @@
 export VISUAL=vim
 export EDITOR=$VISUAL
 
-# Edit the current line in $EDITOR
-autoload -U edit-command-line
-zle -N edit-command-line
-bindkey '\C-x\C-e' edit-command-line
-
 # Path to your oh-my-zsh configuration.
 export ZSH=$HOME/.oh-my-zsh
 plugins=(rvm zsh-syntax-highlighting vagrant heroku brew gem gitfast)
@@ -170,6 +165,11 @@ function tn {
 for zsh_source in $HOME/.zsh/config/*.zsh; do
   source $zsh_source
 done
+
+# Edit the current line in $EDITOR
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '^x^e' edit-command-line
 
 # Don't attempt spelling autocorrect
 unsetopt correct_all
