@@ -6,11 +6,17 @@
 
 app_name=$(basename `pwd`)
 port=`cat ~/.pow/$app_name 2> /dev/null`
+
+if [[ -f .env ]]; then
+  export $(cat .env)
+fi
+
 if [[ -f config/environment.rb ]]; then
   server_cmd="bundle exec rails s"
 else
   server_cmd="middleman"
 fi
+
 if [[ -n $port ]]; then
   echo "http://`basename $(pwd)`.dev" | pbcopy
   echo "Dev URL loaded into clipboard"
