@@ -1,8 +1,5 @@
 [color]
-  branch = auto
-  diff = auto
-  interactive = auto
-  status = auto
+  ui = true
 [alias]
   aa = add --all
   b = branch
@@ -20,6 +17,7 @@
   dup = "!git checkout dev && git pull && git checkout -"
   edit-conflicts = !$VISUAL `git conflicts`
   glog = log -i -E --grep
+  issues = !hub browse -- issues
   lnames = "!git --no-pager show --name-only $1"
   master = checkout master
   mb = "!git merge-base HEAD $1"
@@ -70,4 +68,6 @@
 [commit]
   template = ~/.gitmessage
 [github]
-	user = christoomey
+  user = christoomey
+[fetch]
+  prune = true
