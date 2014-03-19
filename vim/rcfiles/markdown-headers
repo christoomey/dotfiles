@@ -1,0 +1,38 @@
+" Markdown Headers
+"-----------------
+
+function! s:CtrlPMarkdownHeader()
+  let line_numbers = range(1, line('$'))
+  let g:header_map = []
+  for line in line_numbers
+    if s:LineIsMarkdownHeader(line)
+      call add(g:header_map, [line, getline(line)])
+    endif
+  endfor
+  let headers = map(copy(g:header_map), 'v:val[1]')
+  call CtrlPGeneric(headers, 'MoveToLine')
+endfunction
+
+function! s:LineIsMarkdownHeader(line)
+  let line_and_next = join(getline(a:line, a:line + 1), "\n")
+  let is_title_header = match(line_and_next, '.*\n=\|-\+$') != -1
+  let is_hash_header = match(getline(a:line), '^#\{1,}') != -1
+  return is_title_header || is_hash_header
+endfunction
+
+function! MoveToLine(selected_value)
+  for [line, header] in g:header_map
+    if header == a:selected_value
+      normal zM
+      call cursor(line, 1)
+      let fold_depth = foldlevel('.')
+      execute 'normal ' . fold_depth . 'zojj'
+      break
+    endif
+  endfor
+endfunction
+
+command! CtrlPMarkdownHeader call <SID>CtrlPMarkdownHeader()
+nnoremap gh :CtrlPMarkdownHeader<cr>
+
+" vim:ft=vim
