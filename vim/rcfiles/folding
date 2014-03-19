@@ -27,10 +27,7 @@ nnoremap <LEADER>fl4 :set foldlevel=4<cr>
 " Focus the current fold by closing all others
 nnoremap <LEADER>flf mzzM`zzv
 
-"Maps for indenting / outdenting
-nnoremap <RIGHT> >>
-nnoremap <LEFT> <<
-vmap <RIGHT> >
-vmap <LEFT> <
+" Set foldlevel to match current line
+nnoremap <LEADER>flc :execute 'set foldlevel=' . foldlevel('.')<cr>
 
 " vim:ft=vim
