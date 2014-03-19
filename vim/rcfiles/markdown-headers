@@ -13,29 +13,34 @@ function! s:CtrlPMarkdownHeader()
     endif
   endfor
   let headers = map(copy(g:header_map), 'v:val[1]')
-  call CtrlPGeneric(headers, 'MoveToLine')
+  call CtrlPGeneric(headers, 'FocusHeaderLine')
 endfunction
 
 function! s:HeaderLevelForLine(line)
   let line_and_next = join(getline(a:line, a:line + 1), "\n")
-  if match(line_and_next, '.*\n=\+$') != -1
+  if !s:IgnoreTitle() && match(line_and_next, '.*\n=\+$') != -1
     return 1
   elseif match(line_and_next, '.*\n-\+$') != -1
-    return 2
+    return 1 + s:TitleOffset()
   elseif match(getline(a:line), '^#\{1,}') != -1
     let hashes = matchlist(getline(a:line), '^\(#\+\)\s')[1]
-    return len(hashes)
+    return len(hashes) - 1 + s:TitleOffset()
   endif
 endfunction
 
-function! s:LineIsMarkdownHeader(line)
-  let line_and_next = join(getline(a:line, a:line + 1), "\n")
-  let is_title_header = match(line_and_next, '.*\n=\|-\+$') != -1
-  let is_hash_header = match(getline(a:line), '^#\{1,}') != -1
-  return is_title_header || is_hash_header
+function! s:TitleOffset()
+  if s:IgnoreTitle()
+    return 0
+  else
+    return 1
+  endif
 endfunction
 
-function! MoveToLine(selected_value)
+function! s:IgnoreTitle()
+  return exists('g:markdown_headers_ignore_title') && g:markdown_headers_ignore_title
+endfunction
+
+function! FocusHeaderLine(selected_value)
   for [line, header] in g:header_map
     if header == a:selected_value
       normal zM
@@ -46,6 +51,10 @@ function! MoveToLine(selected_value)
     endif
   endfor
 endfunction
+
+if !exists('g:markdown_headers_ignore_title')
+  let g:markdown_headers_ignore_title = 1
+endif
 
 command! CtrlPMarkdownHeader call <SID>CtrlPMarkdownHeader()
 nnoremap gh :CtrlPMarkdownHeader<cr>
