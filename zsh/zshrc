@@ -29,34 +29,12 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
 lns() { find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }' }
 lnsm() { find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }' }
 
-function rake() {
-  if [ -S .zeus.sock ]; then
-    zeus rake "$@"
-  else
-    bundle exec command rake "$@"
-  fi
-}
-
-function z {
-  if [[ $# > 0 ]]; then
-    zeus $@
-  else
-    if [ -S .zeus.sock ]; then
-      zeus console
-    else
-      zeus start
-    fi
-  fi
-}
-
 # Serve the current directory. Pass in a port, or use default 8000
 function simple-server {
   echo 'Simple-server URL coppied to the clipbaord'
   python -m SimpleHTTPServer 8123
   echo "http://simple-server.dev" | pbcopy
 }
-
-alias pow=powder
 
 alias ql='qlmanage -p "$@" > /dev/null'
 

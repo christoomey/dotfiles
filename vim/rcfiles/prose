@@ -50,9 +50,6 @@ function! MarkdownMode()
   nnoremap <buffer> <tab> :JumpToNextLink<cr>
   nnoremap <buffer> <S-tab> :JumpToNextLinkBackward<cr>
   nnoremap <buffer> <leader>fw mm1z=`m
-  " Define link text
-  inoremap <C-i> <C-o>mm
-  inoremap <C-l> <esc>mlv`ml<C-k>`l4la
 endfunction
 
 function! s:JumpToNextLink(direction)
