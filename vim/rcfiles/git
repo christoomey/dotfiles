@@ -24,4 +24,6 @@ function! CD_Git_Root()
 endfunction
 nnoremap <LEADER>gr :call CD_Git_Root()<cr>
 
+command! Gpullrequest :silent! call system('~/bin/git-pr')
+
 " vim:ft=vim
