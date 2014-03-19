@@ -41,7 +41,6 @@
   sal = !git sla # Accepting that I will continue to mistype this
   slp = "log --oneline --decorate --graph"
   slap = "log --oneline --decorate --all --graph"
-  st = status -sb
   unchange = checkout --
   unreleased = "!git l production/master..master"
   unstage = reset
