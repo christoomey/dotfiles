@@ -1,0 +1,9 @@
+" Alt-Ctags - Auto generate ctags files on save
+
+Bundle "pbrisbin/alt-ctags"
+
+let g:ctags_file = '.git/tags'
+let g:ctags_command = "ctags --tag-relative -f '%f' -R --exclude='.git'"
+let g:ctags_excludes = [ '~', '~/code/dotfiles' ]
+
+" vim:ft=vim
