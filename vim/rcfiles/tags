@@ -1,0 +1,23 @@
+" Tags configurations
+"--------------------
+
+au FileType ruby,vim call EnableTagNavMaps()
+
+function! EnableTagNavMaps()
+  if s:BufferIsTagNavigable()
+    nnoremap <buffer> <cr> <c-]>
+    nnoremap <buffer> <bs> <c-t>
+  endif
+endfunction
+
+let s:navigable_filetypes = ['vim', 'ruby']
+
+function! s:BufferIsTagNavigable()
+  let is_navigable_filetype = index(s:navigable_filetypes, &filetype) != -1
+  let is_normal_buffer = &buftype !=? 'nofile'
+  return is_navigable_filetype && is_normal_buffer
+endfunction
+
+set tags+=./git/tags
+
+" vim:ft=vim
