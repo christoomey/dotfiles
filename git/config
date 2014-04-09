@@ -4,6 +4,7 @@
   aa = add --all
   b = branch
   bhist = "!git --no-pager reflog $(git rev-parse --abbrev-ref HEAD)"
+  bom = push --set-upstream origin master
   browse = "!hub browse"
   ca = commit --amend
   car = commit --amend --no-edit
