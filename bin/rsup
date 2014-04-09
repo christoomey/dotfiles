@@ -13,8 +13,13 @@ fi
 
 if [[ -f config/environment.rb ]]; then
   server_cmd="bundle exec rails s"
-else
+elif [[ -f config.rb ]] && [[ -d source ]]; then
   server_cmd="middleman"
+elif [[ -f package.json ]]; then
+  server_cmd="grunt"
+else
+  echo 'Error: Unable to determine server command for current directory' 1>&2
+  exit 1
 fi
 
 if [[ -n $port ]]; then
