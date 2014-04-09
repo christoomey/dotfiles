@@ -25,10 +25,6 @@ alias be='bundle exec'
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
     'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
-# List all symlinks in current directory #TODO where do they point?
-lns() { find ./ -type l -maxdepth 1 | awk '{ sub(/.\/+/, ""); print }' }
-lnsm() { find -L ./ -maxdepth 1 -type l | awk '{ sub(/.\/+/, ""); print }' }
-
 # Serve the current directory. Pass in a port, or use default 8000
 function simple-server {
   echo 'Simple-server URL coppied to the clipbaord'
@@ -70,18 +66,6 @@ function gitup {
     fi
 }
 
-alias iphonesim='open /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
-function ipaddress { ifconfig en0 | grep 'inet\s' | awk '{print $2}' }
-
-function ackjs { ack $1 --js app/assets/javascripts }
-function ackvim { ack $1 -a ~/code/dotfiles/vim/vimrc ~/code/dotfiles/vim/rcplugins/ ~/code/dotfiles/vim/rcfiles/ }
-
-function agl { ag -l --nocolor -g "$1" | sed 's/^\.\///' }
-
-function dbpullheroku {heroku db:pull --app $(production_app_name) --confirm $(production_app_name)}
-
-function heroku_url { heroku apps:info -r $1 | grep -i web  | tr -s ' ' | cut -d ' ' -f 3 }
-
 # Convenience aliases
 alias ls="ls -FG"
 alias l="ls -l"
@@ -91,8 +75,6 @@ alias ez='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
 
 alias pgrep='pgrep -lf' # long output, match against full args list
-
-export OPSCODE_USER=christoomey
 
 # Load .env file into shell session for config vars
 function envup {
@@ -111,8 +93,6 @@ export DISABLE_AUTO_TITLE="true"
 
 # Tmux aliases
 alias tls="tmux list-sessions"
-alias tka="tmux kill-session"
-function tb { tmux break-pane -d -t $1 }
 function tk {
   current_session=$(tmux display-message -p '#S')
   tmux switch-client -n
