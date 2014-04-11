@@ -38,6 +38,14 @@ set nobackup
 set nowritebackup
 set noswapfile
 
+" Persistent undo
+let undodir = expand('~/.undo-vim')
+if !isdirectory(undodir)
+  call mkdir(undodir)
+endif
+set undodir=~/.undo-vim
+set undofile " Create FILE.un~ files for persistent undo
+
 " Replace the <cedit> command to pop into the 'command-line window'
 set cedit=<C-Y>
 
