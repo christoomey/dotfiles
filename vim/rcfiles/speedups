@@ -4,11 +4,6 @@
 " Quick toggle between two files
 nnoremap <leader><leader> <C-^>
 
-" I have almost no need for semicolons, but command mode I need
-nnoremap ; :
-vnoremap ; :
-cnoremap ; :
-
 " Use j/k to start, then scroll through autocomplete options
 inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
 inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
