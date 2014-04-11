@@ -2,6 +2,4 @@
 
 Bundle "tpope/vim-rails"
 
-nmap <leader>av :AV<cr>
-
 " vim:ft=vim
