@@ -31,6 +31,7 @@
   ri = rebase -i
   rid = rebase -i dev
   rim = rebase -i master
+  riu = !git rebase -i $(git upstream)
   rod = rebase dev
   rom = rebase master
   rmdeleted = "!git rm $(git ls-files --deleted)"
