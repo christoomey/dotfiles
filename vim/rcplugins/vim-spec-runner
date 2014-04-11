@@ -1,0 +1,9 @@
+" Spec Runner - Generic spec runner for rspec and JS
+
+Bundle 'gabebw/vim-spec-runner'
+
+let g:spec_runner_executor = "call VtrSendCommand('{command}')"
+
+map <leader>t <Plug>RunFocusedSpec
+
+" vim:ft=vim
