@@ -22,11 +22,17 @@ nnoremap <leader>sf :w<cr>:call SendFileViaVtr()<cr>
 nnoremap <leader>sl :VtrSendCommandToRunner <cr>
 
 function! SendFileViaVtr()
-  " nnoremap <leader>sf :w<cr>:VtrSendCommandToRunner ruby =expand('%')<cr><cr>
-  if &filetype ==? 'haskell'
-    execute 'VtrSendCommandToRunner ghci ' . expand('%')
-  elseif &filetype ==? 'ruby'
-    execute 'VtrSendCommandToRunner ruby ' . expand('%')
+  let runners = {
+        \ 'haskell': 'ghci',
+        \ 'ruby': 'ruby',
+        \ 'javascript': 'node'
+        \ }
+  if has_key(runners, &filetype)
+    let runner = runners[&filetype]
+    let local_file_path = expand('%')
+    execute join(['VtrSendCommandToRunner', runner, local_file_path])
+  else
+    echoerr 'Unable to determine runner'
   endif
 endfunction
 
