@@ -18,6 +18,8 @@ export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 alias vim='mvim -v'
 alias vi='mvim -v'
 
+function conflicted { vim +Conflicted }
+
 # Prevent correct of git slog
 alias be='bundle exec'
 
