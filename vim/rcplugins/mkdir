@@ -1,0 +1,5 @@
+" Mkdir - Mkdir for the current file before save
+
+Bundle 'pbrisbin/vim-mkdir'
+
+" vim:ft=vim
