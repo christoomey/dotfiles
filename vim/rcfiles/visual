@@ -45,12 +45,7 @@ else
     set nocursorline nocursorcolumn
 endif
 
-" Version 7.3 of the vim, with things like margins
-if version >= 703
-    " Add a margin on the left to highlight past 80+
-    set colorcolumn=81
-    " hi ColorColumn ctermbg=lightgrey guibg=#5C5558
-endif
+set colorcolumn=+1,+2,+3,+4
 
 set vb
 
