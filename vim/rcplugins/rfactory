@@ -1,0 +1,5 @@
+" Rfactory - Rapid navigation to FactoryGirl factories ala Rails.vim
+
+Bundle 'christoomey/vim-rfactory'
+
+" vim:ft=vim
