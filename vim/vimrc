@@ -13,7 +13,7 @@
 "---------------------------------------------------------------------
 
 " Want to set this before any others
-let mapleader = ","
+let mapleader = "\<Space>"
 
 function! s:SourceConfigFilesIn(directory)
   let directory_splat = '~/.vim/' . a:directory . '/*'
