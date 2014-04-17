@@ -209,4 +209,21 @@ for position in range(1, 9)
   execute "nnoremap m" . position . " :call MoveEm(" . position . ")<cr>"
 endfor
 
+function! s:RichTextCopy()
+  if &filetype != 'markdown'
+    echoerr 'RichTextCopy: Only valid on filetype "markdown"'
+    return
+  endif
+  if !executable('multimarkdown')
+    echoerr 'RichTextCopy: multimarkdown executable required'
+    return
+  endif
+  let rtf_convert_cmd = 'textutil -stdin -stdout -convert rtf -format html'
+  let pipeline = ['cat '.expand('%'), 'multimarkdown', rtf_convert_cmd, 'pbcopy']
+  call system(join(pipeline, ' | '))
+  echohl String | echom 'Document copied as RTF'
+endfunction
+
+command! RichTextCopy call <sid>RichTextCopy()
+
 " vim:ft=vim
