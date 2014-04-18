@@ -21,25 +21,34 @@ let g:ctrlp_prompt_mappings = {
 \ 'PrtExit()':            ['<esc>', '<c-c>', '<c-g>', '<C-@>', '<c-space>'],
 \ }
 
-nnoremap <leader>gc :CtrlP app/controllers<cr>
-nnoremap <leader>gj :CtrlP app/assets/javascripts<cr>
-nnoremap <leader>gl :CtrlP lib<cr>
-nnoremap <leader>gm :CtrlP app/models<cr>
-nnoremap <leader>gs :CtrlP spec<cr>
-nnoremap <leader>gt :CtrlP app/assets/templates<cr>
-nnoremap <leader>gv :CtrlP app/views<cr>
-nnoremap <leader>gw :CtrlP app/workers<cr>
-nnoremap <leader>gy :CtrlP app/assets/stylesheets<cr>
-nnoremap <leader>go :CtrlP config<cr>
+function! s:CtrlpTargetedMapping(mapping, directory)
+  execute 'nnoremap <leader>'.a:mapping.' :CtrlP '.a:directory.'<cr>'
+endfunction
+
+command! -nargs=* MapTargetedCtrlp call <sid>CtrlpTargetedMapping(<f-args>)
+
+let rails_ctrlp_mappings = {
+      \   'gc': 'app/controllers',
+      \   'gj': 'app/assets/javascripts',
+      \   'gl': 'lib',
+      \   'gm': 'app/models',
+      \   'gs': 'spec',
+      \   'gt': 'app/assets/templates',
+      \   'gv': 'app/views',
+      \   'gw': 'app/workers',
+      \   'gy': 'app/assets/stylesheets',
+      \   'go': 'config'
+      \ }
+
+for [mapping, directory] in items(rails_ctrlp_mappings)
+  execute 'MapTargetedCtrlp '.mapping.' '.directory
+endfor
 
 nmap <LEADER>rf :CtrlP ~/.vim/rcfiles<cr>
 nmap <LEADER>rp :CtrlP ~/.vim/rcplugins<cr>
 
-
 nnoremap <leader>cpt :CtrlPTag<cr>
 
-" Use current directory as base for CtrlP, but expose <leader>cpr for root
-" let g:ctrlp_cmd = 'CtrlP =expand("%:p:h")<cr>'
 nnoremap <leader>cpr :CtrlP =system('git rev-parse --show-toplevel')<cr><bs><cr>
 
 " vim:ft=vim
