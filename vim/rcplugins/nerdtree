@@ -1,8 +1,0 @@
-" Nerdtree - Vim style file explorer
-
-Bundle "scrooloose/nerdtree"
-
-nnoremap <LEADER>nt :NERDTreeToggle =expand('%:p:h')<cr><cr>
-" TODO remap the keys for better motion in the tree (space=>fold)
-
-" vim:ft=vim
