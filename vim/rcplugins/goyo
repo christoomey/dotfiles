@@ -1,0 +1,5 @@
+" Goyo - Distraction writing mode in vim
+
+Bundle 'junegunn/goyo.vim'
+
+" vim:ft=vim
