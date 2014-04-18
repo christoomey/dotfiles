@@ -1,0 +1,45 @@
+# Paths ----------------------------------------------
+  set folder           = ~/.mail                  # mailbox location
+  set spoolfile = "+gmail/INBOX"                  # Start in personal inbox by default
+unset record                                      # do not append copy of sent mail to ~/sent
+  set header_cache=~/.mutt/cache/headers
+  set message_cachedir=~/.mutt/cache/bodies
+  set certificate_file=~/.mutt/certificates
+
+# General Options ------------------------------
+  set delete                                      # Do not ask to purge deleted when switching folders
+  set realname = "Chris Toomey"
+  set editor = "vim"
+  set fast_reply                                  # don't ask for reply address or subject
+  set recall = no                                 # Don't ask to "Recall postponed" when composing new message
+  set postponed = "+gmail/Drafts"
+
+
+  set include                                     # Include a copy of the message I am replying to in reply
+  set sort = 'threads'
+  set sort_aux = 'reverse-last-date-received'     # within threads, sort like this
+  set auto_tag = yes                              # Apply functions in the index to all tagged messages
+
+# Header Options -------------------------------------
+ignore *                                # ignore all headers
+unignore from: to: cc: date: subject:   # show only these
+unhdr_order *                           # some distros order things by default
+hdr_order from: to: cc: date: subject:  # and in this order
+
+macro index,pager \# "<save-message>=gmail/Trash<enter><enter>" "Trash Message"
+
+bind index,pager e  delete-thread # Archive => this deletes from the inbox, but all-mail already has a copy
+bind index,pager s flag-message  # Toggle 'important' flag
+bind index,pager v save-message  # Move to
+bind index,pager a group-reply   # Reply to all
+bind index gl change-folder
+bind index c mail # compose
+bind index gg first-entry
+bind index G last-entry
+bind pager b previous-page
+bind pager V view-attachments
+
+macro index,pager gi "<change-folder>=gmail/INBOX<enter>" "Go to inbox"
+macro index,pager gd "<change-folder>=gmail/Drafts<enter>" "Go to drafts"
+
+macro pager ^b 'urlview' 'Follow links with urlview'

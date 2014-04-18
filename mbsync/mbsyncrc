@@ -1,0 +1,46 @@
+Create Both
+Expunge Both
+SyncState *
+
+################################################################################
+##   Gmail                                                                    ##
+################################################################################
+
+IMAPAccount gmail
+Host imap.gmail.com
+User chris@ctoomey.com
+PassCmd "keychain-password chris@ctoomey.com"
+UseIMAPS yes
+
+IMAPStore gmail-remote
+Account gmail
+
+MaildirStore gmail-local
+Path ~/.mail/gmail/
+Inbox ~/.mail/gmail/INBOX
+
+Channel gmail-INBOX
+Master :gmail-remote:INBOX
+Slave :gmail-local:INBOX
+
+Channel gmail-Drafts
+Master :gmail-remote:[Gmail]/Drafts
+Slave :gmail-local:Drafts
+
+Channel gmail-Sent
+Master ":gmail-remote:[Gmail]/Sent Mail"
+Slave :gmail-local:Sent
+
+Channel gmail-Archive
+Master ":gmail-remote:[Gmail]/All Mail"
+Slave :gmail-local:Archive
+
+Channel gmail-Trash
+Master :gmail-remote:[Gmail]/Trash
+Slave :gmail-local:Trash
+
+Group gmail
+Channel gmail-INBOX
+Channel gmail-Drafts
+Channel gmail-Sent
+Channel gmail-Trash
