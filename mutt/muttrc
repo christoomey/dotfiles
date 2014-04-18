@@ -6,6 +6,10 @@ unset record                                      # do not append copy of sent m
   set message_cachedir=~/.mutt/cache/bodies
   set certificate_file=~/.mutt/certificates
 
+# Gmail account settings
+  set from          = "chris@ctoomey.com"
+  set sendmail      = "/usr/local/bin/msmtp -a gmail"
+
 # General Options ------------------------------
   set delete                                      # Do not ask to purge deleted when switching folders
   set realname = "Chris Toomey"
