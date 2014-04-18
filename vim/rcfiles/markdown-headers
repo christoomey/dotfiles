@@ -56,7 +56,8 @@ if !exists('g:markdown_headers_ignore_title')
   let g:markdown_headers_ignore_title = 1
 endif
 
+let g:markdown_headers_ignore_title = 0
 command! CtrlPMarkdownHeader call <SID>CtrlPMarkdownHeader()
-nnoremap gh :CtrlPMarkdownHeader<cr>
+nnoremap <leader>gh :CtrlPMarkdownHeader<cr>
 
 " vim:ft=vim

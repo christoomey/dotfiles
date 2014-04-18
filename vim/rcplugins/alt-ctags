@@ -6,4 +6,6 @@ let g:ctags_file = '.git/tags'
 let g:ctags_command = "ctags --tag-relative -f '%f' -R --exclude='.git'"
 let g:ctags_excludes = [ '~', '~/code/dotfiles' ]
 
+autocmd BufWritePost * Ctags
+
 " vim:ft=vim

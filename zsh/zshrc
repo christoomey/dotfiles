@@ -27,6 +27,16 @@ alias be='bundle exec'
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
     'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
+# Show changed files in current branch, ignoring node_modules
+function diff-without-node-modules() {
+  if `git merge-base --is-ancestor master HEAD`; then
+    git diff master..HEAD  --name-only | grep -v node_modules
+  else
+    echo 'Branch not rebased onto master' 1>&2
+    return 1
+  fi
+}
+
 # Serve the current directory. Pass in a port, or use default 8000
 function simple-server {
   echo 'Simple-server URL coppied to the clipbaord'
