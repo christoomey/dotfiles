@@ -1,0 +1,7 @@
+" Node configurations
+"------------------------
+
+MapTargetedCtrlp gt test
+MapTargetedCtrlp gg config
+
+" vim:ft=vim
