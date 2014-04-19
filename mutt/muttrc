@@ -45,5 +45,6 @@ bind pager V view-attachments
 
 macro index,pager gi "<change-folder>=gmail/INBOX<enter>" "Go to inbox"
 macro index,pager gd "<change-folder>=gmail/Drafts<enter>" "Go to drafts"
+macro index,pager gf "<change-folder>=gmail/Followup<enter>" "Go to follow-up"
 
 macro pager ^b 'urlview' 'Follow links with urlview'

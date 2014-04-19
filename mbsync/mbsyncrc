@@ -39,8 +39,13 @@ Channel gmail-Trash
 Master :gmail-remote:[Gmail]/Trash
 Slave :gmail-local:Trash
 
+Channel gmail-Followup
+Master :gmail-remote:[Mailbox]/follow-up
+Slave :gmail-local:Followup
+
 Group gmail
 Channel gmail-INBOX
 Channel gmail-Drafts
 Channel gmail-Sent
 Channel gmail-Trash
+Channel gmail-Followup
