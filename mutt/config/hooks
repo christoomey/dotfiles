@@ -1,0 +1,6 @@
+folder-hook gmail/*      source ~/.mutt/accounts/gmail
+folder-hook thoughtbot/* source ~/.mutt/accounts/thoughtbot
+
+source ~/.mutt/accounts/gmail # default account
+
+# vim: ft=muttrc

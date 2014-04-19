@@ -1,0 +1,13 @@
+# vim: ft=muttrc
+
+set from          = "chris@ctoomey.com"
+set sendmail      = "/usr/local/bin/msmtp -a gmail"
+
+set postponed     = "+gmail/Drafts"
+
+color status green default
+
+macro index,pager \# "<save-message>=gmail/Trash<enter><enter>" "Trash Message"
+macro index,pager gi "<change-folder>=gmail/INBOX<enter>" "Go to inbox"
+macro index,pager gd "<change-folder>=gmail/Drafts<enter>" "Go to drafts"
+macro index,pager gf "<change-folder>=gmail/Followup<enter>" "Go to follow-up"
