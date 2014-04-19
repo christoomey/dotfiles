@@ -49,3 +49,51 @@ Channel gmail-Drafts
 Channel gmail-Sent
 Channel gmail-Trash
 Channel gmail-Followup
+
+################################################################################
+##   thoughtbot                                                               ##
+################################################################################
+
+IMAPAccount thoughtbot
+Host imap.gmail.com
+User chris@thoughtbot.com
+PassCmd "keychain-password chris@thoughtbot.com"
+UseIMAPS yes
+
+IMAPStore thoughtbot-remote
+Account thoughtbot
+
+MaildirStore thoughtbot-local
+Path ~/.mail/thoughtbot/
+Inbox ~/.mail/thoughtbot/INBOX
+
+Channel thoughtbot-INBOX
+Master :thoughtbot-remote:INBOX
+Slave :thoughtbot-local:INBOX
+
+Channel thoughtbot-Drafts
+Master :thoughtbot-remote:[thoughtbot]/Drafts
+Slave :thoughtbot-local:Drafts
+
+Channel thoughtbot-Sent
+Master ":thoughtbot-remote:[thoughtbot]/Sent Mail"
+Slave :thoughtbot-local:Sent
+
+Channel thoughtbot-Archive
+Master ":thoughtbot-remote:[thoughtbot]/All Mail"
+Slave :thoughtbot-local:Archive
+
+Channel thoughtbot-Trash
+Master :thoughtbot-remote:[thoughtbot]/Trash
+Slave :thoughtbot-local:Trash
+
+Channel thoughtbot-Followup
+Master :thoughtbot-remote:[Mailbox]/follow-up
+Slave :thoughtbot-local:Followup
+
+Group thoughtbot
+Channel thoughtbot-INBOX
+Channel thoughtbot-Drafts
+Channel thoughtbot-Sent
+Channel thoughtbot-Trash
+Channel thoughtbot-Followup
