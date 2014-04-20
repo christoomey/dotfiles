@@ -43,12 +43,17 @@ Channel gmail-Followup
 Master :gmail-remote:[Mailbox]/follow-up
 Slave :gmail-local:Followup
 
+Channel gmail-Capture
+Master :gmail-remote:capture
+Slave :gmail-local:Capture
+
 Group gmail
 Channel gmail-INBOX
 Channel gmail-Drafts
 Channel gmail-Sent
 Channel gmail-Trash
 Channel gmail-Followup
+Channel gmail-Capture
 
 ################################################################################
 ##   thoughtbot                                                               ##

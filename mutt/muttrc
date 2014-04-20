@@ -26,7 +26,6 @@ unignore from: to: cc: date: subject:   # show only these
 unhdr_order *                           # some distros order things by default
 hdr_order from: to: cc: date: subject:  # and in this order
 
-bind index,pager e  delete-thread # Archive => this deletes from the inbox, but all-mail already has a copy
 bind index,pager s flag-message  # Toggle 'important' flag
 bind index,pager v save-message  # Move to
 bind index,pager a group-reply   # Reply to all
@@ -36,6 +35,9 @@ bind index gg first-entry
 bind index G last-entry
 bind pager b previous-page
 bind pager V view-attachments
+
+macro index e "<delete-thread>" "Archive message"
+macro pager e "<delete-thread><exit>" "Archive message and return to index"
 
 macro index ,g "<change-folder>+gmail/INBOX<return>" "change to gmail account"
 macro index ,t "<change-folder>+thoughtbot/INBOX<return>" "change to thoughtbot account"
