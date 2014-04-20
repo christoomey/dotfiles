@@ -9,7 +9,7 @@ SyncState *
 IMAPAccount gmail
 Host imap.gmail.com
 User chris@ctoomey.com
-PassCmd "keychain-password chris@ctoomey.com"
+PassCmd "~/bin/keychain-password chris@ctoomey.com"
 UseIMAPS yes
 
 IMAPStore gmail-remote
@@ -30,10 +30,6 @@ Slave :gmail-local:Drafts
 Channel gmail-Sent
 Master ":gmail-remote:[Gmail]/Sent Mail"
 Slave :gmail-local:Sent
-
-Channel gmail-Archive
-Master ":gmail-remote:[Gmail]/All Mail"
-Slave :gmail-local:Archive
 
 Channel gmail-Trash
 Master :gmail-remote:[Gmail]/Trash
@@ -62,7 +58,7 @@ Channel gmail-Capture
 IMAPAccount thoughtbot
 Host imap.gmail.com
 User chris@thoughtbot.com
-PassCmd "keychain-password chris@thoughtbot.com"
+PassCmd "~/bin/keychain-password chris@thoughtbot.com"
 UseIMAPS yes
 
 IMAPStore thoughtbot-remote
@@ -77,19 +73,15 @@ Master :thoughtbot-remote:INBOX
 Slave :thoughtbot-local:INBOX
 
 Channel thoughtbot-Drafts
-Master :thoughtbot-remote:[thoughtbot]/Drafts
+Master :thoughtbot-remote:[Gmail]/Drafts
 Slave :thoughtbot-local:Drafts
 
 Channel thoughtbot-Sent
-Master ":thoughtbot-remote:[thoughtbot]/Sent Mail"
+Master ":thoughtbot-remote:[Gmail]/Sent Mail"
 Slave :thoughtbot-local:Sent
 
-Channel thoughtbot-Archive
-Master ":thoughtbot-remote:[thoughtbot]/All Mail"
-Slave :thoughtbot-local:Archive
-
 Channel thoughtbot-Trash
-Master :thoughtbot-remote:[thoughtbot]/Trash
+Master :thoughtbot-remote:[Gmail]/Trash
 Slave :thoughtbot-local:Trash
 
 Channel thoughtbot-Followup
