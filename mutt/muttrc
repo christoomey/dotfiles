@@ -30,6 +30,24 @@ hdr_order from: to: cc: date: subject:  # and in this order
 auto_view text/html    # Convert html to text if no text present
 alternative_order text/plain text/enriched text/html
 
+# Index View Options ---------------------------------
+set date_format = "%m/%d"
+set index_format = "[%Z]  %D  %-20.20F  %s"
+set sort = threads                         # like gmail
+set uncollapse_jump                        # don't collapse on an unread message
+set sort_re                                # thread based on regex
+set reply_regexp = "^(([Rr][Ee]?(\[[0-9]+\])?: *)?(\[[^]]+\] *)?)*"]
+
+# Pager View Options ---------------------------------
+set pager_index_lines = 10 # number of index lines to show
+set pager_context = 3      # number of context lines to show
+set pager_stop             # don't go to next message automatically
+set menu_scroll            # scroll in menus
+set tilde                  # show tildes like in vim
+unset markers              # no ugly plus signs
+
+# Bindings ------------------------------
+
 bind index,pager s flag-message  # Toggle 'important' flag
 bind index,pager a group-reply   # Reply to all
 bind index gl change-folder
@@ -42,7 +60,7 @@ bind index - collapse-thread
 bind index _ collapse-all
 
 macro index e "<delete-thread>" "Archive message"
-macro pager e "<delete-thread><exit>" "Archive message and return to index"
+macro pager e "<delete-thread>" "Archive message and return to index"
 
 macro index ,g "<change-folder>+gmail/INBOX<return>" "change to gmail account"
 macro index ,t "<change-folder>+thoughtbot/INBOX<return>" "change to thoughtbot account"
@@ -50,3 +68,4 @@ macro index ,t "<change-folder>+thoughtbot/INBOX<return>" "change to thoughtbot 
 macro pager ^b 'urlview' 'Follow links with urlview'
 
 source ~/.mutt/config/hooks
+source ~/.mutt/colors/tomorrow-night
