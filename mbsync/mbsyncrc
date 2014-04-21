@@ -35,6 +35,10 @@ Channel gmail-Trash
 Master :gmail-remote:[Gmail]/Trash
 Slave :gmail-local:Trash
 
+Channel gmail-Archive
+Master ":gmail-remote:[Gmail]/All Mail"
+Slave :gmail-local:Archive
+
 Channel gmail-Followup
 Master :gmail-remote:[Mailbox]/follow-up
 Slave :gmail-local:Followup
@@ -48,6 +52,7 @@ Channel gmail-INBOX
 Channel gmail-Drafts
 Channel gmail-Sent
 Channel gmail-Trash
+Channel gmail-Archive
 Channel gmail-Followup
 Channel gmail-Capture
 
@@ -84,6 +89,10 @@ Channel thoughtbot-Trash
 Master :thoughtbot-remote:[Gmail]/Trash
 Slave :thoughtbot-local:Trash
 
+Channel thoughtbot-Archive
+Master ":thoughtbot-remote:[Gmail]/All Mail"
+Slave :thoughtbot-local:Archive
+
 Channel thoughtbot-Followup
 Master :thoughtbot-remote:[Mailbox]/follow-up
 Slave :thoughtbot-local:Followup
@@ -94,3 +103,4 @@ Channel thoughtbot-Drafts
 Channel thoughtbot-Sent
 Channel thoughtbot-Trash
 Channel thoughtbot-Followup
+Channel thoughtbot-Archive

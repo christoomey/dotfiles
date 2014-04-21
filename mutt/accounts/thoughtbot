@@ -9,6 +9,7 @@ color status cyan default
 
 macro index \# "<save-message>=thoughtbot/Trash<enter><enter>" "Trash Message"
 macro pager \# "<save-message>=thoughtbot/Trash<enter><enter><exit>" "Trash Message"
+macro index,pager ga "<change-folder>=thoughtbot/Archive<enter>" "Go to archive"
 macro index,pager gi "<change-folder>=thoughtbot/INBOX<enter>" "Go to inbox"
 macro index,pager gd "<change-folder>=thoughtbot/Drafts<enter>" "Go to drafts"
 macro index,pager gf "<change-folder>=thoughtbot/Followup<enter>" "Go to follow-up"
