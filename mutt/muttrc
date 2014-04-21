@@ -5,6 +5,7 @@ unset record                                      # do not append copy of sent m
   set header_cache=~/.mutt/cache/headers
   set message_cachedir=~/.mutt/cache/bodies
   set certificate_file=~/.mutt/certificates
+  set mailcap_path     = ~/.mutt/config/mailcap   # entries for filetypes
 
 # General Options ------------------------------
   set delete                                      # Do not ask to purge deleted when switching folders
@@ -26,8 +27,10 @@ unignore from: to: cc: date: subject:   # show only these
 unhdr_order *                           # some distros order things by default
 hdr_order from: to: cc: date: subject:  # and in this order
 
+auto_view text/html    # Convert html to text if no text present
+alternative_order text/plain text/enriched text/html
+
 bind index,pager s flag-message  # Toggle 'important' flag
-bind index,pager v save-message  # Move to
 bind index,pager a group-reply   # Reply to all
 bind index gl change-folder
 bind index c mail # compose
@@ -35,6 +38,8 @@ bind index gg first-entry
 bind index G last-entry
 bind pager b previous-page
 bind pager V view-attachments
+bind index - collapse-thread
+bind index _ collapse-all
 
 macro index e "<delete-thread>" "Archive message"
 macro pager e "<delete-thread><exit>" "Archive message and return to index"
