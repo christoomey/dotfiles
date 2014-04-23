@@ -39,7 +39,7 @@ set sort_re                                # thread based on regex
 set reply_regexp = "^(([Rr][Ee]?(\[[0-9]+\])?: *)?(\[[^]]+\] *)?)*"]
 
 # Pager View Options ---------------------------------
-set pager_index_lines = 10 # number of index lines to show
+set pager_index_lines = 5 # number of index lines to show
 set pager_context = 3      # number of context lines to show
 set pager_stop             # don't go to next message automatically
 set menu_scroll            # scroll in menus
@@ -59,6 +59,8 @@ bind pager V view-attachments
 bind index - collapse-thread
 bind index _ collapse-all
 
+macro index M "<save-message>?" "move a message to a mailbox"
+
 macro index e "<delete-thread>" "Archive message"
 macro pager e "<delete-thread>" "Archive message and return to index"
 
@@ -66,6 +68,10 @@ macro index ,g "<change-folder>+gmail/INBOX<return>" "change to gmail account"
 macro index ,t "<change-folder>+thoughtbot/INBOX<return>" "change to thoughtbot account"
 
 macro pager ^b 'urlview' 'Follow links with urlview'
+
+macro index o \
+  "<shell-escape>mbsync -q INBOXES<enter>" \
+  "sync inboxes"
 
 source ~/.mutt/config/hooks
 source ~/.mutt/colors/tomorrow-night

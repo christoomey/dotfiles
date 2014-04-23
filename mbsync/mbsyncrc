@@ -104,3 +104,11 @@ Channel thoughtbot-Sent
 Channel thoughtbot-Trash
 Channel thoughtbot-Followup
 Channel thoughtbot-Archive
+
+##################
+# Inboxes
+##################
+
+Group INBOXES
+Channel gmail-INBOX
+Channel thoughtbot-INBOX

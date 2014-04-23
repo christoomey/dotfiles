@@ -8,7 +8,7 @@ set postponed     = "+gmail/Drafts"
 color status green default
 
 macro index \# "<save-message>=gmail/Trash<enter><enter>" "Trash Message"
-macro pager \# "<save-message>=gmail/Trash<enter><enter><exit>" "Trash Message"
+macro pager \# "<save-message>=gmail/Trash<enter><enter>" "Trash Message"
 macro index,pager ga "<change-folder>=gmail/Archive<enter>" "Go to archive"
 macro index,pager gi "<change-folder>=gmail/INBOX<enter>" "Go to inbox"
 macro index,pager gd "<change-folder>=gmail/Drafts<enter>" "Go to drafts"
