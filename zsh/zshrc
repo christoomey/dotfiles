@@ -20,6 +20,8 @@ alias vi='mvim -v'
 
 function conflicted { vim +Conflicted }
 
+function capture { mutt -s 'Capture' chris+capture@ctoomey.com }
+
 # Prevent correct of git slog
 alias be='bundle exec'
 
