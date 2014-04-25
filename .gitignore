@@ -5,3 +5,4 @@ vim/bundles/**
 vim/Trashed-Bundles/**
 mutt/cache/**
 mutt/certificates
+mutt/aliases

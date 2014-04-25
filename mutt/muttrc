@@ -2,6 +2,7 @@
   set folder           = ~/.mail                  # mailbox location
   set spoolfile = "+gmail/INBOX"                  # Start in personal inbox by default
 unset record                                      # do not append copy of sent mail to ~/sent
+  set alias_file       = ~/.mutt/aliases          # where to store aliases
   set header_cache=~/.mutt/cache/headers
   set message_cachedir=~/.mutt/cache/bodies
   set certificate_file=~/.mutt/certificates
@@ -47,7 +48,6 @@ set tilde                  # show tildes like in vim
 unset markers              # no ugly plus signs
 
 # Bindings ------------------------------
-
 bind index,pager s flag-message  # Toggle 'important' flag
 bind index,pager a group-reply   # Reply to all
 bind index gl change-folder
@@ -69,9 +69,15 @@ macro index ,t "<change-folder>+thoughtbot/INBOX<return>" "change to thoughtbot 
 
 macro pager ^b 'urlview' 'Follow links with urlview'
 
+# Contacts completion --------------------------------
+set query_command = "contacts -Sf '%eTOKEN%n' '%s' | sed -e 's/TOKEN/\t/g'"
+bind editor <Tab> complete-query
+bind editor ^T    complete'
+
 macro index o \
   "<shell-escape>mbsync -q INBOXES<enter>" \
   "sync inboxes"
 
+source ~/.mutt/aliases
 source ~/.mutt/config/hooks
 source ~/.mutt/colors/tomorrow-night
