@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+target_path=~/Desktop/mails/cur/
+capture_folder_path=~/.mail/gmail/Capture/cur
+oldest_capture_file=$(ls $capture_folder_path | head -1)
+
+mv "$capture_folder_path/$oldest_capture_file" "$target_path"
+
+echo "popped one for review"
+
+mutt -f ~/Desktop/mails -e 'exec display-message'
