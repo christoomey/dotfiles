@@ -1,0 +1,27 @@
+" Chrome Cli bindings
+"--------------------
+
+function! s:OpenDevPageInChrome(refresh)
+  let domain = substitute(system('basename `pwd`'), '\n', '', '') " => dotfiles
+  let chrome_cli_grep = "chrome-cli list links | grep '".domain."\.dev' | head -1"
+  let project_tab = system(chrome_cli_grep)
+  if project_tab == ''
+    call system('chrome-cli open http://'.domain.'.dev')
+  else
+    let tab_index = matchlist(project_tab, '\v\[(\d+)\].*')[1]
+    call system('chrome-cli activate -t '.tab_index)
+    if a:refresh
+       call system('chrome-cli reload')
+    endif
+  endif
+  let activate_chrome_cmd = "tell application 'Google Chrome' to activate"
+  call system('osascript -e "tell application \"Google Chrome\" to activate"')
+endfunction
+
+command! OpenDevPageInChrome call <sid>OpenDevPageInChrome(0)
+command! OpenAndReloadDevPage call <sid>OpenDevPageInChrome(1)
+nnoremap <leader>od :OpenDevPageInChrome<cr>
+nnoremap <leader>Od :OpenAndReloadDevPage<cr>
+nnoremap <leader>OD :OpenAndReloadDevPage<cr>
+
+" vim:ft=vim
