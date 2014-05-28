@@ -1,0 +1,15 @@
+" JSON - Syntax highlighting for JSON
+
+" Fancy tricks with hiding quotes around attributes, includes ftdetect
+Bundle 'elzr/vim-json'
+
+let g:vim_json_syntax_conceal = 0
+
+" Requires 'npm install jsontool -g'
+function! s:PrettyJSON()
+  %!json
+  set filetype=json
+endfunction
+command! PrettyJSON :call <sid>PrettyJSON()
+
+" vim:ft=vim
