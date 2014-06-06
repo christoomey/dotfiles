@@ -14,13 +14,7 @@ nnoremap <LEADER>rh :silent noh<CR>
 " Do a / search first, then leave pattern empty in :s// to use previous
 nnoremap <Leader>sub :%s///g<left><left>
 vnoremap <Leader>sub :s///g<left><left>
-
-" Global helper. First, compose a search to find all the relevant lines. Then
-" compose a macro in @q register. Then hit up this mapping to start the global
-" fun times.
-nmap <leader>gg :g//normal <C-r>q
-vmap <leader>gg :g//normal <C-r>q
-nmap <leader>gp :g//p<cr>
+nnoremap <leader>wub :windo %s///g<left><left>
 
 " Search for selected text, forwards or backwards.
 " http://vim.wikia.com/wiki/Search_for_visually_selected_text
