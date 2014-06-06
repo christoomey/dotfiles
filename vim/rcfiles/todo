@@ -1,0 +1,34 @@
+" Prose (blogging, readmes, any other markdown) configurations
+"------------------------
+
+" Simple todo function
+nnoremap <leader>dn :ToggleCompletion<cr>ddGpggj
+
+function! s:ToggleCompletion()
+  let save_cursor = getpos(".")
+  if match(getline('.'), '- \[\s\]') != -1
+    substitute/\[\s\]/[x]/
+  else
+    substitute/\[x\]/[ ]/
+  endif
+  call setpos('.', save_cursor)
+endfunction
+
+command! ToggleCompletion call <sid>ToggleCompletion()
+nnoremap X :ToggleCompletion<cr>
+
+syntax match doneTodo "\v%(\s+)?- \[x\].*"
+highlight link doneTodo Comment
+
+function! s:MakeTodo()
+  let save_cursor = getpos(".")
+  s/\v(\s+)?(.*)/\1- [ ] \2/
+  call setpos('.', save_cursor)
+  normal! 6l
+endfunction
+command! MakeTodo call <sid>MakeTodo()
+nnoremap <plug>MakeTodo :MakeTodo<cr>
+map <leader>ut <plug>MakeTodo
+silent! call repeat#set("\<plug>MakeTodo", v:count)
+
+" vim:ft=vim

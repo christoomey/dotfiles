@@ -1,6 +1,6 @@
 " Swiki - Simple wiki managed by Vim
 
-Bundle "christoomey/vim-swiki"
+" Bundle "christoomey/vim-swiki"
 
 let g:swiki_root = "~/Dropbox/wiki"
 
