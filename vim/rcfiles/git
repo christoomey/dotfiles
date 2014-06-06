@@ -1,6 +1,8 @@
 " Git configurations
 "------------------------
 
+autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
+
 function! Git_Repo_Cdup() " Get the relative path to repo root
     "Ask git for the root of the git repo (as a relative '../../' path)
     let git_top = system('git rev-parse --show-cdup')
@@ -24,6 +26,13 @@ function! CD_Git_Root()
 endfunction
 nnoremap <LEADER>gr :call CD_Git_Root()<cr>
 
-command! Gpullrequest :silent! call system('~/bin/git-pr')
+function! s:GitPrCommits()
+  let pr_commits_file = '.git/pr-commits'
+  if filereadable(pr_commits_file)
+    execute 'read '.pr_commits_file
+  endif
+endfunction
+
+command! GitPrCommits call <sid>GitPrCommits()
 
 " vim:ft=vim

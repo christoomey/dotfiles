@@ -7,6 +7,7 @@
 # Based on script from @rtomayko. Translated into ruby and now uses branch
 # tracking rather than expecting local and remote branch to have same name
 
+OPEN_SWITCHES = %{-o --open}
 def remote_url
   remote_url = chomped_system_call('git config --get remote.origin.url')
   repo_with_owner = remote_url.match(/:(.*)\.git/)
@@ -47,10 +48,21 @@ def open_pull_request_for_repo_branch(repo, branch)
   system("open https://github.com/#{repo}/pull/#{branch}")
 end
 
+def opening?
+  argument = ARGV.pop
+  argument && OPEN_SWITCHES.include?(argument)
+end
+
 def main
   repo = remote_url
   branch = remote_tracking_branch
-  open_pull_request_for_repo_branch(repo, branch)
+  if opening?
+    system 'git log --reverse master..HEAD --format="%H%n%s%n%b" > .git/pr-commits'
+    system 'gh compare'
+    system 'gh pull-request'
+  else
+    open_pull_request_for_repo_branch(repo, branch)
+  end
 end
 
 def die(msg)
