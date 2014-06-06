@@ -30,7 +30,7 @@ vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
 
 function! MarkdownMode()
   " setlocal spell        " Enable spell checking
-  setlocal wrap         " Soft wrap lines that hit the edge
+  setlocal nowrap       " Let long lines scroll off
   setlocal linebreak    " Use word boundaries to break lines
   setlocal textwidth=78
   nnoremap <buffer> <leader>ns ]s
@@ -210,6 +210,10 @@ for position in range(1, 9)
 endfor
 
 function! s:RichTextCopy()
+  if expand('%') == ''
+    echoerr 'RichTextCopy: File must be saved to disk'
+    return
+  endif
   if &filetype != 'markdown'
     echoerr 'RichTextCopy: Only valid on filetype "markdown"'
     return
