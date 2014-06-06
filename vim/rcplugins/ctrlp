@@ -37,7 +37,6 @@ let rails_ctrlp_mappings = {
       \   'gv': 'app/views',
       \   'gw': 'app/workers',
       \   'gy': 'app/assets/stylesheets',
-      \   'go': 'config'
       \ }
 
 for [mapping, directory] in items(rails_ctrlp_mappings)

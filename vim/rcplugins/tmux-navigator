@@ -1,5 +1,5 @@
 " VTR - Vim tmux integration
 
-Bundle "christoomey/tmux-navigator"
+Bundle "christoomey/vim-tmux-navigator"
 
 " vim:ft=vim

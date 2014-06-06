@@ -1,0 +1,26 @@
+#!/bin/bash
+# by http://github.com/kortina
+# modified from http://github.com/jehiah
+# this prints out branch ahead/behind status vs origin/master for all branches
+
+# example:
+# $ git branch-status
+# dns_check (ahead 1) | (behind 112) origin/master
+# master (ahead 2) | (behind 0) origin/master
+
+git for-each-ref --format="%(refname:short) %(upstream:short)" refs/ | \
+while read local remote
+do
+    if [ -x $remote ]; then
+        branches=("$local")
+    else
+        branches=("$local" "$remote")
+    fi;
+    for branch in ${branches[@]}; do
+        master="origin/master"
+        git rev-list --left-right ${branch}...${master} -- 2>/dev/null >/tmp/git_upstream_status_delta || continue
+        LEFT_AHEAD=$(grep -c '^<' /tmp/git_upstream_status_delta)
+        RIGHT_AHEAD=$(grep -c '^>' /tmp/git_upstream_status_delta)
+        echo "$branch (ahead $LEFT_AHEAD) | (behind $RIGHT_AHEAD) $master"
+    done
+done  | grep -v "^origin/master" | sort | uniq

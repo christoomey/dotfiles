@@ -1,0 +1,9 @@
+" Syntastic - Syntax checking on the fly
+
+Bundle 'scrooloose/syntastic'
+
+let g:syntastic_xml_checkers = []
+let g:syntastic_html_checkers = []
+let g:syntastic_json_checkers = ['jsonlint']
+
+" vim:ft=vim
