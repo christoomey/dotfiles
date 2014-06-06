@@ -33,6 +33,9 @@ set wildignore+=*.pyc
 " Easy re-sourcing of vimrc
 map <leader>sop :source %<cr>
 
+" Doesn't seem I'm going to win on this one
+command! W write
+
 " Easy navigation for editing and cding
 nmap <Leader>ec :e ~/code/
 nmap <Leader>eh :e ~/
