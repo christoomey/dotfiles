@@ -19,7 +19,7 @@ unset record                                      # do not append copy of sent m
 
   set include                                     # Include a copy of the message I am replying to in reply
   set sort = 'threads'
-  set sort_aux = 'reverse-last-date-received'     # within threads, sort like this
+  set sort_aux = last-date-received
   set auto_tag = yes                              # Apply functions in the index to all tagged messages
 
 # Header Options -------------------------------------
@@ -40,7 +40,7 @@ set sort_re                                # thread based on regex
 set reply_regexp = "^(([Rr][Ee]?(\[[0-9]+\])?: *)?(\[[^]]+\] *)?)*"]
 
 # Pager View Options ---------------------------------
-set pager_index_lines = 5 # number of index lines to show
+set pager_index_lines = 10 # number of index lines to show
 set pager_context = 3      # number of context lines to show
 set pager_stop             # don't go to next message automatically
 set menu_scroll            # scroll in menus
@@ -69,6 +69,10 @@ macro index ,t "<change-folder>+thoughtbot/INBOX<return>" "change to thoughtbot 
 
 macro pager ^b 'urlview' 'Follow links with urlview'
 
+# macro index,pager U "<enter-command>unset wait_key<enter><enter-command>set pipe_decode<enter>|~/bin/adventure<enter><enter-command>unset pipe_decode<enter><enter-command>set wait_key<enter>"
+
+macro index,pager U "<enter-command>unset wait_key<enter>|cat > ~/.github-unsub<enter><shell-escape>~/Desktop/unsub.sh<enter><enter-command>set wait_key<enter>"
+
 # Contacts completion --------------------------------
 set query_command = "contacts -Sf '%eTOKEN%n' '%s' | sed -e 's/TOKEN/\t/g'"
 bind editor <Tab> complete-query
@@ -77,6 +81,9 @@ bind editor ^T    complete'
 macro index o \
   "<shell-escape>mbsync -q INBOXES<enter>" \
   "sync inboxes"
+
+macro pager H "v/html<enter>mq" "View html part via mailcap"
+macro pager L "<enter-command>unset wait_key<enter>|urlview<enter><enter><enter><enter-command>set wait_key<enter>" "Open first link!"
 
 source ~/.mutt/aliases
 source ~/.mutt/config/hooks

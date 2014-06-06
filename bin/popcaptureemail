@@ -8,6 +8,7 @@ oldest_capture_file=$(ls $capture_folder_path | head -1)
 
 mv "$capture_folder_path/$oldest_capture_file" "$target_path"
 
-echo "popped one for review"
-
-mutt -f ~/Desktop/mails -e 'exec display-message'
+mutt \
+  -f ~/Desktop/mails \
+  -e 'macro index,pager Q "<save-message>=gmail/Trash<enter><enter>q" "Trash & Quit"' \
+  -e 'exec display-message'

@@ -7,8 +7,8 @@ set postponed     = "+thoughtbot/Drafts"
 
 color status cyan default
 
-macro index \# "<save-message>=thoughtbot/Trash<enter><enter>" "Trash Message"
-macro pager \# "<save-message>=thoughtbot/Trash<enter><enter>" "Trash Message"
+macro index,pager \# "<save-message>=thoughtbot/Trash<enter><enter>" "Trash Message"
+macro index,pager F "<save-message>=thoughtbot/Followup<enter><enter>" "Mark message as 'followup'"
 macro index,pager ga "<change-folder>=thoughtbot/Archive<enter>" "Go to archive"
 macro index,pager gi "<change-folder>=thoughtbot/INBOX<enter>" "Go to inbox"
 macro index,pager gd "<change-folder>=thoughtbot/Drafts<enter>" "Go to drafts"
