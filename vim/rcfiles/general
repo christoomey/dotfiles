@@ -14,17 +14,7 @@ set tabstop=2                   " Two spaces per tab as default
 set shiftwidth=2                "     then override with per filteype
 set softtabstop=2               "     specific settings via autocmd
 
-" Use relativenumber, but provide easy toggle
 set relativenumber
-nnoremap <leader>nu :call ToggleRelativeNumber()<cr>
-nnoremap <leader>rn :call ToggleRelativeNumber()<cr>
-function! ToggleRelativeNumber()
-  if &relativenumber
-    set number
-  else
-    set relativenumber
-  endif
-endfunction
 
 " Disable sound/visual bell on errors
 " May need additional config about audible bell
