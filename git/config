@@ -32,7 +32,7 @@
   rbc = rebase --continue
   ri = rebase -i
   rid = rebase -i dev
-  rim = rebase -i master
+  rim = !git rebase --interactive $(git merge-base master HEAD)
   riu = !git rebase -i $(git upstream)
   rod = rebase dev
   rom = rebase master
