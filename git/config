@@ -8,6 +8,8 @@
   browse = "!hub browse"
   ca = commit --amend
   car = commit --amend --no-edit
+  ci = "!gh ci-status -v | sed -E 's/.* (.*)$/\\1/' | xargs open"
+  cis = "!gh ci-status"
   co = checkout
   compare = "!hub compare"
   conflicts = !git ls-files -u | awk '{print $4}' | sort -u
