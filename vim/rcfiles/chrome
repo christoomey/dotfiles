@@ -2,6 +2,10 @@
 "--------------------
 
 function! s:OpenDevPageInChrome(refresh)
+  if !executable('chrome-cli')
+    echoerr 'OpenInChrome: `chrome-cli` executable required'
+    return
+  endif
   let domain = substitute(system('basename `pwd`'), '\n', '', '') " => dotfiles
   let chrome_cli_grep = "chrome-cli list links | grep '".domain."\.dev' | head -1"
   let project_tab = system(chrome_cli_grep)
@@ -20,8 +24,7 @@ endfunction
 
 command! OpenDevPageInChrome call <sid>OpenDevPageInChrome(0)
 command! OpenAndReloadDevPage call <sid>OpenDevPageInChrome(1)
-nnoremap <leader>od :OpenDevPageInChrome<cr>
-nnoremap <leader>Od :OpenAndReloadDevPage<cr>
-nnoremap <leader>OD :OpenAndReloadDevPage<cr>
+nnoremap <leader>od :OpenAndReloadDevPage<cr>
+nnoremap <F5> :OpenAndReloadDevPage<cr>
 
 " vim:ft=vim
