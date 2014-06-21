@@ -2,11 +2,8 @@
 "------------------------
 
 MapTargetedCtrlp gt app/assets/templates
+MapTargetedCtrlp gs test
 MapTargetedCtrlp gg config
-
-" Quick sorting of require blocks
-command! SortParagraph :normal! vip:sort<cr>
-nnoremap <leader>sp :SortParagraph<cr>
 
 function! s:RunFocusedMochaTest()
   let spec_title_pattern = '\v^\s+%(scenario|it)\(''(.*)'''
