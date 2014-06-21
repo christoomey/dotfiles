@@ -12,22 +12,19 @@ if [[ -f .env ]]; then
 fi
 
 if [[ -f config/environment.rb ]]; then
-  server_cmd="bundle exec rails s"
+  server_cmd="bundle exec rails s -p $port"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
-  server_cmd="middleman"
+  server_cmd="middleman -p $port"
 elif [[ -f package.json ]]; then
-  server_cmd="grunt serve"
+  server_cmd="grunt serve -p $port"
 else
-  echo 'Error: Unable to determine server command for current directory' 1>&2
-  exit 1
+  server_cmd="python -m SimpleHTTPServer $port"
 fi
 
 if [[ -n $port ]]; then
   echo "http://`basename $(pwd)`.dev" | pbcopy
   echo "Dev URL loaded into clipboard"
-  eval $server_cmd -p $port
-else
-  echo "http://localhost:3000" | pbcopy
-  echo "Dev URL loaded into clipboard"
   eval $server_cmd
+else
+  echo "App port not set in ~/.pow"
 fi
