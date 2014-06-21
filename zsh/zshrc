@@ -105,6 +105,20 @@ unsetopt nomatch
 # Do not autoupdate tmux window titles
 export DISABLE_AUTO_TITLE="true"
 
+function t {
+  local project
+  local session
+  local sessions
+  project=$(echo "${CDPATH//:/\n}" | while read dir; do find -L "$dir" -not -path '*/\.*' -type d -maxdepth 1 -exec basename {} \;; done | fzf --reverse)
+  sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
+  if echo $sessions | grep -q "$project"; then
+    tmux switch-client -t "$project"
+  else
+    (cd "$project" && TMUX= tmux new-session -d -s "$project")
+    tmux switch-client -t "$project"
+  fi
+}
+
 # Tmux aliases
 alias tls="tmux list-sessions"
 function tk {
@@ -113,12 +127,13 @@ function tk {
   tmux kill-session -t "$current_session"
 }
 function ta {
-    if [ -z "$1" ]; then
-        tmux attach
-    else
-        tmux attach-session -t $1
-    fi
+  local session
+  local current_session
+  session=$(tmux list-sessions -F "#{session_name}" | \
+    fzf --query="$1" --select-1 --exit-0 --reverse) &&
+  tmux switch-client -t "$session"
 }
+
 function tn {
   if [ -z "$1" ]; then
       session_name=$(basename `pwd`)
@@ -128,8 +143,6 @@ function tn {
   tmux new-session -d -s $session_name -n vim
   if [ -f zeus.json ]; then
     tmux new-window -t $session_name -n zeus 'zeus start' C-m
-    # tmux split-window -t lplive:2.0 -h 'be foreman start web' C-m
-    # tmux select-window -t $session_name:1
   fi
   tmux attach-session -t $session_name
 }
