@@ -50,6 +50,7 @@ function! MarkdownMode()
   nnoremap <buffer> <tab> :JumpToNextLink<cr>
   nnoremap <buffer> <S-tab> :JumpToNextLinkBackward<cr>
   nnoremap <buffer> <leader>fw mm1z=`m
+  nnoremap <buffer> <leader>df :call system('open dict://'. expand('<cword>'))<cr>
 endfunction
 
 function! s:JumpToNextLink(direction)
@@ -170,6 +171,9 @@ function! s:DisplaySearchResults(results)
   nnoremap <buffer> <C-o> :call OpenLinkOnCurrentLine()<cr>
   nnoremap <buffer> <C-n> 2j
   nnoremap <buffer> <C-p> 2k
+  nnoremap <buffer> <tab> :call search('^\S')<cr>:noh<cr>
+  nnoremap <buffer> <S-tab> :call search('^\S', 'b')<cr>:noh<cr>
+  nnoremap <buffer> o :call OpenLinkOnCurrentLine()<cr>
   normal ggdG
   call append(0, formatted)
   normal ddgg

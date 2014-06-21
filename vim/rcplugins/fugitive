@@ -3,7 +3,7 @@
 Bundle "tpope/vim-fugitive"
 
 nmap <LEADER>st :only<CR>:Gstatus<CR>
-nmap <LEADER>df :GitDiff<cr>
+nmap <LEADER>gd :GitDiff<cr>
 nmap <LEADER>gb :Gblame<CR>
 
 command! GitDiff call s:GitDiff()
