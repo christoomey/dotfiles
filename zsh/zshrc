@@ -111,6 +111,7 @@ function t {
   local sessions
   project=$(echo "${CDPATH//:/\n}" | while read dir; do find -L "$dir" -not -path '*/\.*' -type d -maxdepth 1 -exec basename {} \;; done | fzf --reverse)
   sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
+  current_session=$(tmux display-message -p '#S')
   if echo $sessions | grep -q "$project"; then
     tmux switch-client -t "$project"
   else
@@ -129,7 +130,9 @@ function tk {
 function ta {
   local session
   local current_session
-  session=$(tmux list-sessions -F "#{session_name}" | \
+  sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
+  current_session=$(tmux display-message -p '#S')
+  session=$(echo "$sessions" | grep -v "$current_session" | \
     fzf --query="$1" --select-1 --exit-0 --reverse) &&
   tmux switch-client -t "$session"
 }
