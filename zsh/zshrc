@@ -102,54 +102,6 @@ function envup {
 # Allow [ or ] whereever you want
 unsetopt nomatch
 
-# Do not autoupdate tmux window titles
-export DISABLE_AUTO_TITLE="true"
-
-function t {
-  local project
-  local session
-  local sessions
-  project=$(echo "${CDPATH//:/\n}" | while read dir; do find -L "$dir" -not -path '*/\.*' -type d -maxdepth 1 -exec basename {} \;; done | fzf --reverse)
-  sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
-  current_session=$(tmux display-message -p '#S')
-  if echo $sessions | grep -q "$project"; then
-    tmux switch-client -t "$project"
-  else
-    (cd "$project" && TMUX= tmux new-session -d -s "$project")
-    tmux switch-client -t "$project"
-  fi
-}
-
-# Tmux aliases
-alias tls="tmux list-sessions"
-function tk {
-  current_session=$(tmux display-message -p '#S')
-  tmux switch-client -n
-  tmux kill-session -t "$current_session"
-}
-function ta {
-  local session
-  local current_session
-  sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
-  current_session=$(tmux display-message -p '#S')
-  session=$(echo "$sessions" | grep -v "$current_session" | \
-    fzf --query="$1" --select-1 --exit-0 --reverse) &&
-  tmux switch-client -t "$session"
-}
-
-function tn {
-  if [ -z "$1" ]; then
-      session_name=$(basename `pwd`)
-  else
-      session_name=$1
-  fi
-  tmux new-session -d -s $session_name -n vim
-  if [ -f zeus.json ]; then
-    tmux new-window -t $session_name -n zeus 'zeus start' C-m
-  fi
-  tmux attach-session -t $session_name
-}
-
 for zsh_source in $HOME/.zsh/config/*.zsh; do
   source $zsh_source
 done
