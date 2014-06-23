@@ -115,7 +115,7 @@ bindkey '^x^e' edit-command-line
 unsetopt correct_all
 
 # Customize to your needs...
-export PATH=$HOME/local/bin:$PATH:$HOME/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/usr/X11/bin
+export PATH=/usr/local/bin:$HOME/local/bin:$PATH:$HOME/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/usr/X11/bin
 
 # use .localrc for settings specific to one system
 [[ -f ~/.localrc ]] && . ~/.localrc
