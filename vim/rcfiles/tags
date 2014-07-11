@@ -1,7 +1,7 @@
 " Tags configurations
 "--------------------
 
-au FileType ruby,vim call EnableTagNavMaps()
+au FileType * call EnableTagNavMaps()
 
 function! EnableTagNavMaps()
   if s:BufferIsTagNavigable()
@@ -10,7 +10,7 @@ function! EnableTagNavMaps()
   endif
 endfunction
 
-let s:navigable_filetypes = ['vim', 'ruby']
+let s:navigable_filetypes = ['vim', 'ruby', 'javascript']
 
 function! s:BufferIsTagNavigable()
   let is_navigable_filetype = index(s:navigable_filetypes, &filetype) != -1
