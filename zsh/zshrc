@@ -67,6 +67,14 @@ function g {
   fi
 }
 
+function test-addr {
+  local address
+  local port
+  address=$(ipconfig getifaddr en0)
+  port=$(cat ~/.pow/$(basename `pwd`))
+  echo http://$address:$port
+}
+
 function current_branch() {
     ref=$(git symbolic-ref HEAD 2> /dev/null) || return
     echo ${ref#refs/heads/}

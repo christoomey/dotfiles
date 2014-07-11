@@ -39,6 +39,7 @@ command! W write
 " Easy navigation for editing and cding
 nmap <Leader>ec :e ~/code/
 nmap <Leader>eh :e ~/
+nmap <Leader>ew :CtrlP ~/wiki<cr>
 nmap <Leader>cd :cd ~/code/
 nmap <Leader>er :e <C-r>=expand("%:p:h")<cr>/
 nmap <leader>sav :sav <C-r>=expand("%:p:h")<cr>/

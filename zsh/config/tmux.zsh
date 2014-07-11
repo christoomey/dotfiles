@@ -28,12 +28,14 @@ function tk {
 
 # Fuzzy select from other tmux sessions and switch to selection
 function ta {
-  local session
   local current_session
+  local session
+  local sessions
+  echo $sessions
   sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
   current_session=$(tmux display-message -p '#S')
-  session=$(echo "$sessions" | grep -v "$current_session" | \
-    fzf --query="$1" --select-1 --exit-0 --reverse) &&
+  session=$(echo "$sessions" | grep -v "^$current_session$" | \
+    fzf --select-1 --exit-0 --reverse) &&
   tmux switch-client -t "$session"
 }
 

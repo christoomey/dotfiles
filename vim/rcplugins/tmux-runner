@@ -25,7 +25,8 @@ function! SendFileViaVtr()
   let runners = {
         \ 'haskell': 'ghci',
         \ 'ruby': 'ruby',
-        \ 'javascript': 'node'
+        \ 'javascript': 'node',
+        \ 'sh': 'sh'
         \ }
   if has_key(runners, &filetype)
     let runner = runners[&filetype]
