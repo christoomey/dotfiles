@@ -19,6 +19,7 @@
   df = diff --word-diff --color-words
   dup = "!git checkout dev && git pull && git checkout -"
   edit-conflicts = !$VISUAL `git conflicts`
+  fpop = !git stash show -p | git apply && git stash drop
   glog = log -i -E --grep
   issues = !hub browse -- issues
   lnames = "!git --no-pager show --name-only $1"
