@@ -1,8 +1,0 @@
-" Scratch - Create a temporary scratch buffer
-
-Bundle "vim-scripts/scratch.vim"
-
-nmap <leader>sb :Sscratch<cr>
-nmap <leader>svb :Sscratch<cr>:setf vim<cr>
-
-" vim:ft=vim
