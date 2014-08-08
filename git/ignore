@@ -13,3 +13,5 @@ zeus_custom.rb
 .vagrant
 
 .env
+
+.project-notes
