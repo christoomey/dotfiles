@@ -75,3 +75,5 @@
   user = christoomey
 [fetch]
   prune = true
+[rerere]
+	enabled = true

@@ -14,7 +14,7 @@ fi
 if [[ -f config/environment.rb ]]; then
   server_cmd="bundle exec rails s -p $port"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
-  server_cmd="middleman -p $port"
+  server_cmd="bundle exec middleman -p $port"
 elif [[ -f package.json ]]; then
   server_cmd="grunt serve -p $port"
 else

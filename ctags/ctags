@@ -1,9 +1,9 @@
 -f .git/tags
+--sort=yes
 --tag-relative
 --recurse
 --exclude=node_modules
 --exclude=bower_components
-
 
 --langdef=js
 --langmap=js:.js
