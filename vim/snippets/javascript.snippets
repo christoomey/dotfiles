@@ -1,0 +1,50 @@
+snippet fun
+	function(${1:argument}) {
+		${0:// body...}
+	}
+
+snippet iife
+	(function() {
+		'use strict';
+
+		${0:// your codez}
+	})();
+
+snippet ngd
+	(function() {
+		'use strict';
+
+		var ${1:directiveName} = function(${2:dependencies}) {
+			return {
+				retstrict: '${0:E}',
+			};
+		};
+
+		angular.module('4ltr').directive('$1', $1);
+	})();
+
+snippet ngf
+	(function() {
+		'use strict';
+
+		var ${1:FactoryName} = function(${2:dependencies}) {
+			var $1 = function(${3:constructorArgs}) {
+			};
+
+			return $1;
+		};
+
+		angular.module('4ltr').factory('$1', $1);
+	})();
+
+snippet desc
+	describe('${1:function}', function() {
+		it('${2:behavior}', function() {
+			${0:testCode}
+		});
+	});
+
+snippet it
+	it('${1:description}', function() {
+		${0:body}
+	});

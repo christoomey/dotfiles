@@ -1,0 +1,12 @@
+" UltiSnips - Fancy snippet functionality
+
+Bundle 'SirVer/ultisnips'
+
+" Ref https://github.com/honza/vim-snippets for snippet defitintions
+
+let g:UltiSnipsSnippetsDir='~/.vim/snippets'
+let g:UltiSnipsEditSplit='vertical'
+
+nnoremap <leader>ue :UltiSnipsEdit<cr>
+
+" vim:ft=vim
