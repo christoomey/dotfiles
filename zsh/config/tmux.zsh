@@ -28,15 +28,18 @@ function tk {
 
 # Fuzzy select from other tmux sessions and switch to selection
 function ta {
-  local current_session
-  local session
-  local sessions
-  echo $sessions
-  sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
-  current_session=$(tmux display-message -p '#S')
-  session=$(echo "$sessions" | grep -v "^$current_session$" | \
-    fzf --select-1 --exit-0 --reverse) &&
-  tmux switch-client -t "$session"
+  if _not_inside_tmux; then
+    tmux attach
+  else
+    local current_session
+    local session
+    local sessions
+    sessions=$(tmux list-sessions | awk -F ':' '{print $1}')
+    current_session=$(tmux display-message -p '#S')
+    session=$(echo "$sessions" | grep -v "^$current_session$" | \
+      fzf --select-1 --exit-0 --reverse) &&
+    tmux switch-client -t "$session"
+  fi
 }
 
 # Creat a new tmux session. Use directory name for session if none provided
@@ -46,6 +49,27 @@ function tn {
   else
     session_name=$1
   fi
-  tmux new-session -d -s $session_name -n vim
-  tmux attach-session -t $session_name
+  if _not_inside_tmux; then
+    tmux new-session -d -s $session_name -n vim
+    tmux attach-session -t $session_name
+  else
+    (TMUX= tmux new-session -d -s "$session_name")
+    tmux switch-client -t "$session_name"
+  fi
+}
+
+_not_inside_tmux() { [[ -z "$TMUX" ]] }
+_tmux_sessions_list_is_empty() { [[ -z $(tmux ls) ]] }
+
+_ensure_tmux_has_a_session() {
+  if _tmux_sessions_list_is_empty; then
+    tmux new -d -s $(basename `pwd`)
+  fi
+}
+
+ensure_tmux_is_running() {
+  if _not_inside_tmux; then
+    _ensure_tmux_has_a_session
+    tmux attach
+  fi
 }

@@ -114,6 +114,8 @@ for zsh_source in $HOME/.zsh/config/*.zsh; do
   source $zsh_source
 done
 
+ensure_tmux_is_running
+
 # Edit the current line in $EDITOR
 autoload -U edit-command-line
 zle -N edit-command-line
