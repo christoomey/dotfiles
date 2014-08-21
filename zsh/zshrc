@@ -13,6 +13,8 @@ export BUNDLER_EDITOR='vim'
 
 export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 
+export NODE_PATH="/usr/local/lib/node_modules:$NODE_PATH"
+
 [[ -r "$HOME/.auth" ]] && export `cat $HOME/.auth`
 
 alias vim='mvim -v'
@@ -21,6 +23,12 @@ alias vi='mvim -v'
 function conflicted { vim +Conflicted }
 
 function capture { mutt -s 'Capture' chris+capture@ctoomey.com }
+
+function iphonesim { open /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app }
+
+function wvim { vim $(which $1) }
+
+function esample { vim -O $(ls $1/* | grep -iv 'readme' ) } # For quickly opening sample during Vim meetup
 
 # Prevent correct of git slog
 alias be='bundle exec'
@@ -31,12 +39,7 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
 
 # Show changed files in current branch, ignoring node_modules
 function diff-without-node-modules() {
-  if `git merge-base --is-ancestor master HEAD`; then
-    git diff master..HEAD  --name-only | grep -v node_modules
-  else
-    echo 'Branch not rebased onto master' 1>&2
-    return 1
-  fi
+  git diff $(git merge-base master HEAD) --name-only | grep -v node_modules
 }
 
 # Serve the current directory. Pass in a port, or use default 8000
