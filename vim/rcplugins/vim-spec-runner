@@ -2,7 +2,7 @@
 
 Bundle 'gabebw/vim-spec-runner'
 
-let g:spec_runner_executor = "call VtrSendCommand('{command}')"
+let g:spec_runner_dispatcher = "call VtrSendCommand('{command}')"
 
 map <leader>t <Plug>RunFocusedSpec
 

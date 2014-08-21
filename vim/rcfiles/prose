@@ -34,7 +34,7 @@ function! MarkdownMode()
   setlocal linebreak    " Use word boundaries to break lines
   setlocal textwidth=78
   nnoremap <buffer> <leader>ns ]s
-  nnoremap <buffer> <leader>sp ea<C-x><C-s>
+  " nnoremap <buffer> <leader>sp ea<C-x><C-s>
   nnoremap <buffer> <leader>sf mm[s1z=`m
   nnoremap <buffer> <LEADER>more i<!--more--><ESC>
   nnoremap <buffer> <leader>gf gqip
@@ -54,7 +54,6 @@ function! MarkdownMode()
 endfunction
 
 function! s:JumpToNextLink(direction)
-  " let link_pattern = '\v\[\S.{-}\]\[\]'
   let link_pattern = '\v\[\S.{-}\n?.{-}\]\[\]'
   call s:ShiftCursorColumn(-1) " in case we are currently in a link
   let link_found = search(link_pattern, a:direction)
@@ -78,21 +77,6 @@ function! OpenCurrentFileInMarked()
     call system(open_cmd)
 endfunction
 
-function! BumpToPosition(pos)
-  let current_line = line('.')
-  execute "normal ddgg" . a:pos . "jkP"
-  call cursor(current_line, 0)
-endfunction
-nmap <leader>1 :call BumpToPosition(1)<cr>
-nmap <leader>2 :call BumpToPosition(2)<cr>
-nmap <leader>3 :call BumpToPosition(3)<cr>
-nmap <leader>4 :call BumpToPosition(4)<cr>
-nmap <leader>5 :call BumpToPosition(5)<cr>
-nmap <leader>6 :call BumpToPosition(6)<cr>
-nmap <leader>7 :call BumpToPosition(7)<cr>
-nmap <leader>8 :call BumpToPosition(8)<cr>
-nmap X mm:call cursor(line('.'), 4)<cr>rx`m
-
 function! s:OpenLink()
   normal mm
   normal "ayi]
@@ -106,8 +90,8 @@ endfunction
 
 function! MoveEm(position)
   let saved_cursor = getpos(".")
-  let previous_blank_link = search('^$', 'bn')
-  let target_line = previous_blank_link + a:position - 1
+  let previous_blank_line = search('^$', 'bn')
+  let target_line = previous_blank_line + a:position - 1
   execute "move " . target_line
   call setpos('.', saved_cursor)
 endfunction
@@ -136,5 +120,10 @@ function! s:RichTextCopy()
 endfunction
 
 command! RichTextCopy call <sid>RichTextCopy()
+
+function! FixLastSpellingError()
+  normal! mm[s1z=`m"
+endfunction
+nnoremap <leader>sp :call FixLastSpellingError()<cr>
 
 " vim:ft=vim

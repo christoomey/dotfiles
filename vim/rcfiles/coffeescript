@@ -1,7 +1,7 @@
 " Coffeescript configurations
 "------------------------
 
-au Filetype coffee setl sw=2 sts=2 ts=2 expandtab
+au Filetype coffee setl sw=2 sts=2 ts=2 tw=80 expandtab
 
 " Demote function. Move private function to bottom of coffeescript file
 nnoremap <leader>dm vipokdGp

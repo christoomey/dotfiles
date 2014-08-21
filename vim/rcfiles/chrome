@@ -25,7 +25,9 @@ function! s:TabForDomain(domain)
     return matchlist(tab, '\v.*\s(.*)$')[1]
   else
     let tab = system("chrome-cli list links | grep '".a:domain."\.dev' | head -1")
-    return matchlist(tab, '\v\[(\d+)\].*')[1]
+    if tab != ''
+      return matchlist(tab, '\v\[(\d+)\].*')[1]
+    endif
   endif
 endfunction
 
@@ -50,7 +52,7 @@ endfunction
 
 command! OpenDevPageInChrome call <sid>OpenDevPageInChrome(0)
 command! OpenAndReloadDevPage call <sid>OpenDevPageInChrome(1)
-nnoremap <leader>od :OpenAndReloadDevPage<cr>
+nnoremap gl :OpenAndReloadDevPage<cr>
 nnoremap <F5> :OpenAndReloadDevPage<cr>
 
 " vim:ft=vim

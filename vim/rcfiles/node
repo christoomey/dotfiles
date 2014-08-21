@@ -14,6 +14,8 @@ function! s:RunFocusedMochaTest()
 endfunction
 command! RunFocusedMochaTest :call <sid>RunFocusedMochaTest()
 
+autocmd Filetype javascript setlocal textwidth=80
+
 nnoremap <leader>t :RunFocusedMochaTest<cr>
 
 " vim:ft=vim
