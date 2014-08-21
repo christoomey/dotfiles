@@ -3,6 +3,7 @@
 Bundle "mileszs/ack.vim"
 
 nmap <LEADER>ck :Ack!<space>
+nmap <LEADER>cK :Ack!<up><cr>
 
 let g:ackprg = 'ag --nogroup --nocolor --column'
 
