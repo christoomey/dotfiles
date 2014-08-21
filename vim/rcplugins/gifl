@@ -1,7 +1,0 @@
-" GIFL - Insert links ala google I'm feeling lucky
-
-Bundle "sgharms/GIFL"
-
-let g:LuckyOutputFormat = 'markdown'
-
-" vim:ft=vim
