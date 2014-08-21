@@ -1,5 +1,0 @@
-" DelimitMate - Auto clost delimeters : (), {}, [], "", ''
-
-Bundle "Raimondi/delimitMate"
-
-" vim:ft=vim
