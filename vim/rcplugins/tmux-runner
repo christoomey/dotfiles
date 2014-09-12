@@ -26,6 +26,7 @@ function! SendFileViaVtr()
         \ 'haskell': 'ghci',
         \ 'ruby': 'ruby',
         \ 'javascript': 'node',
+        \ 'python': 'python',
         \ 'sh': 'sh'
         \ }
   if has_key(runners, &filetype)

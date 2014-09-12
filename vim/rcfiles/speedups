@@ -5,8 +5,8 @@
 nnoremap <leader><leader> <C-^>
 
 " Use j/k to start, then scroll through autocomplete options
-inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-i>"))
-inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-o>"))
+inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-n>"))
+inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-k>"))
 
 " For reformatting files.
 nmap <leader>gq maggVGgq`a
@@ -51,7 +51,8 @@ nmap Y y$
 nnoremap 0 ^
 
 " Quickly open a second window to view files side by side
-nmap <LEADER>vn :vnew<CR><C-w>=
+nmap <LEADER>vn :vnew<CR>
+nmap <LEADER>vs :vsplit<CR>
 
 " Move one line at a time, aka 'fine ajdustment'
 nnoremap j gj
