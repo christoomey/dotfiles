@@ -21,7 +21,19 @@ function! ExtractVariable()
   endif
   " Paste the original selected text to be the variable value
   normal! $p
+  if &ft == 'javascript'
+    normal! A;
+  endif
 endfunction
 vnoremap <LEADER>ev :call ExtractVariable()<cr>
+
+function! InlineVariable()
+  if &filetype == 'javascript'
+    s/\v^(\s+)var (.*);$/\1\2/
+    nohl
+  endif
+  normal! ^*Ndf=x"vd$ddnviw"vp
+endfunction
+nnoremap <leader>ve :call InlineVariable()<cr>
 
 " vim:ft=vim
