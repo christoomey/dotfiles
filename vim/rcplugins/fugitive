@@ -6,6 +6,8 @@ nmap <LEADER>st :only<CR>:Gstatus<CR>
 nmap <LEADER>gd :GitDiff<cr>
 nmap <LEADER>gb :Gblame<CR>
 
+set diffopt+=vertical
+
 command! GitDiff call s:GitDiff()
 autocmd FileType gitcommit setl spell
 autocmd FileType gitcommit setl diffopt+=vertical
