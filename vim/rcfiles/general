@@ -15,6 +15,9 @@ set shiftwidth=2                "     then override with per filteype
 set softtabstop=2               "     specific settings via autocmd
 
 set relativenumber
+if v:version > 703
+  set number " hybrid relative and absolute for current line
+endif
 
 " Disable sound/visual bell on errors
 " May need additional config about audible bell
