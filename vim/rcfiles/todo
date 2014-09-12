@@ -22,13 +22,20 @@ highlight link doneTodo Comment
 
 function! s:MakeTodo()
   let save_cursor = getpos(".")
-  s/\v(\s+)?(.*)/\1- [ ] \2/
-  call setpos('.', save_cursor)
-  normal! 6l
+  let has_dash = (match(getline('.'), '\v^\s?- \w') != -1)
+  if has_dash
+    s/\v(\s+)?- (.*)/\1- [ ] \2/
+    call setpos('.', save_cursor)
+    normal! 4l
+  else
+    s/\v(\s+)?(.*)/\1- [ ] \2/
+    call setpos('.', save_cursor)
+    normal! 6l
+  endif
+  silent! call repeat#set("\<Plug>MakeTodo", 0)
 endfunction
 command! MakeTodo call <sid>MakeTodo()
-nnoremap <plug>MakeTodo :MakeTodo<cr>
-map <leader>ut <plug>MakeTodo
-silent! call repeat#set("\<plug>MakeTodo", v:count)
+nnoremap <Plug>MakeTodo :MakeTodo<cr>
+map <leader>ut <Plug>MakeTodo
 
 " vim:ft=vim
