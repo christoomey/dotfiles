@@ -4,12 +4,18 @@
 # specified. Lands on the new pull request page when no PR exists yet.
 # The local branch must be tracking the remote branch.
 
-def current_branch
+def get_current_branch
   `git rev-parse --abbrev-ref HEAD`.chomp
 end
 
 def main
-  system("git push -u origin #{current_branch}:cjt-#{current_branch}")
+  current_branch = get_current_branch
+  if current_branch == 'master'
+    $stderr.puts "Currently on master, aborting."
+    exit 1
+  else
+    system("git push -u origin #{current_branch}:cjt-#{current_branch}")
+  end
 end
 
 main
