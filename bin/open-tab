@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+
+class TabOpener
+  TAB_NOT_FOUND = :tab_not_found
+
+  def initialize(app_url)
+    @app_url = app_url
+  end
+
+  def self.open_for(app_url)
+    new(app_url).open!
+  end
+
+  def open!
+    if tab_exists?
+      activate app_tab
+      focus_chrome
+    else
+      open_app_in_new_tab
+      focus_chrome
+    end
+  end
+
+  private
+
+  attr_reader :app_url
+
+  def app_tab
+    tab_info = `chrome-cli list links | grep '#{app_url}'`
+    if tab_info != ""
+      tab_info.match(/^\[(\d+)\]/)[1]
+    else
+      TAB_NOT_FOUND
+    end
+  end
+
+  def open_app_in_new_tab
+    system "chrome-cli open #{app_url} > /dev/null 2>&1"
+  end
+
+  def tab_exists?
+    app_tab != TAB_NOT_FOUND
+  end
+
+  def activate(tab)
+    system "chrome-cli activate -t #{tab}"
+  end
+
+  def focus_chrome
+    system %{osascript -e 'tell application \"Google Chrome\" to activate'}
+  end
+end
+
+def print_usage
+  puts "Usage: open-tab <tab-url>"
+end
+
+def main
+  app_url = ARGV[0]
+  if !app_url
+    print_usage
+    exit 1
+  else
+    TabOpener.open_for(app_url)
+  end
+end
+
+main
