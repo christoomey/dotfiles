@@ -26,12 +26,14 @@ class TabOpener
   attr_reader :app_url
 
   def app_tab
-    tab_info = `chrome-cli list links | grep '#{app_url}'`
-    if tab_info != ""
-      tab_info.match(/^\[(\d+)\]/)[1]
-    else
-      TAB_NOT_FOUND
-    end
+    @app_tab ||= begin
+                   tab_info = `chrome-cli list links | grep '#{app_url}'`.chomp
+                   if tab_info != ""
+                     tab_info.match(/^\[(?:\d+:)?(\d+)\]/)[1]
+                   else
+                     TAB_NOT_FOUND
+                   end
+                 end
   end
 
   def open_app_in_new_tab
@@ -55,14 +57,13 @@ def print_usage
   puts "Usage: open-tab <tab-url>"
 end
 
-def main
-  app_url = ARGV[0]
-  if !app_url
-    print_usage
-    exit 1
+def desired_app_url
+  if app_url = ARGV[0]
+    app_url
   else
-    TabOpener.open_for(app_url)
+    project_name = Dir.pwd.split("/").last
+    "http://#{project_name}.dev"
   end
 end
 
-main
+TabOpener.open_for(desired_app_url)
