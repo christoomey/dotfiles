@@ -10,6 +10,15 @@ set smartcase                   " ...except if you use UCase
 nmap <F4> :silent noh<CR>
 nnoremap <LEADER>rh :silent noh<CR>
 
+" quick searching of vimrc files
+function! s:VimrcSearch()
+  echohl String | let text = input("Text to search: ") | echohl None
+  if text == '' | return | endif
+  execute "Ack! ". text ." ~/code/dotfiles/vim/rcfiles/* ~/code/dotfiles/vim/rcplugins/*"
+endfunction
+command! VimrcSearch call <sid>VimrcSearch()
+nnoremap <leader>sr :VimrcSearch<cr>
+
 " Mappings for quick search & replace. Global set to default
 " Do a / search first, then leave pattern empty in :s// to use previous
 nnoremap <Leader>sub :%s///g<left><left>
