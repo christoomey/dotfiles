@@ -9,9 +9,6 @@ endfunction
 nnoremap <leader>cla :call KillEmAll()<cr>
 nnoremap <leader>clw :only<cr>
 
-" automatically rebalance windows on vim resize
-autocmd VimResized * :wincmd =
-
 function! MkdirForCurrentFile()
   let path = substitute(expand('%:h'), getcwd(), '', '')
   echo path
