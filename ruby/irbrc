@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'irb/completion'
 
 ANSI = {}
 ANSI[:RESET]     = "\e[0m"
