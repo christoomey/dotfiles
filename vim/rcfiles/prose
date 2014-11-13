@@ -4,6 +4,17 @@
 " Setup spell checking, and use <Ctrl>s to open spelling completion menu
 au filetype markdown call MarkdownMode()
 
+function! s:CreateJournalEntryFromBuffer()
+  write
+  silent! call system('dayone new < ' . expand('%'))
+  if !v:shell_error
+    normal! ggdG
+    echo "Journal entry created"
+  endif
+endfunction
+
+command! CreateJournalEntryFromBuffer call <sid>CreateJournalEntryFromBuffer()
+
 if exists("+spelllang")
     set spelllang=en_us
 endif
