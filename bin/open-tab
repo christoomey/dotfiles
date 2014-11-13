@@ -1,14 +1,17 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
+
 class TabOpener
   TAB_NOT_FOUND = :tab_not_found
 
-  def initialize(app_url)
+  def initialize(app_url, options)
     @app_url = app_url
+    @options = options
   end
 
-  def self.open_for(app_url)
-    new(app_url).open!
+  def self.open_for(app_url, options)
+    new(app_url, options).open!
   end
 
   def open!
@@ -23,7 +26,7 @@ class TabOpener
 
   private
 
-  attr_reader :app_url
+  attr_reader :app_url, :options
 
   def app_tab
     @app_tab ||= begin
@@ -46,15 +49,14 @@ class TabOpener
 
   def activate(tab)
     system "chrome-cli activate -t #{tab}"
+    if options[:reload]
+      system "chrome-cli reload"
+    end
   end
 
   def focus_chrome
     system %{osascript -e 'tell application \"Google Chrome\" to activate'}
   end
-end
-
-def print_usage
-  puts "Usage: open-tab <tab-url>"
 end
 
 def desired_app_url
@@ -66,4 +68,13 @@ def desired_app_url
   end
 end
 
-TabOpener.open_for(desired_app_url)
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: open-tab [options] [<tab-url>]"
+
+  opts.on("-r", "--[no-]reload", "Reload tab after activating") do |r|
+    options[:reload] = r
+  end
+end.parse!
+
+TabOpener.open_for(desired_app_url, options)
