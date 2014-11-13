@@ -1,58 +1,24 @@
 " Chrome Cli bindings
 "--------------------
 
-" TODO: Falls apart when there are multiple windows of chrome open. Needs to
-" be smartened up to handle the tab index format [34:123] for window:tab
-function! s:OpenDevPageInChrome(refresh)
-  if !executable('chrome-cli')
-    echoerr 'OpenInChrome: `chrome-cli` executable required'
-    return
+function! s:HasFile()
+  return expand("%") != ""
+endfunction
+
+function! s:OpenTab(reload)
+  let base_open_cmd = "open-tab"
+  if s:HasFile()
+    write
   endif
-  let domain = s:DomainForCurrentProject()
-  let project_tab = s:TabForDomain(domain)
-  if project_tab == ''
-    call s:OpenTabForDomain(domain)
+  if a:reload
+    let open_tab_command = base_open_cmd . " --reload"
   else
-    call s:FocusAndShowTab(project_tab, a:refresh)
+    let open_tab_command = base_open_cmd
   endif
-  call s:ActivateChrome()
+  call system(open_tab_command)
 endfunction
 
-function! s:TabForDomain(domain)
-  let active_tab_url = system("chrome-cli info | grep -i '^url' | grep '".a:domain."\.dev'")
-  if active_tab_url != ''
-    let tab = system("chrome-cli info | grep -i '^id'")
-    return matchlist(tab, '\v.*\s(.*)$')[1]
-  else
-    let tab = system("chrome-cli list links | grep '".a:domain."\.dev' | head -1")
-    if tab != ''
-      return matchlist(tab, '\v\[(\d+)\].*')[1]
-    endif
-  endif
-endfunction
-
-function! s:DomainForCurrentProject()
-  return substitute(system('basename `pwd`'), '\n', '', '')
-endfunction
-
-function! s:OpenTabForDomain(domain)
-  call system('chrome-cli open http://'.a:domain.'.dev')
-endfunction
-
-function! s:FocusAndShowTab(tab, refresh)
-  call system('chrome-cli activate -t ' . a:tab)
-  if a:refresh
-    call system('chrome-cli reload')
-  endif
-endfunction
-
-function! s:ActivateChrome()
-  call system('osascript -e "tell application \"Google Chrome\" to activate"')
-endfunction
-
-command! OpenDevPageInChrome call <sid>OpenDevPageInChrome(0)
-command! OpenAndReloadDevPage call <sid>OpenDevPageInChrome(1)
-nnoremap gl :OpenAndReloadDevPage<cr>
-nnoremap <F5> :OpenAndReloadDevPage<cr>
+command! OpenTab call <sid>OpenTab(1)
+nnoremap gl :OpenTab<cr>
 
 " vim:ft=vim
