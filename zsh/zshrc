@@ -1,5 +1,5 @@
 # use vim as the visual editor
-export VISUAL=vim
+export VISUAL='vim'
 export EDITOR=$VISUAL
 
 # Path to your oh-my-zsh configuration.
@@ -26,8 +26,6 @@ function capture { mutt -s 'Capture' chris+capture@ctoomey.com }
 
 function iphonesim { open /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app }
 
-function wvim { vim $(which $1) }
-
 function esample { vim -O $(ls $1/* | grep -iv 'readme' ) } # For quickly opening sample during Vim meetup
 
 # Prevent correct of git slog
@@ -43,7 +41,7 @@ function diff-without-node-modules() {
 }
 
 # Serve the current directory. Pass in a port, or use default 8000
-function simple-server {
+function simple-server() {
   echo 'Simple-server URL coppied to the clipbaord'
   python -m SimpleHTTPServer 8123
   echo "http://simple-server.dev" | pbcopy
