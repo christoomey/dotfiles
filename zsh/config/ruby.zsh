@@ -5,3 +5,10 @@ if [[ -e /usr/local/share/chruby ]]; then
     chruby $(cat ~/.ruby-version)
   fi
 fi
+
+function rbinstall() {
+  command ruby-install ruby $(cat .ruby-version) > /dev/null
+}
+
+_chruby() { compadd $(chruby | tr -d '* ') }
+compdef _chruby chruby
