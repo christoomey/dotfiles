@@ -1,10 +1,10 @@
 compdef g=git
 function g {
-  if [[ $# > 0 ]]; then
+  if [[ $# -gt 0 ]]; then
     if [ $1 = "." ]; then
       git status --short --branch .
     else
-      git $@
+      git "$@"
     fi
   else
     if behind_master; then yellow_msg 'behind master'; fi
