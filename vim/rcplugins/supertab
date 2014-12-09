@@ -1,5 +1,0 @@
-" Supertab - enhanced tab behavior based on context
-
-Bundle 'ervandew/supertab'
-
-" vim:ft=vim
