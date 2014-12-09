@@ -1,4 +1,3 @@
--f .git/tags
 --sort=yes
 --tag-relative
 --recurse
