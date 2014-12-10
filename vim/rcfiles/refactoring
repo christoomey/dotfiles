@@ -31,6 +31,9 @@ function! InlineVariable()
   if &filetype == 'javascript'
     s/\v^(\s+)var (.*);$/\1\2/
     nohl
+  elseif &filetype == 'vim'
+    s/\v^(\s+)let (.*)$/\1\2/
+    nohl
   endif
   normal! ^*Ndf=x"vd$ddnviw"vp
 endfunction
