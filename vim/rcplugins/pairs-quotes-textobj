@@ -1,0 +1,5 @@
+" Vim-Pairs - Custom text objects for pairs and quotes
+
+Bundle "kurkale6ka/vim-pairs"
+
+" vim:ft=vim

@@ -1,5 +1,0 @@
-" TextObj Quotes - Act on single and double quotes, as well as backticks
-
-Bundle "beloglazov/vim-textobj-quotes"
-
-" vim:ft=vim
