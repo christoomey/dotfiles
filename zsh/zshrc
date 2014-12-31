@@ -95,6 +95,15 @@ function envup {
   fi
 }
 
+vman() {
+  vim -c "SuperMan $*"
+
+  if [ "$?" != "0" ]; then
+    echo "No manual entry for $*"
+  fi
+}
+compdef vman=man
+
 # Allow [ or ] whereever you want
 unsetopt nomatch
 
