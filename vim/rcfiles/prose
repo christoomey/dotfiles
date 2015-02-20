@@ -54,9 +54,6 @@ function! MarkdownMode()
   nnoremap <buffer> <leader>u1 mmyypVr=`m<cr><esc>
   nnoremap <buffer> <leader>u2 mmyypVr-`m<cr><esc>
   nnoremap <buffer> <leader>u3 mm0i### <esc>`m4l
-  command! OpenMarkdownLink call s:OpenLink(0)
-  command! OpenMarkdownLinkBackground call s:OpenLink(1)
-  nnoremap <buffer> <cr> :OpenMarkdownLink<cr>
   nnoremap <buffer> <tab> :JumpToNextLink<cr>
   nnoremap <buffer> <S-tab> :JumpToNextLinkBackward<cr>
   nnoremap <buffer> <leader>fw mm1z=`m
@@ -85,24 +82,6 @@ function! OpenCurrentFileInMarked()
     let current_file = expand('%')
     let open_cmd = join(["open -a Marked", current_file])
     call system(open_cmd)
-endfunction
-
-function! s:OpenLink(in_background)
-  normal mm
-  normal "ayi]
-  let escaped_link_name = escape(getreg('a'), '&')
-  let pattern = '\v^\[' . escaped_link_name . '\]: (.*)$'
-  let g:pattern = pattern
-  let line_num = search(pattern)
-  let line = getline(line_num)
-  let url = matchlist(line, pattern)[1]
-  let base_open_cmd = 'unsetopt nomatch && open '
-  if a:in_background
-    call system(base_open_cmd . "-g '" . url . "'")
-  else
-    call system(base_open_cmd . "'" . url . "'")
-  endif
-  normal `m
 endfunction
 
 function! MoveEm(position)
