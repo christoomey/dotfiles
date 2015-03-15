@@ -101,6 +101,7 @@ class ClosesPullRequests
     merge_cmd = "git merge --ff-only #{@current_branch}"
     gc = GitCall.new(merge_cmd, :command, true)
     unless run_or_print(gc)
+      run_or_print GitCall.new("git checkout -", :command, true)
       die_with_msg "Branch '#{@current_branch}' is not fast-forwardable"
     end
   end
