@@ -8,7 +8,7 @@ app_name=$(basename `pwd`)
 port=`cat ~/.pow/$app_name 2> /dev/null`
 
 if [[ -f .env ]]; then
-  export $(cat .env)
+  export $(cat .env | sed -E '/^(#|$)/d')
 fi
 
 if [[ -f config/environment.rb ]]; then
