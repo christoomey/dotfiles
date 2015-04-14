@@ -1,0 +1,16 @@
+" Put Replace - Operator to replace text-obj or motion with paste thanks
+" @jferris
+" ---------------------------------------------------------------
+
+function! s:PutReplaceMotion(type)
+  if a:type == 'line'
+    silent execute "normal! `[V`]"
+  else
+    silent execute "normal! `[v`]"
+  end
+  silent execute "normal! p"
+endfunction
+
+nmap <silent> R :set opfunc=<sid>PutReplaceMotion<CR>g@
+
+" vim:ft=vim
