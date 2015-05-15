@@ -1,0 +1,16 @@
+" Previous text object
+
+call textobj#user#plugin('previous', {
+\   '-': {
+\     '*select-function*': 'PreviousTextobj',
+\     'select': ['pr', 'pR']
+\   },
+\ })
+
+function! PreviousTextobj()
+  let head_pos = getpos("'[")
+  let tail_pos = getpos("']")
+  return ['v', head_pos, tail_pos]
+endfunction
+
+" vim:ft=vim
