@@ -1,0 +1,10 @@
+" easy align - Align by motion for tables and other structured content
+
+Bundle "junegunn/vim-easy-align"
+
+command! ReformatTable normal vip<cr>**|
+nmap <leader>rt :ReformatTable<cr>
+vmap <cr> <Plug>(EasyAlign)
+nmap ga <Plug>(EasyAlign)
+
+" vim:ft=vim
