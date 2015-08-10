@@ -1,0 +1,20 @@
+#!/bin/bash
+
+git_clean() {
+  git diff --no-ext-diff --quiet --exit-code
+}
+
+main() {
+  if git_clean; then
+    local branch_name=$(git symbolic-ref HEAD 2>/dev/null | tr '/' '\n' | tail -1)
+    local current_sha=$(git rev-parse HEAD)
+    echo "Branch $branch_name was $current_sha"
+    git reset --soft HEAD^
+    git reset
+  else
+    >&2 echo "Aborting due to local changes"
+    exit 1
+  fi
+}
+
+main
