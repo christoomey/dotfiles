@@ -4,19 +4,20 @@
 let s:VLC_PATH = '/Applications/VLC.app/Contents/MacOS/VLC'
 let s:RC_OPTIONS = ' --extraintf rc --rc-host localhost:1234'
 let s:BASE_VLC_PLAY_COMMAND = 'noglob ' . s:VLC_PATH . s:RC_OPTIONS . ' --rate 1.5 '
+let s:FALSE = 0
 
 function! s:OpenVideoInVLC(video)
   let command = s:tmplt(
-        \ 'noglob #{VLC_PATH} #{RC_OPTIONS} #{RATE_OPTIONS} #{video} &',
+        \ 'noglob #{VLC_PATH} #{RC_OPTIONS} #{RATE_OPTIONS} "#{video}" &',
         \ {
         \   'VLC_PATH': s:VLC_PATH,
         \   'RC_OPTIONS': s:RC_OPTIONS,
         \   'RATE_OPTIONS': '--rate 1.5',
-        \   'video': escape(a:video, ' ')
+        \   'video': a:video
         \ })
   call system(command)
 endfunction
-command! -nargs=1 -complete=file OpenVideoInVLC call <sid>OpenVideoInVLC('<args>')
+command! -nargs=1 -complete=file OpenVideoInVLC call <sid>OpenVideoInVLC(<q-args>)
 
 function! s:ChompedSystem(command)
   let value = system(a:command)
@@ -39,7 +40,7 @@ function! s:SeekTimeInVLC(time)
   call system("echo 'seek ". a:time ."' | nc localhost 1234")
 endfunction
 command! -nargs=1 SeekTimeInVLC call <sid>SeekTimeInVLC(<args>)
-nnoremap <leader>sk :SeekTimeInVLC <C-r><C-w><cr>
+nnoremap <leader>sk :silent call search('\d', 'c')<cr>:SeekTimeInVLC <C-r><C-w><cr>
 
 function! s:tmplt(template_string, replacements)
   let output_string = a:template_string
@@ -67,5 +68,33 @@ nnoremap <Left> :SeekBackward<cr>
 nnoremap <Right> :SeekForward<cr>
 nnoremap <Up> :SeekFarForward<cr>
 nnoremap <Down> :SeekFarBackward<cr>
+
+
+function! s:VideosOnDesktop()
+  let results = []
+  for format in ['flv', 'mov', 'm4v', 'mp4']
+    let files_for_pattern = s:FilesForGlobAsList('~/Desktop/*.' . format)
+    let substitute_cmd = "substitute(v:val, '/Users/christoomey/Desktop/', '', 'g')"
+    let cleaned = map(copy(files_for_pattern), substitute_cmd)
+    call extend(results, cleaned)
+  endfor
+  return results
+endfunction
+
+function! s:FilesForGlobAsList(glob_pattern)
+  let use_wilgignore = s:FALSE
+  return split(glob(a:glob_pattern, use_wilgignore), "\n")
+endfunction
+
+function! s:SelectVideoToOpen()
+  let videos = s:VideosOnDesktop()
+  call CtrlPGeneric(videos, 'OpenVideoOnDesktop')
+endfunction
+
+function! OpenVideoOnDesktop(video_name) range
+  execute 'OpenVideoInVLC ~/Desktop/'.escape(a:video_name, "' ")
+endfunction
+
+nnoremap <leader>ov :call <sid>SelectVideoToOpen()<cr>
 
 " vim:ft=vim
