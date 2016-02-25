@@ -1,0 +1,5 @@
+" Node - Support for `gf` file jumping on node requires
+
+Bundle "moll/vim-node"
+
+" vim:ft=vim

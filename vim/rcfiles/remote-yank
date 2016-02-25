@@ -8,9 +8,10 @@ nnoremap <leader>lr :call RemoteYank('r')<cr>
 
 function! RemoteYank(dir)
   if &relativenumber
+    echom "setting number"
     let was_relative = 1
     set number
-    redraw
+    redraw!
   endif
 
   echohl String | let line = input("Remote link to yank: ") | echohl None

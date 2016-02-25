@@ -2,4 +2,6 @@
 
 Bundle "christoomey/vim-system-copy"
 
+nnoremap cv "*]p
+
 " vim:ft=vim

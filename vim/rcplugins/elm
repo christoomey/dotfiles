@@ -1,0 +1,5 @@
+" Elm - Syntax, indent, and compiler settings for elm-lang
+
+Bundle "lambdatoast/elm.vim"
+
+" vim:ft=vim

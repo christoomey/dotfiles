@@ -2,6 +2,9 @@
 
 Bundle 'christoomey/vim-titlecase'
 
-let g:titlecase_map_keys = 1
+let g:titlecase_map_keys = 0
+
+nmap <leader>gt <Plug>Titlecase
+vmap <leader>gt <Plug>Titlecase
 
 " vim:ft=vim

@@ -24,7 +24,12 @@ function! s:EditVimrcLocal()
   execute "edit " . s:VIMRC_LOCAL
 endfunction
 
-command! EditVimrcLocal call <sid>EditVimrcLocal()
+function! s:SmartSplit()
+  let split_cmd = (winwidth(0) >= 100) ? 'vsplit' : 'split'
+  execute split_cmd . " " . s:VIMRC_LOCAL
+endfunction
+
+command! EditVimrcLocal call <sid>SmartSplit()
 
 nnoremap <leader>el :EditVimrcLocal<cr>
 

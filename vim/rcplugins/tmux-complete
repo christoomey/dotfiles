@@ -1,0 +1,7 @@
+" Tmux Complete - Autocomplete based on visible tmux pane contents
+
+Bundle "wellle/tmux-complete.vim"
+
+let g:tmuxcomplete#trigger = 'omnifunc'
+
+" vim:ft=vim

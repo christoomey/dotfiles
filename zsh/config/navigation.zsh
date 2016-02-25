@@ -1,5 +1,6 @@
 unsetopt auto_cd # with cdpath enabled, auto_cd gives too many false positives
-cdpath=($HOME/code $HOME/code/work $HOME/code/work/current $HOME/code/vim $HOME/code/alfred $HOME)
+cdpath=($HOME/code $HOME/code/work/current $HOME/code/work \
+  $HOME/code/openhouse $HOME/code/vim $HOME/code/alfred $HOME)
 
 _cdpath_directories() {
   modified_in_last_days=${1:-999}
@@ -7,7 +8,7 @@ _cdpath_directories() {
     find -L "$dir" \
       -not -path '*/\.*' \
       -type d \
-      -mtime -"$modified_in_last_days" \
+      -atime -"$modified_in_last_days" \
       -maxdepth 1
   done
 }

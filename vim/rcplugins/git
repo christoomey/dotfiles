@@ -1,5 +1,5 @@
 " Git - Syntax support for git files, ie commit messages
 
-Bundle "tpope/vim-git"
+" Bundle "tpope/vim-git"
 
 " vim:ft=vim

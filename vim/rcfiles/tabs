@@ -6,5 +6,6 @@ for tab_number in [1,2,3,4, 5, 6]
 endfor
 
 nnoremap <leader>wn :tabnew<cr>
+nnoremap <leader>ct :tabclose<cr>
 
 " vim:ft=vim

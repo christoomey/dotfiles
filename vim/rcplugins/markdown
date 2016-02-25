@@ -2,6 +2,6 @@
 
 Bundle "tpope/vim-markdown"
 
-let g:markdown_fenced_languages = ['ruby', 'sh', 'yaml', 'javascript', 'html', 'vim', 'coffee', 'json']
+let g:markdown_fenced_languages = ['javascript', 'ruby', 'sh', 'yaml', 'javascript', 'html', 'vim', 'coffee', 'json', 'diff', 'css', 'scss']
 
 " vim:ft=vim

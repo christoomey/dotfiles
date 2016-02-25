@@ -48,4 +48,7 @@ endfunction
 
 nmap <leader>c' :call SurroundRequote()<cr>
 
+nmap <leader>qw ysiw"
+nmap <leader>QW ysiW"
+
 " vim:ft=vim

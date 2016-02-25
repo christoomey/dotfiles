@@ -14,3 +14,16 @@ function gitup {
         return
     fi
 }
+
+function list-all-git-refs() {
+  find .git/refs  -type f -print -exec cat {} \;
+}
+
+_hub() { reply=(browse compare pull-request ci-status) }
+compctl -K _hub hub
+
+edit-modified-files-in-tabs() {
+  vim -O $(git status --porcelain | sed s/^...//)
+}
+
+alias gish=gitsh

@@ -8,9 +8,6 @@ nnoremap <leader><leader> <C-^>
 inoremap <expr> <C-j> ((pumvisible())?("\<C-n>"):("\<C-x><c-n>"))
 inoremap <expr> <C-k> ((pumvisible())?("\<C-p>"):("\<C-x><c-k>"))
 
-" For reformatting files.
-nmap <leader>gq maggVGgq`a
-
 " Do not use <Ctrl-c> to break out to normal mode
 " Use C-Space to Esc out of any mode
 nnoremap <C-Space> <Esc>:noh<CR>
@@ -36,12 +33,19 @@ map <leader>sop :source %<cr>
 " Doesn't seem I'm going to win on this one
 command! W write
 
+function! CurrenRelativeDirectory()
+  let relative_dir = substitute(expand("%:p:h"), getcwd()."/", "", "")."/"
+  return escape(relative_dir, " ")
+endfunction
+
 " Easy navigation for editing and cding
-nmap <Leader>ec :e ~/code/
-nmap <Leader>eh :e ~/
-nmap <Leader>ew :CtrlP ~/wiki<cr>
-nmap <Leader>cd :cd ~/code/
+nnoremap <Leader>ec :e ~/code/
+nnoremap <Leader>eu :e ~/code/work/upcase/
+nnoremap <Leader>eh :e ~/
+nnoremap <Leader>ew :CtrlP ~/wiki<cr>
+nnoremap <Leader>cd :cd ~/code/
 nnoremap <leader>er :e <C-r>=escape(expand("%:p:h"), ' ')<cr>/
+nnoremap <leader>rr :r <C-r>=CurrenRelativeDirectory()<cr>
 nnoremap <leader>sav :sav <C-r>=escape(expand("%:p:h"), ' ')<cr>/
 
 "Make Y yank to end of line (like D, or C)
@@ -50,8 +54,12 @@ nmap Y y$
 " Easy access to the start of the line
 nnoremap 0 ^
 
+" Leader-; to enter command mode. No more holding shift!
+nnoremap <leader>; :
+vnoremap <leader>; :
+
 " Quickly open a second window to view files side by side
-nmap <LEADER>vn :vnew<CR>
+nmap <LEADER>vn :vsplit<CR>
 nmap <LEADER>vs :vsplit<CR>
 
 " Move one line at a time, aka 'fine ajdustment'

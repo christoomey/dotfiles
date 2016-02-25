@@ -4,6 +4,6 @@
 
 " Using my system-copy plugin to get copy to system clipboard
 
-nnoremap <leader>p :r!pbpaste<cr>
+nnoremap <leader>P :r!pbpaste<cr>
 
 " vim:ft=vim

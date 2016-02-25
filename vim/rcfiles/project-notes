@@ -6,12 +6,14 @@
 
 " Edit notes for the current project
 nnoremap <leader>en :split .project-notes<cr>
+nnoremap <leader>En :vsplit .project-notes<cr>
+nnoremap <leader>EN :vsplit .project-notes<cr>
 
 autocmd BufEnter .project-notes call <sid>LoadNotes()
 
 function! s:LoadNotes()
   setlocal filetype=markdown
-  nnoremap <buffer> q :quit<cr>
+  nnoremap <buffer> q :wq<cr>
 endfunction
 
 " vim:ft=vim

@@ -3,4 +3,7 @@
 Bundle 'mattn/webapi-vim'
 Bundle 'mattn/gist-vim'
 
+command! PrivateGist Gist --private
+command! ListGists Gist --list --private
+
 " vim:ft=vim

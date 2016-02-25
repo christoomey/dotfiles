@@ -12,9 +12,17 @@ class Deployer
     working_directory_clean_or_die
     index_clean_or_die
     test_and_push
+    warn_if_new_migrations
   end
 
   private
+
+  def warn_if_new_migrations
+    if system(%{git diff --name-status production/master..master | grep "^A" | cut -d$'\t' -f 2 | grep -q "db/migrate"})
+      puts "\n\n\n" + "="*50 + "\n"
+      puts "There are new migrations with this change"
+    end
+  end
 
   def heroku_remote_targeted
     unless heroku_remotes.include? @remote

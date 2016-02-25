@@ -1,0 +1,25 @@
+" Swiki -- Even Simpler!
+" ----------------------
+
+autocmd BufEnter "~/Dropbox (Personal)/wiki/*" call s:ActivateSwiki()
+
+function! s:FollowSwikiOrMarkdownLink()
+  let filename = s:PotentialSwikiFilenameUnderCursor()
+  if filereadable(filename)
+    execute "edit ". filename
+  else
+    MarkdownAwareGX
+  endif
+endfunction
+
+function! s:PotentialSwikiFilenameUnderCursor()
+  normal! "ayi]
+  return @a . ".md"
+endfunction
+
+function! s:ActivateSwiki()
+  command! FollowSwikiOrMarkdownLink call s:FollowSwikiOrMarkdownLink()
+  nmap <buffer> <cr> :FollowSwikiOrMarkdownLink<cr>
+endfunction
+
+" vim:ft=vim

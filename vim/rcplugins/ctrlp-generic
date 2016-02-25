@@ -13,7 +13,22 @@ function! SelectFromDir(selected_dir)
 endfunction
 
 command! CtrlPDirSelect call s:DirSelect()
-
 nmap <leader>cpd :CtrlPDirSelect<cr>
+
+
+
+function! s:CtrlPGitFiles(git_cmd)
+  let git_files = split(system(a:git_cmd), '\n')
+  call CtrlPGeneric(git_files, 'EditGitFile')
+endfunction
+
+function! EditGitFile(file)
+  execute 'edit ' . a:file
+endfunction
+
+let git_files_cmd = "git status --porcelain | sed s/^...//; git diff --name-status master..HEAD | grep -E '^(M|A)' | cut -f 2"
+command! CtrlPGitFiles call <sid>CtrlPGitFiles(git_files_cmd)
+nnoremap <leader>cpg :CtrlPGitFiles<cr>
+
 
 " vim:ft=vim

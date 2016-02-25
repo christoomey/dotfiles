@@ -17,6 +17,7 @@ class ClosesPullRequests
 
   def run
     remember_current_branch
+    confirm_ci_status_green
     confirm_upstream_tracking_branch
     ensure_working_dir_and_index_clean
     fetch_origin
@@ -34,6 +35,22 @@ class ClosesPullRequests
   def die_with_msg(msg)
     puts " -> \e[31m#{msg}\e[0m"
     exit 1
+  end
+
+  def has_ci_enabled?
+    `hub ci-status`.chomp != "no status"
+  end
+
+  def confirm_ci_status_green
+    gc = GitCall.new("hub ci-status > /dev/null 2>&1", :command, true)
+    if has_ci_enabled?
+      puts 'Confirming ci-status on PR is green...'
+      unless run_or_print(gc)
+        die_with_msg 'CI status is not green for the PR. Aborting'
+      end
+    else
+      puts "CI not enabled, skipping check..."
+    end
   end
 
   def remember_current_branch

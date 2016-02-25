@@ -5,12 +5,12 @@ au FileType * call EnableTagNavMaps()
 
 function! EnableTagNavMaps()
   if s:BufferIsTagNavigable()
-    nnoremap <buffer> <cr> <c-]>
-    nnoremap <buffer> <bs> <c-t>
+    nmap <buffer> <cr> <c-]>
+    nmap <buffer> <bs> <c-t>
   endif
 endfunction
 
-let s:navigable_filetypes = ['vim', 'ruby', 'javascript']
+let s:navigable_filetypes = ['vim', 'ruby', 'javascript', 'sh']
 
 function! s:BufferIsTagNavigable()
   let is_navigable_filetype = index(s:navigable_filetypes, &filetype) != -1

@@ -3,6 +3,5 @@
 Bundle 'tommcdo/vim-exchange'
 
 nmap cX <Plug>(ExchangeLine)
-nmap <C-x> cxiw
 
 " vim:ft=vim

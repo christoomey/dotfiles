@@ -4,7 +4,7 @@
 # opens with the port configured for pow DNS
 # copies the ".dev" URL
 
-app_name=$(basename `pwd`)
+app_name=$(basename "`pwd`")
 port=`cat ~/.pow/$app_name 2> /dev/null`
 
 if [[ -f .env ]]; then
@@ -12,9 +12,9 @@ if [[ -f .env ]]; then
 fi
 
 if [[ -f config/environment.rb ]]; then
-  server_cmd="bundle exec rails s -p $port"
+  server_cmd="bundle && bundle exec rails s -p $port"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
-  server_cmd="bundle exec middleman -p $port"
+  server_cmd="bundle && bundle exec middleman -p $port"
 elif [[ -f package.json ]]; then
   server_cmd="grunt serve -p $port"
 else

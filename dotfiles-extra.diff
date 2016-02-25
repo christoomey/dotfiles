@@ -1,0 +1,89 @@
+diff --git a/git/config b/git/config
+index f85c199..51c610d 100644
+--- a/git/config
++++ b/git/config
+@@ -53,6 +53,7 @@
+   unstage = reset
+   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
+   ureset = !git upstream && git reset --hard $(git upstream)
++	vdf = difftool
+ [core]
+   editor = mvim -v
+   excludesfile = ~/.gitignore
+@@ -77,3 +78,7 @@
+ 	default = cyan
+ 	untracked = yellow
+ 	modified = red
++[diff]
++	tool = vimdiff
++[difftool]
++	prompt = false
+diff --git a/vim/rcfiles/prose b/vim/rcfiles/prose
+index 824217e..c8dd708 100644
+--- a/vim/rcfiles/prose
++++ b/vim/rcfiles/prose
+@@ -65,11 +65,12 @@ vnoremap <C-b> :call WrapCurrentWord("bold")<cr>
+ vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
+ 
+ function! MarkdownMode()
+-  setlocal spell        " Enable spell checking
+-  setlocal nowrap       " Let long lines scroll off
+-  setlocal linebreak    " Use word boundaries to break lines
++  setlocal spell          " Enable spell checking
++  setlocal nowrap         " Let long lines scroll off
++  setlocal linebreak      " Use word boundaries to break lines
+   setlocal textwidth=78
+-  setlocal isk-=.       " sh.vim syntax file seems to be setting this...
++  setlocal isk-=.         " sh.vim syntax file seems to be setting this...
++  setlocal shiftwidth=4   " required for nested markdown lists
+   nnoremap <leader>bl :BoldListItems<cr>
+   nnoremap <buffer> <leader>ns ]s
+   " nnoremap <buffer> <leader>sp ea<C-x><C-s>
+diff --git a/vim/rcplugins/ctrlp-generic b/vim/rcplugins/ctrlp-generic
+index a750e65..5943ece 100644
+--- a/vim/rcplugins/ctrlp-generic
++++ b/vim/rcplugins/ctrlp-generic
+@@ -26,10 +26,9 @@ function! EditGitFile(file)
+   execute 'edit ' . a:file
+ endfunction
+ 
+-command! CtrlPGitLocalFiles call <sid>CtrlPGitFiles("git status --porcelain | sed s/^...//")
+-command! CtrlPGitBranchFiles call <sid>CtrlPGitFiles("git diff --name-status master..HEAD | grep -E '^(M|A)' | cut -f 2")
+-nnoremap <leader>cgl :CtrlPGitLocalFiles<cr>
+-nnoremap <leader>cgb :CtrlPGitBranchFiles<cr>
++let git_files_cmd = "git status --porcelain | sed s/^...//; git diff --name-status master..HEAD | grep -E '^(M|A)' | cut -f 2"
++command! CtrlPGitFiles call <sid>CtrlPGitFiles(git_files_cmd)
++nnoremap <leader>cpg :CtrlPGitFiles<cr>
+ 
+ 
+ " vim:ft=vim
+diff --git a/vim/rcplugins/markdown b/vim/rcplugins/markdown
+index 4b18023..5fc9a56 100644
+--- a/vim/rcplugins/markdown
++++ b/vim/rcplugins/markdown
+@@ -2,6 +2,6 @@
+ 
+ Bundle "tpope/vim-markdown"
+ 
+-let g:markdown_fenced_languages = ['javascript', 'ruby', 'sh', 'yaml', 'javascript', 'html', 'vim', 'coffee', 'json', 'diff']
++let g:markdown_fenced_languages = ['javascript', 'ruby', 'sh', 'yaml', 'javascript', 'html', 'vim', 'coffee', 'json', 'diff', 'css']
+ 
+ " vim:ft=vim
+diff --git a/vim/spell/en.utf-8.add b/vim/spell/en.utf-8.add
+index 3baada6..9b46c1a 100644
+--- a/vim/spell/en.utf-8.add
++++ b/vim/spell/en.utf-8.add
+@@ -137,3 +137,10 @@ telecom
+ Ericson
+ Ericsson
+ Websockets
++repos
++metadata
++diffing
++character
++character
++character
++flexbox
+diff --git a/vim/spell/en.utf-8.add.spl b/vim/spell/en.utf-8.add.spl
+index 42409cb..53d6996 100644
+Binary files a/vim/spell/en.utf-8.add.spl and b/vim/spell/en.utf-8.add.spl differ

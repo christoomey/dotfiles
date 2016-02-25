@@ -13,4 +13,5 @@ function! PreviousTextobj()
   return ['v', head_pos, tail_pos]
 endfunction
 
+
 " vim:ft=vim

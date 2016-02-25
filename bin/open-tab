@@ -30,7 +30,7 @@ class TabOpener
 
   def app_tab
     @app_tab ||= begin
-                   tab_info = `chrome-cli list links | grep '#{app_url}'`.chomp
+                   tab_info = `chrome-cli list links | grep '#{app_url}' | head -1`.chomp
                    if tab_info != ""
                      tab_info.match(/^\[(?:\d+:)?(\d+)\]/)[1]
                    else
@@ -50,7 +50,7 @@ class TabOpener
   def activate(tab)
     system "chrome-cli activate -t #{tab}"
     if options[:reload]
-      system "chrome-cli reload"
+      system "chrome-cli reload -t #{tab}"
     end
   end
 

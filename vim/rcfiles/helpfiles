@@ -13,4 +13,6 @@ function! HelpFileMode()
   setlocal nonumber
 endfunction
 
+nnoremap <leader>rh :h local-additions<cr>
+
 " vim:ft=vim

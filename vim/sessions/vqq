@@ -1,0 +1,958 @@
+let SessionLoad = 1
+if &cp | set nocp | endif
+let s:cpo_save=&cpo
+set cpo&vim
+inoremap <expr> <Up> pumvisible() ? "\" : "\<Up>"
+inoremap <expr> <Down> pumvisible() ? "\" : "\<Down>"
+imap <S-Tab> <Plug>SuperTabBackward
+inoremap <silent> <C-Tab> =UltiSnips#ListSnippets()
+map! <F33> ð
+map! <F32> î
+map! <F31> ä
+noremap! <expr> <SNR>161_transpose "\<BS>\<Right>".matchstr(getcmdline()[0 : getcmdpos()-2], '.$')
+noremap! <expr> <SNR>161_transposition getcmdpos()>strlen(getcmdline())?"\<Left>":getcmdpos()>1?'':"\<Right>"
+inoremap <Plug>(EmmetAnchorizeSummary) =emmet#util#closePopup()=emmet#anchorizeURL(1)<Right>
+inoremap <Plug>(EmmetAnchorizeURL) =emmet#util#closePopup()=emmet#anchorizeURL(0)<Right>
+inoremap <Plug>(EmmetRemoveTag) =emmet#util#closePopup()=emmet#removeTag()<Right>
+inoremap <Plug>(EmmetSplitJoinTag) :call emmet#splitJoinTag()
+inoremap <Plug>(EmmetToggleComment) =emmet#util#closePopup()=emmet#toggleComment()<Right>
+inoremap <Plug>(EmmetImageSize) =emmet#util#closePopup()=emmet#imageSize()<Right>
+inoremap <Plug>(EmmetMovePrev) :call emmet#moveNextPrev(1)
+inoremap <Plug>(EmmetMoveNext) :call emmet#moveNextPrev(0)
+inoremap <Plug>(EmmetBalanceTagOutward) :call emmet#balanceTag(-1)
+inoremap <Plug>(EmmetBalanceTagInward) :call emmet#balanceTag(1)
+inoremap <Plug>(EmmetExpandWord) =emmet#util#closePopup()=emmet#expandAbbr(1,"")<Right>
+inoremap <Plug>(EmmetExpandAbbr) =emmet#util#closePopup()=emmet#expandAbbr(0,"")<Right>
+inoremap <Nul> `^
+cnoremap <Nul> 
+inoremap <C-Space> `^
+cnoremap <C-Space> 
+vnoremap  :call WrapCurrentWord("bold")
+vmap c <Plug>(EmmetCodePretty)
+vmap m <Plug>(EmmetMergeLines)
+nmap A <Plug>(EmmetAnchorizeSummary)
+nmap a <Plug>(EmmetAnchorizeURL)
+nmap k <Plug>(EmmetRemoveTag)
+nmap j <Plug>(EmmetSplitJoinTag)
+nmap / <Plug>(EmmetToggleComment)
+nmap i <Plug>(EmmetImageSize)
+nmap N <Plug>(EmmetMovePrev)
+nmap n <Plug>(EmmetMoveNext)
+vmap D <Plug>(EmmetBalanceTagOutward)
+nmap D <Plug>(EmmetBalanceTagOutward)
+vmap d <Plug>(EmmetBalanceTagInward)
+nmap d <Plug>(EmmetBalanceTagInward)
+nmap ; <Plug>(EmmetExpandWord)
+vmap , <Plug>(EmmetExpandAbbr)
+nmap , <Plug>(EmmetExpandAbbr)
+vmap  :VtrSendLinesToRunner
+nmap  :VtrSendLinesToRunner
+snoremap <silent>  c
+nnoremap <silent>  :TmuxNavigateLeft
+snoremap <silent> 	 :call UltiSnips#ExpandSnippetOrJump()
+xnoremap <silent> 	 :call UltiSnips#SaveLastVisualSelection()gvs
+nnoremap <silent> <NL> :TmuxNavigateDown
+nnoremap <silent>  :TmuxNavigateUp
+nnoremap <silent>  :TmuxNavigateRight
+vmap  <Plug>(EasyAlign)
+nnoremap <silent>  :CtrlP
+map <silent> 6 :tabnext 6
+map <silent> 5 :tabnext 5
+map <silent> 4 :tabnext 4
+map <silent> 3 :tabnext 3
+map <silent> 2 :tabnext 2
+map <silent> 1 :tabnext 1
+nmap  cxiw
+nnoremap <silent>  :TmuxNavigatePrevious
+nnoremap  _
+nnoremap  d :YcmShowDetailedDiagnostic
+map  a <Plug>RunCurrentSpecFile
+nnoremap  sf :VtrSendFile
+nnoremap  fc :VtrFlushCommand
+nnoremap  cr :VtrClearRunner
+nnoremap  dr :VtrDetachRunner
+nnoremap  fr :VtrFocusRunner
+nnoremap  kr :VtrKillRunner
+nnoremap  or :VtrOpenRunner
+vnoremap  sl :VtrSendLinesToRunner
+nnoremap  sc :VtrSendCommandToRunner
+nnoremap  ror :VtrReorientRunner
+nnoremap  va :VtrAttachToPane
+nmap  jr :JournalEntry
+nmap  wk :call OpenWikiIndex()
+nnoremap  jh :JournalHeader
+vnoremap  z :call I18nTranslateString()
+map  cb <Plug>CrunchEvalBlock
+map  cl <Plug>CrunchEvalLine
+nnoremap  = :wincmd =
+nnoremap  - :wincmd _:wincmd |
+nnoremap  mwl L
+nnoremap  mwk K
+nnoremap  mwj J
+nnoremap  mwh H
+nnoremap  ! :redraw!
+nnoremap  sg :call SyntaxGroup()
+nnoremap  el :EditVimrcLocal
+map  ut <Plug>MakeTodo
+nnoremap  dn :ToggleCompletionddGpggj
+nnoremap  ct :tabclose
+nnoremap  wn :tabnew
+nmap  vn :vsplit
+vnoremap  ; :
+nnoremap  ; :
+nnoremap  sav :sav =escape(expand("%:p:h"), ' ')/
+nnoremap  rr :r =CurrenRelativeDirectory()
+nnoremap  er :e =escape(expand("%:p:h"), ' ')/
+nmap  cd :cd ~/code/
+nmap  ew :CtrlP ~/wiki
+nmap  eh :e ~/
+nmap  ec :e ~/code/
+map  sop :source %
+nmap  gq maggVGgq`a
+nnoremap    
+nnoremap  wub :%s///g
+vnoremap  sub :s///g<Left><Left>
+nnoremap  sub :%s///g<Left><Left>
+nnoremap  sr :VimrcSearch
+nmap  brp orequire 'pry'; binding.remote_pry^
+nmap  bp orequire 'pry'; binding.pry^
+nmap  vs :vsplit
+vnoremap  18 :s/\(\w\+\):\s/:\1 => /g
+nnoremap  18 :%s/\(\w\+\):\s/:\1 => /gc
+vnoremap  19 :s/:\([^ ]*\)\(\s*\)=>/\1:/g
+nnoremap  19 :%s/:\([^ ]*\)\(\s*\)=>/\1:/gc
+nnoremap  lr :call RemoteYank('r')
+nnoremap  la :call RemoteYank('a')
+nnoremap  li :call RemoteYank('i')
+nnoremap  ve :call InlineVariable()
+vnoremap  ev :call ExtractVariable()
+map  sp <Plug>FixLastSpellingError
+nnoremap  more i<!--more-->
+nnoremap  EN :vsplit .project-notes
+nnoremap  En :vsplit .project-notes
+nnoremap  en :split .project-notes
+nnoremap  gh :CtrlPMarkdownHeader
+nnoremap <silent>  0 :call clearmatches()
+nnoremap <silent>  6 :call HiInterestingWord(6)
+nnoremap <silent>  5 :call HiInterestingWord(5)
+nnoremap <silent>  4 :call HiInterestingWord(4)
+nnoremap <silent>  3 :call HiInterestingWord(3)
+nnoremap <silent>  2 :call HiInterestingWord(2)
+nnoremap <silent>  1 :call HiInterestingWord(1)
+nnoremap  rh :h local-additions
+nnoremap  gr :call CD_Git_Root()
+nnoremap  gp :OpenGithubPr
+nnoremap  flc :execute 'set foldlevel=' . foldlevel('.')
+nnoremap  flf mzzM`zzv
+nnoremap  fl4 :set foldlevel=4
+nnoremap  fl3 :set foldlevel=3
+nnoremap  fl2 :set foldlevel=2
+nnoremap  fl1 :set foldlevel=1
+nnoremap  uf zR
+nnoremap  fu zM
+nmap  fld :set foldlevel=1
+nnoremap  P :r!pbpaste
+nnoremap  dm vipokdGp
+nnoremap  mkd :call MkdirForCurrentFile()
+nnoremap  clw :only
+nnoremap  cla :call KillEmAll()
+nnoremap  ue :UltiSnipsEdit
+nnoremap  bi :BundleInstall
+nnoremap  vo :VoomToggle markdown
+map  lt <Plug>RunMostRecentSpec
+map  t <Plug>RunFocusedSpec
+nmap  wht :FixWhitespace
+nnoremap  scu :VtrSendCommandToRunner 
+nnoremap  sl :VtrSendLinesToRunner
+nnoremap  sq :VtrSendCommandToRunner q
+nnoremap  sd :VtrSendCtrlD
+nmap  opr :VtrOpenRunner { 'orientation': 'h', 'percentage': 50, 'cmd': 'pry' }
+nmap  osr :VtrOpenRunner { 'orientation': 'h', 'percentage': 50 }
+nmap  fs :VtrFlushCommand:VtrSendCommandToRunner
+vmap  gt <Plug>Titlecase
+nmap  gt <Plug>Titlecase
+nmap <silent>  sy :SyntasticToggleMode
+nmap  wkc :CtrlP ~/Dropbox/wiki
+nmap  wki :call OpenWikiIndex()
+nmap  QW ysiW"
+nmap  qw ysiw"
+nmap  c' :call SurroundRequote()
+nnoremap  ri :RunInInteractiveShell 
+nnoremap  bd :Kwbd
+vmap  et :call I18nTranslateString()
+nnoremap  go :Goyo
+nmap  gb :Gblame
+nmap  gd :Gdiff
+nnoremap  be :EasyBufferHorizontal
+nmap  rt :ReformatTable
+nmap  cpd :CtrlPDirSelect
+nnoremap  cpr :CtrlP =system('git rev-parse --show-toplevel')<BS>
+nnoremap  cpt :CtrlPTag
+nmap  rp :CtrlP ~/.vim/rcplugins
+nmap  rf :CtrlP ~/.vim/rcfiles
+nnoremap  gl :CtrlP lib
+nnoremap  gj :CtrlP app/assets/javascripts
+nnoremap  gy :CtrlP app/assets/stylesheets
+nnoremap  gw :CtrlP app/workers
+nnoremap  gv :CtrlP app/views
+nnoremap  gc :CtrlP app/controllers
+nnoremap  gs :CtrlP spec
+nnoremap  gm :CtrlP app/models
+nnoremap  gnc :GitNextConflict
+nnoremap  cc :cclose
+nmap  CK :Ack!<Up>
+nmap  cK :Ack!<Up>
+nmap  ck :Ack! 
+nmap <silent> "" <Plug>PunctPairsQuotesa
+vnoremap <silent> # :let old_reg=getreg('"')|let old_regtype=getregtype('"')gvy?=substitute(escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')gV:call setreg('"', old_reg, old_regtype)
+vnoremap <silent> * :let old_reg=getreg('"')|let old_regtype=getregtype('"')gvy/=substitute(escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')gV:call setreg('"', old_reg, old_regtype)
+nmap - <Plug>VinegarUp
+nnoremap 0 ^
+noremap! ð <Up>
+noremap! î <Down>
+noremap! æ <S-Right>
+noremap! ä dw
+noremap! â <S-Left>
+inoremap ï o
+nnoremap K :Ack! ''
+vnoremap Q :normal Q
+nnoremap Q @q
+nmap R "*gr
+xmap S <Plug>VSurround
+nnoremap S zA
+nnoremap X :ToggleCompletion
+nmap Y y$
+nmap [xx <Plug>unimpaired_line_xml_encode
+xmap [x <Plug>unimpaired_xml_encode
+nmap [x <Plug>unimpaired_xml_encode
+nmap [uu <Plug>unimpaired_line_url_encode
+xmap [u <Plug>unimpaired_url_encode
+nmap [u <Plug>unimpaired_url_encode
+nmap [yy <Plug>unimpaired_line_string_encode
+xmap [y <Plug>unimpaired_string_encode
+nmap [y <Plug>unimpaired_string_encode
+nmap [p <Plug>unimpairedPutAbove
+nnoremap [ox :set cursorline cursorcolumn
+nnoremap [ow :set wrap
+nnoremap [os :set spell
+nnoremap [or :set relativenumber
+nnoremap [on :set number
+nnoremap [ol :set list
+nnoremap [oi :set ignorecase
+nnoremap [oh :set hlsearch
+nnoremap [od :diffthis
+nnoremap [ou :set cursorcolumn
+nnoremap [oc :set cursorline
+xmap [e <Plug>unimpairedMoveUp
+nmap [e <Plug>unimpairedMoveUp
+nmap [  <Plug>unimpairedBlankUp
+omap [n <Plug>unimpairedContextPrevious
+nmap [n <Plug>unimpairedContextPrevious
+nmap [o <Plug>unimpairedOPrevious
+nmap [f <Plug>unimpairedDirectoryPrevious
+nmap <silent> [T <Plug>unimpairedTFirst
+nmap <silent> [t <Plug>unimpairedTPrevious
+nmap <silent> [ <Plug>unimpairedQPFile
+nmap <silent> [Q <Plug>unimpairedQFirst
+nmap <silent> [q <Plug>unimpairedQPrevious
+nmap <silent> [ <Plug>unimpairedLPFile
+nmap <silent> [L <Plug>unimpairedLFirst
+nmap <silent> [l <Plug>unimpairedLPrevious
+nmap <silent> [B <Plug>unimpairedBFirst
+nmap <silent> [b <Plug>unimpairedBPrevious
+nmap <silent> [A <Plug>unimpairedAFirst
+nmap <silent> [a <Plug>unimpairedAPrevious
+vmap [% [%m'gv``
+nmap \\u <Plug>CommentaryUndo
+nmap \\\ <Plug>CommentaryLine
+xmap \\ <Plug>Commentary
+nmap ]xx <Plug>unimpaired_line_xml_decode
+xmap ]x <Plug>unimpaired_xml_decode
+nmap ]x <Plug>unimpaired_xml_decode
+nmap ]uu <Plug>unimpaired_line_url_decode
+xmap ]u <Plug>unimpaired_url_decode
+nmap ]u <Plug>unimpaired_url_decode
+nmap ]yy <Plug>unimpaired_line_string_decode
+xmap ]y <Plug>unimpaired_string_decode
+nmap ]y <Plug>unimpaired_string_decode
+nmap ]p <Plug>unimpairedPutBelow
+nnoremap ]ox :set nocursorline nocursorcolumn
+nnoremap ]ow :set nowrap
+nnoremap ]os :set nospell
+nnoremap ]or :set norelativenumber
+nnoremap ]on :set nonumber
+nnoremap ]ol :set nolist
+nnoremap ]oi :set noignorecase
+nnoremap ]oh :set nohlsearch
+nnoremap ]od :diffoff
+nnoremap ]ou :set nocursorcolumn
+nnoremap ]oc :set nocursorline
+xmap ]e <Plug>unimpairedMoveDown
+nmap ]e <Plug>unimpairedMoveDown
+nmap ]  <Plug>unimpairedBlankDown
+omap ]n <Plug>unimpairedContextNext
+nmap ]n <Plug>unimpairedContextNext
+nmap ]o <Plug>unimpairedONext
+nmap ]f <Plug>unimpairedDirectoryNext
+nmap <silent> ]T <Plug>unimpairedTLast
+nmap <silent> ]t <Plug>unimpairedTNext
+nmap <silent> ] <Plug>unimpairedQNFile
+nmap <silent> ]Q <Plug>unimpairedQLast
+nmap <silent> ]q <Plug>unimpairedQNext
+nmap <silent> ] <Plug>unimpairedLNFile
+nmap <silent> ]L <Plug>unimpairedLLast
+nmap <silent> ]l <Plug>unimpairedLNext
+nmap <silent> ]B <Plug>unimpairedBLast
+nmap <silent> ]b <Plug>unimpairedBNext
+nmap <silent> ]A <Plug>unimpairedALast
+nmap <silent> ]a <Plug>unimpairedANext
+vmap ]% ]%m'gv``
+omap ar <Plug>(textobj-rubyblock-a)
+xmap ar <Plug>(textobj-rubyblock-a)
+xmap <silent> a  <Plug>PunctPairsAAll
+omap <silent> a  <Plug>PunctPairsAAll
+xmap <silent> aq <Plug>PunctPairsAQuotes
+omap <silent> aq <Plug>PunctPairsAQuotes
+xnoremap <silent> a/ :call pairs#process('/', 'a')
+onoremap <silent> a/ :call pairs#process('/', 'a')
+xnoremap <silent> a? :call pairs#process('?', 'a')
+onoremap <silent> a? :call pairs#process('?', 'a')
+xnoremap <silent> a. :call pairs#process('.', 'a')
+onoremap <silent> a. :call pairs#process('.', 'a')
+xnoremap <silent> a, :call pairs#process(',', 'a')
+onoremap <silent> a, :call pairs#process(',', 'a')
+xnoremap <silent> a\ :call pairs#process('\', 'a')
+onoremap <silent> a\ :call pairs#process('\', 'a')
+xnoremap <silent> a| :call pairs#process('|', 'a')
+onoremap <silent> a| :call pairs#process('|', 'a')
+xnoremap <silent> a# :call pairs#process('#', 'a')
+onoremap <silent> a# :call pairs#process('#', 'a')
+xnoremap <silent> a~ :call pairs#process('~', 'a')
+onoremap <silent> a~ :call pairs#process('~', 'a')
+xnoremap <silent> a@ :call pairs#process('@', 'a')
+onoremap <silent> a@ :call pairs#process('@', 'a')
+xnoremap <silent> a; :call pairs#process(';', 'a')
+onoremap <silent> a; :call pairs#process(';', 'a')
+xnoremap <silent> a: :call pairs#process(':', 'a')
+onoremap <silent> a: :call pairs#process(':', 'a')
+xnoremap <silent> a= :call pairs#process('=', 'a')
+onoremap <silent> a= :call pairs#process('=', 'a')
+xnoremap <silent> a+ :call pairs#process('+', 'a')
+onoremap <silent> a+ :call pairs#process('+', 'a')
+xnoremap <silent> a- :call pairs#process('-', 'a')
+onoremap <silent> a- :call pairs#process('-', 'a')
+xnoremap <silent> a_ :call pairs#process('_', 'a')
+onoremap <silent> a_ :call pairs#process('_', 'a')
+xnoremap <silent> a* :call pairs#process('*', 'a')
+onoremap <silent> a* :call pairs#process('*', 'a')
+xnoremap <silent> a& :call pairs#process('&', 'a')
+onoremap <silent> a& :call pairs#process('&', 'a')
+xnoremap <silent> a^ :call pairs#process('^', 'a')
+onoremap <silent> a^ :call pairs#process('^', 'a')
+xnoremap <silent> a% :call pairs#process('%', 'a')
+onoremap <silent> a% :call pairs#process('%', 'a')
+xnoremap <silent> a$ :call pairs#process('$', 'a')
+onoremap <silent> a$ :call pairs#process('$', 'a')
+xnoremap <silent> a! :call pairs#process('!', 'a')
+onoremap <silent> a! :call pairs#process('!', 'a')
+smap a% [%v]%
+omap al <Plug>(textobj-line-a)
+xmap al <Plug>(textobj-line-a)
+omap ai <Plug>(textobj-indent-a)
+xmap ai <Plug>(textobj-indent-a)
+omap aI <Plug>(textobj-indent-same-a)
+xmap aI <Plug>(textobj-indent-same-a)
+omap ae <Plug>(textobj-entire-a)
+xmap ae <Plug>(textobj-entire-a)
+nnoremap cox :set =&cursorline && &cursorcolumn ? 'nocursorline nocursorcolumn' : 'cursorline cursorcolumn'
+nnoremap cod :=&diff ? 'diffoff' : 'diffthis'
+nmap cv <Plug>SystemPaste
+nmap cP <Plug>SystemCopyLine
+nmap cp <Plug>SystemCopy
+xmap cp <Plug>SystemCopy
+nmap cs <Plug>Csurround
+nmap cxc <Plug>(ExchangeClear)
+vmap cx <Plug>(Exchange)
+nmap cx <Plug>(Exchange)
+nmap cr <Plug>Coerce
+nmap cX <Plug>(ExchangeLine)
+nmap cm <Plug>Commentary
+nmap ds <Plug>Dsurround
+nmap gx <Plug>NetrwBrowseX
+xmap gS <Plug>VgSurround
+vmap gs <Plug>SortMotionVisual
+map gss <Plug>SortLines
+nmap gs <Plug>SortMotion
+omap gs <Plug>SortMotion
+xmap g! <Plug>ScripteaseFilter
+nmap g!! <Plug>ScripteaseFilter_
+nmap g! <Plug>ScripteaseFilter
+xmap gr <Plug>ReplaceWithRegisterVisual
+nmap grr <Plug>ReplaceWithRegisterLine
+nmap gr <Plug>ReplaceWithRegisterOperator
+nmap gcu <Plug>CommentaryUndo
+nmap gcc <Plug>CommentaryLine
+nmap gc <Plug>Commentary
+xmap gc <Plug>Commentary
+nnoremap ge `.
+nnoremap gp `[v`]
+nnoremap gl :OpenTab
+nmap ga <Plug>(EasyAlign)
+omap ir <Plug>(textobj-rubyblock-i)
+xmap ir <Plug>(textobj-rubyblock-i)
+xmap <silent> i  <Plug>PunctPairsIAll
+omap <silent> i  <Plug>PunctPairsIAll
+xmap <silent> iq <Plug>PunctPairsIQuotes
+omap <silent> iq <Plug>PunctPairsIQuotes
+xnoremap <silent> i/ :call pairs#process('/', 'i')
+onoremap <silent> i/ :call pairs#process('/', 'i')
+xnoremap <silent> i? :call pairs#process('?', 'i')
+onoremap <silent> i? :call pairs#process('?', 'i')
+xnoremap <silent> i. :call pairs#process('.', 'i')
+onoremap <silent> i. :call pairs#process('.', 'i')
+xnoremap <silent> i, :call pairs#process(',', 'i')
+onoremap <silent> i, :call pairs#process(',', 'i')
+xnoremap <silent> i\ :call pairs#process('\', 'i')
+onoremap <silent> i\ :call pairs#process('\', 'i')
+xnoremap <silent> i| :call pairs#process('|', 'i')
+onoremap <silent> i| :call pairs#process('|', 'i')
+xnoremap <silent> i# :call pairs#process('#', 'i')
+onoremap <silent> i# :call pairs#process('#', 'i')
+xnoremap <silent> i~ :call pairs#process('~', 'i')
+onoremap <silent> i~ :call pairs#process('~', 'i')
+xnoremap <silent> i@ :call pairs#process('@', 'i')
+onoremap <silent> i@ :call pairs#process('@', 'i')
+xnoremap <silent> i; :call pairs#process(';', 'i')
+onoremap <silent> i; :call pairs#process(';', 'i')
+xnoremap <silent> i: :call pairs#process(':', 'i')
+onoremap <silent> i: :call pairs#process(':', 'i')
+xnoremap <silent> i= :call pairs#process('=', 'i')
+onoremap <silent> i= :call pairs#process('=', 'i')
+xnoremap <silent> i+ :call pairs#process('+', 'i')
+onoremap <silent> i+ :call pairs#process('+', 'i')
+xnoremap <silent> i- :call pairs#process('-', 'i')
+onoremap <silent> i- :call pairs#process('-', 'i')
+xnoremap <silent> i_ :call pairs#process('_', 'i')
+onoremap <silent> i_ :call pairs#process('_', 'i')
+xnoremap <silent> i* :call pairs#process('*', 'i')
+onoremap <silent> i* :call pairs#process('*', 'i')
+xnoremap <silent> i& :call pairs#process('&', 'i')
+onoremap <silent> i& :call pairs#process('&', 'i')
+xnoremap <silent> i^ :call pairs#process('^', 'i')
+onoremap <silent> i^ :call pairs#process('^', 'i')
+xnoremap <silent> i% :call pairs#process('%', 'i')
+onoremap <silent> i% :call pairs#process('%', 'i')
+xnoremap <silent> i$ :call pairs#process('$', 'i')
+onoremap <silent> i$ :call pairs#process('$', 'i')
+xnoremap <silent> i! :call pairs#process('!', 'i')
+onoremap <silent> i! :call pairs#process('!', 'i')
+omap il <Plug>(textobj-line-i)
+xmap il <Plug>(textobj-line-i)
+omap ii <Plug>(textobj-indent-i)
+xmap ii <Plug>(textobj-indent-i)
+omap iI <Plug>(textobj-indent-same-i)
+xmap iI <Plug>(textobj-indent-same-i)
+omap ie <Plug>(textobj-entire-i)
+xmap ie <Plug>(textobj-entire-i)
+nnoremap j gj
+nnoremap k gk
+nnoremap m9 :call MoveEm(9)
+nnoremap m8 :call MoveEm(8)
+nnoremap m7 :call MoveEm(7)
+nnoremap m6 :call MoveEm(6)
+nnoremap m5 :call MoveEm(5)
+nnoremap m4 :call MoveEm(4)
+nnoremap m3 :call MoveEm(3)
+nnoremap m2 :call MoveEm(2)
+nnoremap m1 :call MoveEm(1)
+nmap mcl <Plug>CommentaryLine
+omap pR <Plug>(textobj-previous)
+xmap pR <Plug>(textobj-previous)
+omap pr <Plug>(textobj-previous)
+xmap pr <Plug>(textobj-previous)
+nnoremap s za
+nmap ySS <Plug>YSsurround
+nmap ySs <Plug>YSsurround
+nmap yss <Plug>Yssurround
+nmap yS <Plug>YSurround
+nmap ys <Plug>Ysurround
+nmap zS <Plug>ScripteaseSynnames
+nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cfile>"),0)
+snoremap <silent> <Del> c
+snoremap <silent> <BS> c
+snoremap <silent> <C-Tab> :call UltiSnips#ListSnippets()
+nnoremap <silent> <Plug>RunMostRecentSpec :RunMostRecentSpec
+nnoremap <silent> <Plug>RunFocusedSpec :RunFocusedSpec
+nnoremap <silent> <Plug>RunCurrentSpecFile :RunCurrentSpecFile
+xnoremap <silent> <Plug>unimpairedMoveDown :exe 'exe "normal! m`"|''<,''>move''>+'.v:count1``
+xnoremap <silent> <Plug>unimpairedMoveUp :exe 'exe "normal! m`"|''<,''>move--'.v:count1``
+nmap <silent> <Plug>unimpairedOPrevious <Plug>unimpairedDirectoryPrevious:echohl WarningMSG|echo "[o is deprecated. Use [f"|echohl NONE
+nmap <silent> <Plug>unimpairedONext <Plug>unimpairedDirectoryNext:echohl WarningMSG|echo "]o is deprecated. Use ]f"|echohl NONE
+nnoremap <silent> <Plug>unimpairedTLast :exe "".(v:count ? v:count : "")."tlast"
+nnoremap <silent> <Plug>unimpairedTFirst :exe "".(v:count ? v:count : "")."tfirst"
+nnoremap <silent> <Plug>unimpairedTNext :exe "".(v:count ? v:count : "")."tnext"
+nnoremap <silent> <Plug>unimpairedTPrevious :exe "".(v:count ? v:count : "")."tprevious"
+nnoremap <silent> <Plug>unimpairedQNFile :exe "".(v:count ? v:count : "")."cnfile"
+nnoremap <silent> <Plug>unimpairedQPFile :exe "".(v:count ? v:count : "")."cpfile"
+nnoremap <silent> <Plug>unimpairedQLast :exe "".(v:count ? v:count : "")."clast"
+nnoremap <silent> <Plug>unimpairedQFirst :exe "".(v:count ? v:count : "")."cfirst"
+nnoremap <silent> <Plug>unimpairedQNext :exe "".(v:count ? v:count : "")."cnext"
+nnoremap <silent> <Plug>unimpairedQPrevious :exe "".(v:count ? v:count : "")."cprevious"
+nnoremap <silent> <Plug>unimpairedLNFile :exe "".(v:count ? v:count : "")."lnfile"
+nnoremap <silent> <Plug>unimpairedLPFile :exe "".(v:count ? v:count : "")."lpfile"
+nnoremap <silent> <Plug>unimpairedLLast :exe "".(v:count ? v:count : "")."llast"
+nnoremap <silent> <Plug>unimpairedLFirst :exe "".(v:count ? v:count : "")."lfirst"
+nnoremap <silent> <Plug>unimpairedLNext :exe "".(v:count ? v:count : "")."lnext"
+nnoremap <silent> <Plug>unimpairedLPrevious :exe "".(v:count ? v:count : "")."lprevious"
+nnoremap <silent> <Plug>unimpairedBLast :exe "".(v:count ? v:count : "")."blast"
+nnoremap <silent> <Plug>unimpairedBFirst :exe "".(v:count ? v:count : "")."bfirst"
+nnoremap <silent> <Plug>unimpairedBNext :exe "".(v:count ? v:count : "")."bnext"
+nnoremap <silent> <Plug>unimpairedBPrevious :exe "".(v:count ? v:count : "")."bprevious"
+nnoremap <silent> <Plug>unimpairedALast :exe "".(v:count ? v:count : "")."last"
+nnoremap <silent> <Plug>unimpairedAFirst :exe "".(v:count ? v:count : "")."first"
+nnoremap <silent> <Plug>unimpairedANext :exe "".(v:count ? v:count : "")."next"
+nnoremap <silent> <Plug>unimpairedAPrevious :exe "".(v:count ? v:count : "")."previous"
+nnoremap <silent> <Plug>SurroundRepeat .
+nnoremap <silent> <Plug>ReplaceWithRegisterVisual :call setline('.', getline('.'))|execute 'silent! call repeat#setreg("\<Plug>ReplaceWithRegisterVisual", v:register)'|call ReplaceWithRegister#SetRegister()|if ReplaceWithRegister#IsExprReg()|    let g:ReplaceWithRegister_expr = getreg('=')|endif|execute 'normal!' ReplaceWithRegister#VisualMode()|call ReplaceWithRegister#Operator('visual', "\<Plug>ReplaceWithRegisterVisual")
+vnoremap <silent> <Plug>ReplaceWithRegisterVisual :call setline('.', getline('.'))|execute 'silent! call repeat#setreg("\<Plug>ReplaceWithRegisterVisual", v:register)'|call ReplaceWithRegister#SetRegister()|if ReplaceWithRegister#IsExprReg()|    let g:ReplaceWithRegister_expr = getreg('=')|endif|call ReplaceWithRegister#Operator('visual', "\<Plug>ReplaceWithRegisterVisual")
+nnoremap <silent> <Plug>ReplaceWithRegisterLine :call setline('.', getline('.'))|execute 'silent! call repeat#setreg("\<Plug>ReplaceWithRegisterLine", v:register)'|call ReplaceWithRegister#SetRegister()|if ReplaceWithRegister#IsExprReg()|    let g:ReplaceWithRegister_expr = getreg('=')|endif|execute 'normal! V' . v:count1 . "_\<Esc>"|call ReplaceWithRegister#Operator('visual', "\<Plug>ReplaceWithRegisterLine")
+nnoremap <silent> <Plug>ReplaceWithRegisterExpressionSpecial :let g:ReplaceWithRegister_expr = getreg('=')|execute 'normal!' v:count1 . '.'
+nnoremap <expr> <Plug>ReplaceWithRegisterOperator ReplaceWithRegister#OperatorExpression()
+nnoremap <silent> <Plug>PunctPairsQuotes :normal ciq
+xnoremap <silent> <Plug>PunctPairsAAll :call pairs#process('-`!"$%^&*_+=:;@~#|\,.?/'."'", 'a')
+xnoremap <silent> <Plug>PunctPairsIAll :call pairs#process('-`!"$%^&*_+=:;@~#|\,.?/'."'", 'i')
+onoremap <silent> <Plug>PunctPairsAAll :call pairs#process('-`!"$%^&*_+=:;@~#|\,.?/'."'", 'a')
+onoremap <silent> <Plug>PunctPairsIAll :call pairs#process('-`!"$%^&*_+=:;@~#|\,.?/'."'", 'i')
+xnoremap <silent> <Plug>PunctPairsAQuotes :call pairs#process("'`".'"', 'a')
+xnoremap <silent> <Plug>PunctPairsIQuotes :call pairs#process("'`".'"', 'i')
+onoremap <silent> <Plug>PunctPairsAQuotes :call pairs#process("'`".'"', 'a')
+onoremap <silent> <Plug>PunctPairsIQuotes :call pairs#process("'`".'"', 'i')
+nnoremap <silent> <Plug>Kwbd :Kwbd
+vnoremap <Plug>(EmmetCodePretty) :call emmet#codePretty()
+vnoremap <Plug>(EmmetMergeLines) :call emmet#mergeLines()
+nnoremap <Plug>(EmmetAnchorizeSummary) :call emmet#anchorizeURL(1)
+nnoremap <Plug>(EmmetAnchorizeURL) :call emmet#anchorizeURL(0)
+nnoremap <Plug>(EmmetRemoveTag) :call emmet#removeTag()
+nnoremap <Plug>(EmmetSplitJoinTag) :call emmet#splitJoinTag()
+nnoremap <Plug>(EmmetToggleComment) :call emmet#toggleComment()
+nnoremap <Plug>(EmmetImageSize) :call emmet#imageSize()
+nnoremap <Plug>(EmmetMovePrev) :call emmet#moveNextPrev(1)
+nnoremap <Plug>(EmmetMoveNext) :call emmet#moveNextPrev(0)
+vnoremap <Plug>(EmmetBalanceTagOutward) :call emmet#balanceTag(-2)
+nnoremap <Plug>(EmmetBalanceTagOutward) :call emmet#balanceTag(-1)
+vnoremap <Plug>(EmmetBalanceTagInward) :call emmet#balanceTag(2)
+nnoremap <Plug>(EmmetBalanceTagInward) :call emmet#balanceTag(1)
+nnoremap <Plug>(EmmetExpandWord) :call emmet#expandAbbr(1,"")
+vnoremap <Plug>(EmmetExpandAbbr) :call emmet#expandAbbr(2,"")
+nnoremap <Plug>(EmmetExpandAbbr) :call emmet#expandAbbr(3,"")
+noremap <SNR>134_CrunchBlockExc :CrunchBlock -exclusive
+noremap <SNR>134_CrunchBlock :CrunchBlock
+noremap <SNR>134_CrunchLineExc :CrunchLine -exclusive
+noremap <SNR>134_CrunchLine :CrunchLine
+nnoremap <Plug>MakeTodo :MakeTodo
+onoremap <Nul> 
+vnoremap <Nul> gV
+nnoremap <Nul> :noh
+onoremap <C-Space> 
+vnoremap <C-Space> gV
+nnoremap <C-Space> :noh
+nmap <F4> :silent noh
+nnoremap <Plug>FixLastSpellingError :FixLastSpellingError
+xmap <BS> "-d
+cnoremap  <Home>
+inoremap  ^
+cnoremap  <Left>
+inoremap <expr>  getline('.')=~'^\s*$'&&col('.')>strlen(getline('.'))?"0\<C-D>\<Esc>kJs":"\<Left>"
+cnoremap <expr>  getcmdpos()>strlen(getcmdline())?"\<C-D>":"\<Del>"
+inoremap <expr>  col('.')>strlen(getline('.'))?"\<C-D>":"\<Del>"
+inoremap <expr>  col('.')>strlen(getline('.'))?"\<C-E>":"\<End>"
+imap A <Plug>(EmmetAnchorizeSummary)
+imap a <Plug>(EmmetAnchorizeURL)
+imap k <Plug>(EmmetRemoveTag)
+imap j <Plug>(EmmetSplitJoinTag)
+imap / <Plug>(EmmetToggleComment)
+imap i <Plug>(EmmetImageSize)
+imap N <Plug>(EmmetMovePrev)
+imap n <Plug>(EmmetMoveNext)
+imap D <Plug>(EmmetBalanceTagOutward)
+imap d <Plug>(EmmetBalanceTagInward)
+imap ; <Plug>(EmmetExpandWord)
+imap , <Plug>(EmmetExpandAbbr)
+cnoremap <expr>  getcmdpos()>strlen(getcmdline())?&cedit:"\<Right>"
+inoremap <expr>  col('.')>strlen(getline('.'))?"\<C-F>":"\<Right>"
+imap S <Plug>ISurround
+imap s <Plug>Isurround
+inoremap <silent> 	 =UltiSnips#ExpandSnippetOrJump()
+inoremap <expr> <NL> pumvisible() ? "\" : "\<NL>"
+cnoremap <NL> <Down>
+inoremap <expr>  pumvisible() ? "\" : "\"
+cnoremap  <Up>
+imap  <Plug>DiscretionaryEnd
+inoremap <expr>  pumvisible() ? "\" : "\"
+inoremap <expr>  pumvisible() ? "\" : "\"
+imap  <Plug>Isurround
+cnoremap  
+inoremap  
+imap  <Plug>AlwaysEnd
+cnoremap  
+imap  :w sp
+cnoremap %% =expand('%:h').'/'
+let &cpo=s:cpo_save
+unlet s:cpo_save
+set autoread
+set autowrite
+set backspace=indent,eol,start
+set completefunc=youcompleteme#Complete
+set completeopt=preview,menuone
+set cpoptions=aAceFsB
+set diffopt=filler,vertical
+set expandtab
+set fileencodings=ucs-bom,utf-8,default,latin1
+set helplang=en
+set hidden
+set history=1000
+set hlsearch
+set ignorecase
+set incsearch
+set isident=@,48-57,_,192-255,$
+set iskeyword=@,48-57,_,192-255,$
+set langmenu=none
+set laststatus=2
+set lazyredraw
+set modelines=1
+set omnifunc=tmuxcomplete#complete
+set operatorfunc=ReplaceWithRegister#Operator
+set runtimepath=~/.vim/bundles/vim-abolish,~/.vim/bundles/ack.vim,~/.vim/bundles/vim-bundler,~/.vim/bundles/vim-coffee-script,~/.vim/bundles/vim-commentary,~/.vim/bundles/vim-conflicted,~/.vim/bundles/crunch,~/.vim/bundles/ctrlp.vim,~/.vim/bundles/ctrlp-generic,~/.vim/bundles/vim-easy-align,~/.vim/bundles/easybuffer.vim,~/.vim/bundles/elm.vim,~/.vim/bundles/emmet-vim,~/.vim/bundles/vim-endwise,~/.vim/bundles/vim-textobj-entire,~/.vim/bundles/vim-eunuch,~/.vim/bundles/vim-exchange,~/.vim/bundles/file-line,~/.vim/bundles/vim-fugitive,~/.vim/bundles/webapi-vim,~/.vim/bundles/gist-vim,~/.vim/bundles/vim-git,~/.vim/bundles/goyo.vim,~/.vim/bundles/vim-haml,~/.vim/bundles/vim-handlebars,~/.vim/bundles/html5.vim,~/.vim/bundles/vim-i18n,~/.vim/bundles/vim-textobj-indent,~/.vim/bundles/IndexedSearch,~/.vim/bundles/jellybeans.vim,~/.vim/bundles/vim-json,~/.vim/bundles/Kwbd.vim,~/.vim/bundles/vim-textobj-line,~/.vim/bundles/Lucius,~/.vim/bundles/vim-markdown,~/.vim/bundles/vim-markdown-folding,~/.vim/bundles/matchit.zip,~/.vim/bundles/
+set scrolloff=4
+set secure
+set shiftwidth=2
+set smartcase
+set softtabstop=2
+set spellfile=~/.vim/spell/en.utf-8.add
+set spelllang=en_us
+set splitbelow
+set statusline=%*%{InsertSpace()}%1*%{HasPaste()}%*%t%2*%m%*%r%h%*\ %y%=%{SlSpace()}\ \ Col:%c\ \ Line:%l/%L\ \ %P%{InsertSpace()}%{ConflictedVersion()}
+set noswapfile
+set tabstop=2
+set tags=./tags,tags,./git/tags
+set textwidth=80
+set ttimeout
+set ttimeoutlen=50
+set undodir=~/.undo-vim
+set undofile
+set updatetime=2000
+set visualbell
+set wildignore=*.pyc
+set wildmenu
+set wildmode=list:longest,full
+set window=32
+set nowritebackup
+let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
+let v:this_session=expand("<sfile>:p")
+silent only
+cd ~/code/openhouse/vqq
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+set shortmess=aoO
+badd +16 spec/views/proposal_docs/show.html.erb_spec.rb
+badd +0 app/views/proposal_docs/show.html.erb
+argglobal
+silent! argdel *
+edit app/views/proposal_docs/show.html.erb
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+set nosplitright
+wincmd t
+set winheight=1 winwidth=1
+exe 'vert 1resize ' . ((&columns * 89 + 89) / 178)
+exe 'vert 2resize ' . ((&columns * 88 + 89) / 178)
+argglobal
+let s:cpo_save=&cpo
+set cpo&vim
+nmap <buffer> gf <Plug>RailsTabFind
+nmap <buffer> f <Plug>RailsSplitFind
+nnoremap <buffer> <silent> g} :exe        "ptjump =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> } :exe          "ptag =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> g] :exe      "stselect =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> g :exe        "stjump =RubyCursorIdentifier()"
+nnoremap <buffer> <silent>  :exe v:count1."stag =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> ] :exe v:count1."stag =RubyCursorIdentifier()"
+nnoremap <buffer> <silent>  :exe  v:count1."tag =RubyCursorIdentifier()"
+nmap <buffer> gf <Plug>RailsFind
+nnoremap <buffer> <silent> g] :exe       "tselect =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> g :exe         "tjump =RubyCursorIdentifier()"
+let &cpo=s:cpo_save
+unlet s:cpo_save
+setlocal keymap=
+setlocal noarabic
+setlocal noautoindent
+setlocal balloonexpr=RubyBalloonexpr()
+setlocal nobinary
+setlocal bufhidden=
+setlocal buflisted
+setlocal buftype=
+setlocal cindent
+setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
+setlocal cinoptions=j1,J1
+setlocal cinwords=if,else,while,do,for,switch
+set colorcolumn=+1,+2,+3,+4
+setlocal colorcolumn=+1,+2,+3,+4
+setlocal comments=:#
+setlocal commentstring=<%#%s%>
+setlocal complete=.,w,b,u,t,i
+setlocal concealcursor=
+setlocal conceallevel=0
+setlocal completefunc=youcompleteme#Complete
+setlocal nocopyindent
+setlocal cryptmethod=
+setlocal nocursorbind
+setlocal nocursorcolumn
+setlocal nocursorline
+setlocal define=
+setlocal dictionary=
+setlocal nodiff
+setlocal equalprg=
+setlocal errorformat=
+setlocal expandtab
+if &filetype != 'eruby'
+setlocal filetype=eruby
+endif
+setlocal foldcolumn=0
+setlocal foldenable
+setlocal foldexpr=0
+setlocal foldignore=#
+set foldlevel=999
+setlocal foldlevel=999
+setlocal foldmarker={{{,}}}
+set foldmethod=indent
+setlocal foldmethod=indent
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldtext=foldtext()
+setlocal formatexpr=
+setlocal formatoptions=croql
+setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal grepprg=
+setlocal iminsert=2
+setlocal imsearch=2
+setlocal include=^\\s*\\<\\(load\\>\\|require\\>\\|autoload\\s*:\\=[\"']\\=\\h\\w*[\"']\\=,\\)
+setlocal includeexpr=RailsIncludeexpr()
+setlocal indentexpr=GetErubyIndent()
+setlocal indentkeys=o,O,*<Return>,<>>,{,},0),0],o,O,!^F,=end,=else,=elsif,=rescue,=ensure,=when
+setlocal noinfercase
+setlocal iskeyword=@,48-57,_,192-255,$
+setlocal keywordprg=ri
+setlocal nolinebreak
+setlocal nolisp
+setlocal lispwords=
+setlocal nolist
+setlocal nomacmeta
+setlocal makeprg=
+setlocal matchpairs=(:),{:},[:],<:>
+setlocal modeline
+setlocal modifiable
+setlocal nrformats=octal,hex
+set number
+setlocal number
+setlocal numberwidth=4
+setlocal omnifunc=rubycomplete#Complete
+setlocal path=~/code/openhouse/vqq/lib,~/code/openhouse/vqq/vendor,~/code/openhouse/vqq/app/models/concerns,~/code/openhouse/vqq/app/controllers/concerns,~/code/openhouse/vqq/app/controllers,~/code/openhouse/vqq/app/helpers,~/code/openhouse/vqq/app/mailers,~/code/openhouse/vqq/app/models,~/code/openhouse/vqq/app/*,~/code/openhouse/vqq/app/views,~/code/openhouse/vqq/app/views/proposal_docs,~/code/openhouse/vqq/public,~/code/openhouse/vqq/test,~/code/openhouse/vqq/test/unit,~/code/openhouse/vqq/test/functional,~/code/openhouse/vqq/test/integration,~/code/openhouse/vqq/test/controllers,~/code/openhouse/vqq/test/helpers,~/code/openhouse/vqq/test/mailers,~/code/openhouse/vqq/test/models,~/code/openhouse/vqq/spec,~/code/openhouse/vqq/spec/controllers,~/code/openhouse/vqq/spec/helpers,~/code/openhouse/vqq/spec/mailers,~/code/openhouse/vqq/spec/models,~/code/openhouse/vqq/spec/views,~/code/openhouse/vqq/spec/lib,~/code/openhouse/vqq/spec/features,~/code/openhouse/vqq/spec/requests,~/code/openhouse/vqq/spec/integration,~/code/open
+setlocal nopreserveindent
+setlocal nopreviewwindow
+setlocal quoteescape=\\
+setlocal noreadonly
+set relativenumber
+setlocal relativenumber
+setlocal norightleft
+setlocal rightleftcmd=search
+setlocal noscrollbind
+setlocal shiftwidth=2
+setlocal noshortname
+setlocal nosmartindent
+setlocal softtabstop=2
+setlocal nospell
+setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellfile=~/.vim/spell/en.utf-8.add
+setlocal spelllang=en_us
+setlocal statusline=
+setlocal suffixesadd=.rb
+setlocal noswapfile
+setlocal synmaxcol=3000
+if &syntax != 'eruby'
+setlocal syntax=eruby
+endif
+setlocal tabstop=2
+setlocal tags=~/code/openhouse/vqq/tmp/tags,~/code/openhouse/vqq/.git/eruby.tags,~/code/openhouse/vqq/.git/tags,./tags,tags,./git/tags,~/.rubies/ruby-2.2.1/lib/ruby/site_ruby/2.2.0/tags,~/.rubies/ruby-2.2.1/lib/ruby/site_ruby/2.2.0/x86_64-darwin13/tags,~/.rubies/ruby-2.2.1/lib/ruby/site_ruby/tags,~/.rubies/ruby-2.2.1/lib/ruby/vendor_ruby/2.2.0/tags,~/.rubies/ruby-2.2.1/lib/ruby/vendor_ruby/2.2.0/x86_64-darwin13/tags,~/.rubies/ruby-2.2.1/lib/ruby/vendor_ruby/tags,~/.rubies/ruby-2.2.1/lib/ruby/2.2.0/tags,~/.rubies/ruby-2.2.1/lib/ruby/2.2.0/x86_64-darwin13/tags,~/.gem/ruby/2.2.1/gems/Ascii85-1.0.2/tags,~/.gem/ruby/2.2.1/gems/actionmailer-4.2.2/tags,~/.gem/ruby/2.2.1/gems/actionpack-4.2.2/tags,~/.gem/ruby/2.2.1/gems/actionview-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activejob-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activemodel-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activerecord-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activesupport-4.2.2/tags,~/.gem/ruby/2.2.1/gems/addressable-2.3.8/tags,~/.gem/ruby/2.2.1/gems/afm-0.2.2/tags,~/.gem/ruby/2.2.1/gems/a
+setlocal textwidth=80
+setlocal thesaurus=
+setlocal undofile
+setlocal undolevels=-123456
+setlocal nowinfixheight
+setlocal nowinfixwidth
+setlocal wrap
+setlocal wrapmargin=0
+let s:l = 7 - ((6 * winheight(0) + 15) / 31)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+7
+normal! 0
+wincmd w
+argglobal
+edit spec/views/proposal_docs/show.html.erb_spec.rb
+nmap <buffer>  
+let s:cpo_save=&cpo
+set cpo&vim
+nmap <buffer> gf <Plug>RailsTabFind
+nmap <buffer> f <Plug>RailsSplitFind
+nnoremap <buffer> <silent> g} :exe        "ptjump =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> } :exe          "ptag =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> g] :exe      "stselect =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> g :exe        "stjump =RubyCursorIdentifier()"
+nnoremap <buffer> <silent>  :exe v:count1."stag =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> ] :exe v:count1."stag =RubyCursorIdentifier()"
+nnoremap <buffer> <silent>  :exe  v:count1."tag =RubyCursorIdentifier()"
+nmap <buffer> gf <Plug>RailsFind
+nnoremap <buffer> <silent> g] :exe       "tselect =RubyCursorIdentifier()"
+nnoremap <buffer> <silent> g :exe         "tjump =RubyCursorIdentifier()"
+nmap <buffer> <BS> 
+let &cpo=s:cpo_save
+unlet s:cpo_save
+setlocal keymap=
+setlocal noarabic
+setlocal noautoindent
+setlocal balloonexpr=RubyBalloonexpr()
+setlocal nobinary
+setlocal bufhidden=
+setlocal buflisted
+setlocal buftype=
+setlocal nocindent
+setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
+setlocal cinoptions=
+setlocal cinwords=if,else,while,do,for,switch
+set colorcolumn=+1,+2,+3,+4
+setlocal colorcolumn=+1,+2,+3,+4
+setlocal comments=:#
+setlocal commentstring=#\ %s
+setlocal complete=.,w,b,u,t,i
+setlocal concealcursor=
+setlocal conceallevel=0
+setlocal completefunc=youcompleteme#Complete
+setlocal nocopyindent
+setlocal cryptmethod=
+setlocal nocursorbind
+setlocal nocursorcolumn
+setlocal nocursorline
+setlocal define=^\\s*def\\s\\+\\(self\\.\\)\\=
+setlocal dictionary=
+setlocal nodiff
+setlocal equalprg=
+setlocal errorformat=
+setlocal expandtab
+if &filetype != 'ruby'
+setlocal filetype=ruby
+endif
+setlocal foldcolumn=0
+setlocal foldenable
+setlocal foldexpr=0
+setlocal foldignore=#
+set foldlevel=999
+setlocal foldlevel=999
+setlocal foldmarker={{{,}}}
+set foldmethod=indent
+setlocal foldmethod=indent
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldtext=foldtext()
+setlocal formatexpr=
+setlocal formatoptions=croql
+setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal grepprg=
+setlocal iminsert=2
+setlocal imsearch=2
+setlocal include=^\\s*\\<\\(load\\>\\|require\\>\\|autoload\\s*:\\=[\"']\\=\\h\\w*[\"']\\=,\\)
+setlocal includeexpr=RailsIncludeexpr()
+setlocal indentexpr=GetRubyIndent(v:lnum)
+setlocal indentkeys=0{,0},0),0],!^F,o,O,e,=end,=else,=elsif,=when,=ensure,=rescue,==begin,==end
+setlocal noinfercase
+setlocal iskeyword=@,48-57,_,192-255
+setlocal keywordprg=ri
+setlocal nolinebreak
+setlocal nolisp
+setlocal lispwords=
+setlocal nolist
+setlocal nomacmeta
+setlocal makeprg=
+setlocal matchpairs=(:),{:},[:]
+setlocal modeline
+setlocal modifiable
+setlocal nrformats=octal,hex
+set number
+setlocal number
+setlocal numberwidth=4
+setlocal omnifunc=rubycomplete#Complete
+setlocal path=~/code/openhouse/vqq/lib,~/code/openhouse/vqq/vendor,~/code/openhouse/vqq/app/models/concerns,~/code/openhouse/vqq/app/controllers/concerns,~/code/openhouse/vqq/app/controllers,~/code/openhouse/vqq/app/helpers,~/code/openhouse/vqq/app/mailers,~/code/openhouse/vqq/app/models,~/code/openhouse/vqq/app/*,~/code/openhouse/vqq/app/views,~/code/openhouse/vqq/test,~/code/openhouse/vqq/test/unit,~/code/openhouse/vqq/test/functional,~/code/openhouse/vqq/test/integration,~/code/openhouse/vqq/test/controllers,~/code/openhouse/vqq/test/helpers,~/code/openhouse/vqq/test/mailers,~/code/openhouse/vqq/test/models,~/code/openhouse/vqq/spec,~/code/openhouse/vqq/spec/controllers,~/code/openhouse/vqq/spec/helpers,~/code/openhouse/vqq/spec/mailers,~/code/openhouse/vqq/spec/models,~/code/openhouse/vqq/spec/views,~/code/openhouse/vqq/spec/lib,~/code/openhouse/vqq/spec/features,~/code/openhouse/vqq/spec/requests,~/code/openhouse/vqq/spec/integration,~/code/openhouse/vqq/vendor/plugins/*/lib,~/code/openhouse/vqq/vendor/plugins/*/test
+setlocal nopreserveindent
+setlocal nopreviewwindow
+setlocal quoteescape=\\
+setlocal noreadonly
+set relativenumber
+setlocal relativenumber
+setlocal norightleft
+setlocal rightleftcmd=search
+setlocal noscrollbind
+setlocal shiftwidth=2
+setlocal noshortname
+setlocal nosmartindent
+setlocal softtabstop=2
+setlocal nospell
+setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellfile=~/.vim/spell/en.utf-8.add
+setlocal spelllang=en_us
+setlocal statusline=
+setlocal suffixesadd=.rb
+setlocal noswapfile
+setlocal synmaxcol=3000
+if &syntax != 'ruby'
+setlocal syntax=ruby
+endif
+setlocal tabstop=2
+setlocal tags=~/code/openhouse/vqq/tmp/tags,~/code/openhouse/vqq/.git/ruby.tags,~/code/openhouse/vqq/.git/tags,./tags,tags,./git/tags,~/.rubies/ruby-2.2.1/lib/ruby/site_ruby/2.2.0/tags,~/.rubies/ruby-2.2.1/lib/ruby/site_ruby/2.2.0/x86_64-darwin13/tags,~/.rubies/ruby-2.2.1/lib/ruby/site_ruby/tags,~/.rubies/ruby-2.2.1/lib/ruby/vendor_ruby/2.2.0/tags,~/.rubies/ruby-2.2.1/lib/ruby/vendor_ruby/2.2.0/x86_64-darwin13/tags,~/.rubies/ruby-2.2.1/lib/ruby/vendor_ruby/tags,~/.rubies/ruby-2.2.1/lib/ruby/2.2.0/tags,~/.rubies/ruby-2.2.1/lib/ruby/2.2.0/x86_64-darwin13/tags,~/.gem/ruby/2.2.1/gems/Ascii85-1.0.2/tags,~/.gem/ruby/2.2.1/gems/actionmailer-4.2.2/tags,~/.gem/ruby/2.2.1/gems/actionpack-4.2.2/tags,~/.gem/ruby/2.2.1/gems/actionview-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activejob-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activemodel-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activerecord-4.2.2/tags,~/.gem/ruby/2.2.1/gems/activesupport-4.2.2/tags,~/.gem/ruby/2.2.1/gems/addressable-2.3.8/tags,~/.gem/ruby/2.2.1/gems/afm-0.2.2/tags,~/.gem/ruby/2.2.1/gems/ai
+setlocal textwidth=80
+setlocal thesaurus=
+setlocal undofile
+setlocal undolevels=-123456
+setlocal nowinfixheight
+setlocal nowinfixwidth
+setlocal wrap
+setlocal wrapmargin=0
+4
+normal! zo
+let s:l = 20 - ((14 * winheight(0) + 15) / 31)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+20
+normal! 038|
+wincmd w
+2wincmd w
+exe 'vert 1resize ' . ((&columns * 89 + 89) / 178)
+exe 'vert 2resize ' . ((&columns * 88 + 89) / 178)
+tabnext 1
+if exists('s:wipebuf')
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20 shortmess=filnxtToO
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if file_readable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &so = s:so_save | let &siso = s:siso_save
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :

@@ -1,0 +1,82 @@
+[1mdiff --git a/git/config b/git/config[m
+[1mindex f85c199..51c610d 100644[m
+[1m--- a/git/config[m
+[1m+++ b/git/config[m
+[36m@@ -53,6 +53,7 @@[m
+  unstage = reset[m
+  upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}[m
+  ureset = !git upstream && git reset --hard $(git upstream)[m
+	[32mvdf = difftool[m
+[core][m
+  editor = mvim -v[m
+  excludesfile = ~/.gitignore[m
+[36m@@ -77,3 +78,7 @@[m
+	default = cyan[m
+	untracked = yellow[m
+	modified = red[m
+[32m[diff][m
+[32m	tool = vimdiff[m
+[32m[difftool][m
+[32m	prompt = false[m
+[1mdiff --git a/vim/rcfiles/prose b/vim/rcfiles/prose[m
+[1mindex 824217e..c8dd708 100644[m
+[1m--- a/vim/rcfiles/prose[m
+[1m+++ b/vim/rcfiles/prose[m
+[36m@@ -65,11 +65,12 @@[m [mvnoremap <C-b> :call WrapCurrentWord("bold")<cr>[m
+vnoremap <C-i> :call WrapCurrentWord("italic")<cr>[m
+
+function! MarkdownMode()[m
+  setlocal spell          " Enable spell checking
+  setlocal nowrap         " Let long lines scroll off
+  setlocal linebreak      " Use word boundaries to break lines
+  setlocal textwidth=78[m
+  setlocal isk-=.         " sh.vim syntax file seems to be setting this...
+  [32msetlocal shiftwidth=4   " required for nested markdown lists[m
+  nnoremap <leader>bl :BoldListItems<cr>[m
+  nnoremap <buffer> <leader>ns ]s[m
+  " nnoremap <buffer> <leader>sp ea<C-x><C-s>[m
+[1mdiff --git a/vim/rcplugins/ctrlp-generic b/vim/rcplugins/ctrlp-generic[m
+[1mindex a750e65..5943ece 100644[m
+[1m--- a/vim/rcplugins/ctrlp-generic[m
+[1m+++ b/vim/rcplugins/ctrlp-generic[m
+[36m@@ -26,10 +26,9 @@[m [mfunction! EditGitFile(file)[m
+  execute 'edit ' . a:file[m
+endfunction[m
+
+[31mcommand! CtrlPGitLocalFiles call <sid>CtrlPGitFiles("git[m[32mlet git_files_cmd = "git[m status --porcelain | sed [31ms/^...//")[m
+[31mcommand! CtrlPGitBranchFiles call <sid>CtrlPGitFiles("git[m[32ms/^...//; git[m diff --name-status master..HEAD | grep -E '^(M|A)' | cut -f [31m2")[m
+[31mnnoremap <leader>cgl :CtrlPGitLocalFiles<cr>[m[32m2"[m
+[32mcommand! CtrlPGitFiles call <sid>CtrlPGitFiles(git_files_cmd)[m
+nnoremap [31m<leader>cgb :CtrlPGitBranchFiles<cr>[m[32m<leader>cpg :CtrlPGitFiles<cr>[m
+
+
+" vim:ft=vim[m
+[1mdiff --git a/vim/rcplugins/markdown b/vim/rcplugins/markdown[m
+[1mindex 4b18023..5fc9a56 100644[m
+[1m--- a/vim/rcplugins/markdown[m
+[1m+++ b/vim/rcplugins/markdown[m
+[36m@@ -2,6 +2,6 @@[m
+
+Bundle "tpope/vim-markdown"[m
+
+let g:markdown_fenced_languages = ['javascript', 'ruby', 'sh', 'yaml', 'javascript', 'html', 'vim', 'coffee', 'json', [31m'diff'][m[32m'diff', 'css'][m
+
+" vim:ft=vim[m
+[1mdiff --git a/vim/spell/en.utf-8.add b/vim/spell/en.utf-8.add[m
+[1mindex 3baada6..9b46c1a 100644[m
+[1m--- a/vim/spell/en.utf-8.add[m
+[1m+++ b/vim/spell/en.utf-8.add[m
+[36m@@ -137,3 +137,10 @@[m [mtelecom[m
+Ericson[m
+Ericsson[m
+Websockets[m
+[32mrepos[m
+[32mmetadata[m
+[32mdiffing[m
+[32mcharacter[m
+[32mcharacter[m
+[32mcharacter[m
+[32mflexbox[m
+[1mdiff --git a/vim/spell/en.utf-8.add.spl b/vim/spell/en.utf-8.add.spl[m
+[1mindex 42409cb..53d6996 100644[m
+Binary files a/vim/spell/en.utf-8.add.spl and b/vim/spell/en.utf-8.add.spl differ

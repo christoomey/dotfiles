@@ -4,8 +4,6 @@
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
 
-cnoremap <C-h> ~/
-
 cnoremap <C-x><C-e> <C-e><C-f>
 
 cnoremap %% <C-R>=expand('%:h').'/'<cr>

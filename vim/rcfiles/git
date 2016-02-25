@@ -1,30 +1,14 @@
-" Git configurations
-"------------------------
+" Word Frequency
+"---------------
 
 autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
+autocmd BufEnter ~/.gitshrc setlocal filetype=sh
 
-function! Git_Repo_Cdup() " Get the relative path to repo root
-    "Ask git for the root of the git repo (as a relative '../../' path)
-    let git_top = system('git rev-parse --show-cdup')
-    let git_fail = 'fatal: Not a git repository'
-    if strpart(git_top, 0, strlen(git_fail)) == git_fail
-        " Above line says we are not in git repo. Ugly. Better version?
-        return ''
-    else
-        " Return the cdup path to the root. If already in root,
-        " path will be empty, so add './'
-        return './' . git_top
-    endif
+function! s:OpenGithubPr()
+  silent! call system("~/.rubies/ruby-2.2.2/bin/ruby ~/bin/git-pr &")
 endfunction
-
-function! CD_Git_Root()
-    execute 'cd '.Git_Repo_Cdup()
-    let curdir = getcwd()
-    echohl String
-    echo 'CWD now set to: '.curdir
-    echohl
-endfunction
-nnoremap <LEADER>gr :call CD_Git_Root()<cr>
+command! OpenGithubPr call <sid>OpenGithubPr()
+nnoremap <leader>gp :OpenGithubPr<cr>
 
 function! s:GitPrCommits()
   let pr_commits_file = '.git/pr-commits'
@@ -32,7 +16,8 @@ function! s:GitPrCommits()
     execute 'read '.pr_commits_file
   endif
 endfunction
-
 command! GitPrCommits call <sid>GitPrCommits()
+
+command! RebaseSquash 2,$s/^pick/s/g|noh|2
 
 " vim:ft=vim

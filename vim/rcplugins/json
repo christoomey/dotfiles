@@ -5,9 +5,9 @@ Bundle 'elzr/vim-json'
 
 let g:vim_json_syntax_conceal = 0
 
-" Requires 'npm install jsontool -g'
+" Requires 'jq' (brew install jq)
 function! s:PrettyJSON()
-  %!json
+  %!jq .
   set filetype=json
 endfunction
 command! PrettyJSON :call <sid>PrettyJSON()

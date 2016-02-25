@@ -1,68 +1,70 @@
 [color]
   ui = true
 [alias]
+	glog = log -E -i --grep
+	sla = log --oneline --decorate --graph --all -20
   aa = add --all
+  adp = add --patch
   b = branch
   bhist = "!git --no-pager reflog $(git rev-parse --abbrev-ref HEAD)"
-  bselect = "!branches=$(git branch) && branch=$(echo \"$branches\" | fzf --reverse +s +m) && git checkout $(echo \"$branch\" | sed \"s/.* //\")"
   bom = push --set-upstream origin master
-  browse = "!hub browse"
+  browse = !hub browse
+  bselect = "!branches=$(git branch | grep -v $(git rev-parse --abbrev-ref HEAD)) && branch=$(echo \"$branches\" | fzf --reverse +s +m) && git checkout $(echo \"$branch\" | sed \"s/.* //\")"
   ca = commit --amend
   car = commit --amend --no-edit
-  ci = "!gh ci-status -v | sed -E 's/.* (.*)$/\\1/' | xargs open"
-  cis = "!gh ci-status"
+  cistatus = "!hub ci-status"
   co = checkout
-  compare = "!hub compare"
+  compare = !hub compare
   conflicts = !git ls-files -u | awk '{print $4}' | sort -u
   copysha = "!git rev-parse HEAD | tr -d '\n' | pbcopy"
   count = !git log --oneline | wc -l | awk '{print $1}'
+  current-branch = !git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's/^HEAD$//'
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
-  dup = "!git checkout develop && git pull && git checkout -"
-  edit-conflicts = !$VISUAL `git conflicts`
   fall = "!for remote in $(git remote); do echo "Fetching $remote"; git fetch "$remote"; done"
   fpop = !git stash show -p | git apply && git stash drop
   full-commit = !git cat-file -p $(git rev-parse HEAD)
-	glog = log -E -i --grep
   issues = !hub browse -- issues
-  lnames = "!git --no-pager show --name-only $1"
+  lnames = !git --no-pager show --name-only $1
+  next-commit = !git checkout $(git log --reverse --ancestry-path --pretty=%H HEAD..master | head -1)
   master = checkout master
-  mb = "!git merge-base HEAD $1"
-  mup = "!git checkout master && git pull && git checkout -"
-  no-ff="merge --no-ff"
+  mb = !git merge-base HEAD $1
+  mup = !git checkout master && git pull && git checkout -
+  no-ff = merge --no-ff
   pl = pull
   plr = pull --rebase
   pom = push -u origin master
   ps = push
   rbc = rebase --continue
   ri = rebase -i
-  rid = rebase -i dev
   rim = !git rebase --interactive $(git merge-base master HEAD)
   riu = !git rebase -i $(git upstream)
-  rmdeleted = "!git rm $(git ls-files --deleted)"
-  rod = rebase dev
+  rmdeleted = !git rm $(git ls-files --deleted)
   rom = remote add origin
+  root = rev-list --max-parents=0 HEAD
   rpo = remote prune origin
   sal = !git sla # Accepting that I will continue to mistype this
+  sdot = status . --short --branch
+  stat = show --stat
   si = status --ignored
   sl = log --oneline --decorate --graph -20
-	sla = "log --oneline --decorate --graph --all -20"
-  slap = "log --oneline --decorate --all --graph"
-  slp = "log --oneline --decorate --graph"
+  slap = log --oneline --decorate --all --graph
+  slp = log --oneline --decorate --graph
   trust = !mkdir .git/safe
   unchange = checkout --
-  unreleased = "!git l production/master..master"
   uncommit = reset --soft HEAD^
+  unreleased = !git l production/master..master
   unstage = reset
-  upstream = "!git rev-parse --abbrev-ref --symbolic-full-name @{u}"
-  ureset = "!git upstream && git reset --hard $(git upstream)"
+  upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
+  ureset = !git upstream && git reset --hard $(git upstream)
+	vdf = difftool
 [core]
   editor = mvim -v
   excludesfile = ~/.gitignore
 	pager = less -F -X
 [user]
   name = Chris Toomey
-  email = chris@thoughtbot.com
+  email = chris@ctoomey.com
 [push]
   default = upstream
 [merge]
@@ -73,5 +75,14 @@
   template = ~/.gitmessage
 [github]
   user = christoomey
-[rerere]
-	enabled = true
+[gitsh]
+	noGreeting = true
+	defaultCommand = status --short --branch && :echo
+[gitsh "color"]
+	default = cyan
+	untracked = yellow
+	modified = red
+[diff]
+	tool = vimdiff
+[difftool]
+	; prompt = false

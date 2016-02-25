@@ -1,0 +1,5 @@
+" JSX - Syntax support for JSX files
+
+" Bundle "mxw/vim-jsx"
+
+" vim:ft=vim

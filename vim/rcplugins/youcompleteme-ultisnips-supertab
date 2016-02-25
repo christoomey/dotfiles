@@ -5,7 +5,7 @@
 " YouCompleteMe - Intelligent completion with fuzzy matching
 "-----------------------------------------------------------
 
-Bundle 'Valloric/YouCompleteMe'
+" Bundle 'Valloric/YouCompleteMe'
 
 let g:ycm_dont_warn_on_startup = 0
 let g:ycm_complete_in_comments = 1

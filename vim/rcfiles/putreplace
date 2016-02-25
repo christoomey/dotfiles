@@ -2,15 +2,24 @@
 " @jferris
 " ---------------------------------------------------------------
 
-function! s:PutReplaceMotion(type)
-  if a:type == 'line'
-    silent execute "normal! `[V`]"
-  else
-    silent execute "normal! `[v`]"
-  end
-  silent execute "normal! p"
-endfunction
+" function! s:SystemReplaceMotion(type)
+"   call s:PutReplaceMotion(a:type, '"*')
+" endfunction
 
-nmap <silent> R :set opfunc=<sid>PutReplaceMotion<CR>g@
+" function! s:VimPutReplaceMotion(type)
+"   call s:PutReplaceMotion(a:type, "")
+" endfunction
 
-" vim:ft=vim
+" function! s:PutReplaceMotion(type, register)
+"   if a:type == 'line'
+"     silent execute "normal! `[V`]"
+"   else
+"     silent execute "normal! `[v`]"
+"   end
+"   silent execute 'normal! ' . a:register . 'p'
+" endfunction
+
+" nmap <silent> <leader>p :set opfunc=<sid>SystemReplaceMotion<CR>g@
+" nmap <silent> R :set opfunc=<sid>VimPutReplaceMotion<CR>g@
+
+" " vim:ft=vim

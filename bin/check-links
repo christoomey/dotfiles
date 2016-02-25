@@ -1,0 +1,18 @@
+#!/bin/sh
+
+success=0
+
+for url in $(pandoc "$1" | pup -i 2 'a[href] attr{href}'); do
+  # echo "Checking $url"
+  if echo "$url" | grep -Eq '\.' ; then
+    if ! curl -f --silent "$url" > /dev/null; then
+      >&2 echo "Error with URL: $url"
+      success=1
+    fi
+  else
+    >&2 echo "Invalid URL format: $url"
+    success=1
+  fi
+done
+
+exit $success

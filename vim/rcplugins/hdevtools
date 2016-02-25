@@ -1,0 +1,5 @@
+" hdevtools - Fast syntax and type checking of Haskell files
+
+Bundle "bitc/vim-hdevtools"
+
+" vim:ft=vim

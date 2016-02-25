@@ -20,8 +20,37 @@ if exists("+spelllang")
 endif
 set spellfile=~/.vim/spell/en.utf-8.add
 
-nnoremap <LEADER>more i<!--more--><ESC>
-nnoremap <leader>gf gqip
+function! s:MoreThanOneTmuxPane()
+  return system("tmux list-panes | wc -l | awk '{print $1}'") != "1"
+endfunction
+
+function! s:TmuxPaneIsZoomed()
+  call system("tmux list-panes -F '#F' | grep -q Z")
+  return !v:shell_error
+endfunction
+
+function! s:Focus()
+  Goyo
+  call system("tmux set -g status off")
+  call system('osascript -e "tell application \"iTerm\" to set the transparency of the current session of the current terminal to 0"')
+  if s:MoreThanOneTmuxPane() && !s:TmuxPaneIsZoomed()
+    call system("tmux resize-pane -Z")
+  endif
+  wincmd =
+endfunction
+command! Focus call <sid>Focus()
+nnoremap <leader>F :Focus<cr>
+
+function! s:Unfocus()
+  Goyo!
+  call system("tmux set -g status on")
+  call system('osascript -e "tell application \"iTerm\" to set the transparency of the current session of the current terminal to 0.17"')
+  if s:TmuxPaneIsZoomed()
+    call system("tmux resize-pane -Z")
+  endif
+endfunction
+command! Unfocus call <sid>Unfocus()
+nnoremap <leader>U :Unfocus<cr>
 
 function! WrapCurrentWord(format)
   normal! gv
@@ -38,10 +67,12 @@ vnoremap <C-b> :call WrapCurrentWord("bold")<cr>
 vnoremap <C-i> :call WrapCurrentWord("italic")<cr>
 
 function! MarkdownMode()
-  " setlocal spell        " Enable spell checking
+  setlocal spell        " Enable spell checking
   setlocal nowrap       " Let long lines scroll off
   setlocal linebreak    " Use word boundaries to break lines
   setlocal textwidth=78
+  setlocal isk-=.       " sh.vim syntax file seems to be setting this...
+  nnoremap <leader>bl :BoldListItems<cr>
   nnoremap <buffer> <leader>ns ]s
   " nnoremap <buffer> <leader>sp ea<C-x><C-s>
   nnoremap <buffer> <leader>sf mm[s1z=`m
@@ -50,15 +81,88 @@ function! MarkdownMode()
   nnoremap <buffer> <leader>md :call OpenCurrentFileInMarked()<cr>
   nnoremap <buffer> <leader>bld mm"bciw**b**<esc>`m2l
   nnoremap <buffer> <leader>em mm"bciw*b*<esc>`m2l
+  nnoremap <buffer> <cr> :MarkdownAwareGX<cr>
+  nnoremap <buffer> <leader>dp :call system("open -a Deckset <C-r>%")<cr>
+  command! BlockQuotify execute "normal! {jvip\<C-v>I> \<ESC>gqip"
+  nnoremap <buffer> <leader>gq :BlockQuotify<cr>
+  vmap <leader>gq :g/\(^$\n\)\@<=.*/BlockQuotify<cr>
+
   " Heading / underline funcitons
-  nnoremap <buffer> <leader>u1 mmyypVr=`m<cr><esc>
-  nnoremap <buffer> <leader>u2 mmyypVr-`m<cr><esc>
-  nnoremap <buffer> <leader>u3 mm0i### <esc>`m4l
+  " nnoremap <buffer> <leader>u1 :MH1<cr>
+  " nnoremap <buffer> <leader>u2 :MH2<cr>
+  " nnoremap <buffer> <leader>u1 mmyypVr=`m<cr><esc>
+  " nnoremap <buffer> <leader>u2 mmyypVr-`m<cr><esc>
+  " nnoremap <buffer> <leader>u3 mm0i### <esc>`m4l
   nnoremap <buffer> <tab> :JumpToNextLink<cr>
   nnoremap <buffer> <S-tab> :JumpToNextLinkBackward<cr>
   nnoremap <buffer> <leader>fw mm1z=`m
   nnoremap <buffer> <leader>df :call system('open dict://'. expand('<cword>'))<cr>
 endfunction
+
+function! s:SmartLevelThreeHeader()
+  call s:DeleteExistingUnderline()
+  call s:DeleteExistingLeadingHeaderMarks()
+  s/^/### /
+  silent! call repeat#set("\<Plug>SmartLevelThreeHeader")
+endfunction
+
+function! s:OnLastLineOfFile()
+  return line('.') == line('$')
+endfunction
+
+function! s:DeleteExistingLeadingHeaderMarks()
+  silent! s/^#\{1,6} //
+endfunction
+
+function! s:DeleteExistingUnderline()
+  if !s:OnLastLineOfFile()
+    let saved_cursor = getpos(".")
+    +1g/\v^[-=]+$/d
+    call setpos('.', saved_cursor)
+  endif
+endfunction
+
+function! s:SmartUnderline(char)
+  call s:DeleteExistingUnderline()
+  call s:DeleteExistingLeadingHeaderMarks()
+  let underline = repeat(a:char, len(getline('.')))
+  call append(line('.'), underline)
+  normal! j
+  if a:char == '='
+    silent! call repeat#set("\<Plug>UnderlineH1", v:count)
+  else
+    silent! call repeat#set("\<Plug>UnderlineH2", v:count)
+  end
+endfunction
+
+nnoremap <silent> <Plug>UnderlineH1 :call <sid>SmartUnderline('=')<cr>
+nnoremap <silent> <Plug>UnderlineH2 :call <sid>SmartUnderline('-')<cr>
+nnoremap <silent> <Plug>SmartLevelThreeHeader :call <sid>SmartLevelThreeHeader()<cr>
+nmap <leader>u1 <Plug>UnderlineH1
+nmap <leader>u2 <Plug>UnderlineH2
+nmap <leader>u3 <Plug>SmartLevelThreeHeader
+
+" function! s:UnderlineAsMarkdownHeader(header_character)
+"   let saved_cursor = getpos(".")
+"   let next_line = getline(line('.') + 1)
+"   if next_line =~ '^' . a:header_character . '\+$'
+"     +1delete
+"     normal! k
+"   endif
+"   execute 'normal! yypVr' . a:header_character
+"   call setpos('.', saved_cursor)
+" endfunction
+
+function! s:BoldListItems()
+  let saved_cursor = getpos(".")
+  normal! vip
+  :'<,'>substitute/\v^(\s*)- (.{-}) -/\1- **\2** -/g
+  " let previous_blank_line = search('^$', 'bn')
+  " let target_line = previous_blank_line + a:position - 1
+  " execute "move " . target_line
+  call setpos('.', saved_cursor)
+endfunction
+command! BoldListItems call <sid>BoldListItems()
 
 function! s:JumpToNextLink(direction)
   let link_pattern = '\v\[\S.{-}\n?.{-}\]\[\]'
@@ -78,11 +182,13 @@ function! s:ShiftCursorColumn(columns)
   call cursor(position)
 endfunction
 
-function! OpenCurrentFileInMarked()
-    let current_file = expand('%')
-    let open_cmd = join(["open -a Marked", current_file])
-    call system(open_cmd)
+function! OpenCurrentFileInMarked() abort
+  write
+  let current_file = expand('%')
+  let open_cmd = join(["open -a Marked", current_file])
+  call system(open_cmd)
 endfunction
+command! OpenCurrentFileInMarked call OpenCurrentFileInMarked()
 
 function! MoveEm(position)
   let saved_cursor = getpos(".")
@@ -129,6 +235,19 @@ endfunction
 command! FixLastSpellingError call <sid>FixLastSpellingError()
 nnoremap <Plug>FixLastSpellingError :FixLastSpellingError<cr>
 map <leader>sp <Plug>FixLastSpellingError
+imap <C-y> <C-o>:w<cr><C-o><leader>sp
 " nnoremap <leader>SP uea<C-x><C-s>
+
+
+function! s:CheckLinks()
+  let link_check_results = system("check-links " . expand("%"))
+  echohl Visual | echom 'Document copied as RTF' | echohl None
+  if v:shell_error != 0
+    echohl Error | echo 'Some links did not check!' | echohl None
+  else
+    echohl String | echo 'Squeky Clean' | echohl None
+  endif
+endfunction
+command! CheckLinks :call <sid>CheckLinks()
 
 " vim:ft=vim

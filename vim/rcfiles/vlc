@@ -31,7 +31,7 @@ endfunction
 
 function! s:InsertCurrntVLCTime()
   let @a = ' ' . s:GetVLCCurrentTime()
-  execute 'normal! "ap'
+  execute 'normal! Aa'
 endfunction
 command! InsertCurrntVLCTime call <sid>InsertCurrntVLCTime()
 nnoremap <leader>vt :InsertCurrntVLCTime<cr>

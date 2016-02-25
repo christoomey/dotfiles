@@ -63,19 +63,6 @@ function test-addr {
   echo http://$address:$port
 }
 
-function current_branch() {
-    ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-    echo ${ref#refs/heads/}
-}
-
-function gitup {
-    if git rev-parse --git-dir > /dev/null 2>&1; then
-        cd "./"$(git rev-parse --show-cdup)
-    else
-        return
-    fi
-}
-
 # Convenience aliases
 alias ls="ls -FG"
 alias l="ls -l"
@@ -86,6 +73,13 @@ alias sz='source ~/.zshrc'
 
 alias pgrep='pgrep -lf' # long output, match against full args list
 
+# Postgres
+alias restart-postgres="rm /usr/local/var/postgres/postmaster.pid && cd ~/Library/LaunchAgents && launchctl unload homebrew.mxcl.postgresql.plist && launchctl load -w homebrew.mxcl.postgresql.plist"
+
+alias spaces="cut -d ' ' -f"
+
+alias G="| grep -i"
+
 # Load .env file into shell session for config vars
 function envup {
   if [ -f .env ]; then
@@ -95,14 +89,9 @@ function envup {
   fi
 }
 
-vman() {
-  vim -c "SuperMan $*"
-
-  if [ "$?" != "0" ]; then
-    echo "No manual entry for $*"
-  fi
+copy-last-command() {
+  history | tail -1 | cut -c 8- | pbcopy
 }
-compdef vman=man
 
 # Allow [ or ] whereever you want
 unsetopt nomatch
@@ -112,6 +101,7 @@ for zsh_source in $HOME/.zsh/config/*.zsh; do
 done
 
 ensure_tmux_is_running
+# spin-up-tagwatchers
 
 # Edit the current line in $EDITOR
 autoload -U edit-command-line
@@ -122,4 +112,4 @@ bindkey '^x^e' edit-command-line
 unsetopt correct_all
 
 # Customize to your needs...
-export PATH=/usr/local/bin:$HOME/local/bin:$PATH:$HOME/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/usr/X11/bin
+# export PATH=/usr/local/bin:/usr/local/sbin:$PATH:$HOME/bin:/usr/local/mysql/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/usr/X11/bin

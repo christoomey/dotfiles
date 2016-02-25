@@ -5,8 +5,18 @@ Bundle "mileszs/ack.vim"
 nmap <LEADER>ck :Ack!<space>
 nmap <LEADER>cK :Ack!<up><cr>
 nmap <LEADER>CK :Ack!<up><cr>
+nnoremap <leader>cc :cclose<cr>
 
-nnoremap K :Ack! '\b<C-r><C-w>\b'<cr>
+function! s:VisualAck()
+  let temp = @"
+  normal! gvy
+  let escaped_pattern = escape(@", "[]().*")
+  let @" = temp
+  execute "Ack! '" . escaped_pattern . "'"
+endfunction
+
+nnoremap K :Ack! '<C-r><C-w>'<cr>
+vnoremap K :<C-u>call <sid>VisualAck()<cr>
 
 let g:ackprg = 'ag --nogroup --nocolor --column'
 

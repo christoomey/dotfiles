@@ -6,36 +6,20 @@ let g:VtrUseVtrMaps = 1
 let g:VtrGitCdUpOnOpen = 0
 let g:VtrPercentage = 30
 
-nnoremap <leader>va :VtrAttachToPane<cr>
 nmap <leader>fs :VtrFlushCommand<cr>:VtrSendCommandToRunner<cr>
-nmap <C-f> :VtrSendLineToRunner<cr>
-vmap <C-f> <Esc>:VtrSendSelectedToRunner<cr>
+nmap <C-f> :VtrSendLinesToRunner<cr>
+vmap <C-f> :VtrSendLinesToRunner<cr>
 
-nnoremap <leader>rj :VtrSendCommandToRunner be rake konacha<cr>
-nnoremap <leader>rs :VtrSendCommandToRunner rake<cr>
-
-nmap <leader>osr :VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>
+nmap <leader>osr :VtrOpenRunner { 'orientation': 'h', 'percentage': 50 }<cr>
+nmap <leader>opr :VtrOpenRunner { 'orientation': 'h', 'percentage': 50, 'cmd': 'pry' }<cr>
 
 nnoremap <leader>sd :VtrSendCtrlD<cr>
-nnoremap <leader>q :VtrSendCommandToRunner q<cr>
-nnoremap <leader>sf :w<cr>:call SendFileViaVtr()<cr>
+nnoremap <leader>sq :VtrSendCommandToRunner q<cr>
 nnoremap <leader>sl :VtrSendCommandToRunner <cr>
 
-function! SendFileViaVtr()
-  let runners = {
-        \ 'haskell': 'ghci',
-        \ 'ruby': 'ruby',
-        \ 'javascript': 'node',
-        \ 'python': 'python',
-        \ 'sh': 'sh'
-        \ }
-  if has_key(runners, &filetype)
-    let runner = runners[&filetype]
-    let local_file_path = expand('%')
-    execute join(['VtrSendCommandToRunner', runner, local_file_path])
-  else
-    echoerr 'Unable to determine runner'
-  endif
-endfunction
+let g:vtr_filetype_runner_overrides = {
+      \ 'haskell': 'ghci {file}',
+      \ 'applescript': 'osascript {file}'
+      \ }
 
 " vim:ft=vim

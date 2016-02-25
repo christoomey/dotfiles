@@ -30,7 +30,6 @@ filetype off " required!
 set rtp+=~/.vim/bundles/vundle/
 call vundle#rc("~/.vim/bundles/")
 
-
 " Plugins are each listed in their own file. Loop and source ftw
 "----------------------------------------------------------------
 call s:SourceConfigFilesIn('rcplugins')
