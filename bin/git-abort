@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Abort a rebase, merge, `am`, a cherry-pick or a revert, depending on the situation.
+
+if [[ -e .git/CHERRY_PICK_HEAD ]] ; then
+    exec git cherry-pick --abort "$@"
+elif [[ -e .git/REVERT_HEAD ]] ; then
+    exec git revert --abort "$@"
+elif [[ -e .git/rebase-apply/applying ]] ; then
+    exec git am --abort "$@"
+elif [[ -e .git/rebase-apply ]] ; then
+    exec git rebase --abort "$@"
+elif [[ -e .git/rebase-merge ]] ; then
+    exec git rebase --abort "$@"
+elif [[ -e .git/MERGE_MODE ]] ; then
+    exec git merge --abort "$@"
+else
+    echo git-abort: unknown state
+    exit -1
+fi
