@@ -11,8 +11,8 @@
 GitCall = Struct.new(:cmd, :type, :pretend_resp)
 
 class ClosesPullRequests
-  def initialize(arg)
-    @pretending = pretend? arg
+  def initialize(args)
+    @args = args
   end
 
   def run
@@ -45,11 +45,13 @@ class ClosesPullRequests
     gc = GitCall.new("hub ci-status > /dev/null 2>&1", :command, true)
     if has_ci_enabled?
       puts 'Confirming ci-status on PR is green...'
-      unless run_or_print(gc)
-        die_with_msg 'CI status is not green for the PR. Aborting'
+      if force?
+        puts "  --force ignroing CI"
+      elsif !run_or_print(gc)
+        die_with_msg '  CI status is not green for the PR. Aborting'
       end
     else
-      puts "CI not enabled, skipping check..."
+      puts "  CI not enabled, skipping check..."
     end
   end
 
@@ -146,12 +148,20 @@ class ClosesPullRequests
     run_or_print(gc)
   end
 
-  def pretend?(arg)
-    true if ['-p', '--pretend'].include? arg
+  def force?
+    has_arg? ['-f', '--force']
+  end
+
+  def pretend?
+    has_arg? ['-p', '--pretend']
+  end
+
+  def has_arg?(flags)
+    (flags & @args).any?
   end
 
   def run_or_print(gc)
-    if @pretending
+    if pretend?
       gc.pretend_resp
     else
       if gc.type == :command
@@ -163,4 +173,4 @@ class ClosesPullRequests
   end
 end
 
-ClosesPullRequests.new(ARGV.first).run
+ClosesPullRequests.new(ARGV).run
