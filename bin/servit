@@ -11,7 +11,9 @@ if [[ -f .env ]]; then
   export $(cat .env | sed -E '/^(#|$)/d')
 fi
 
-if [[ -f config/environment.rb ]]; then
+if [[ -f nwb.config.js ]]; then
+  server_cmd="nwb serve --port $port"
+elif [[ -f config/environment.rb ]]; then
   server_cmd="bundle && bundle exec rails s -p $port"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
   server_cmd="bundle && bundle exec middleman -p $port"
