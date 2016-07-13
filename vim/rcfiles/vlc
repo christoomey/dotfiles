@@ -88,7 +88,11 @@ endfunction
 
 function! s:SelectVideoToOpen()
   let videos = s:VideosOnDesktop()
-  call CtrlPGeneric(videos, 'OpenVideoOnDesktop')
+  if len(videos) == 1
+    call OpenVideoOnDesktop(videos[0])
+  else
+    call CtrlPGeneric(videos, 'OpenVideoOnDesktop')
+  endif
 endfunction
 
 function! OpenVideoOnDesktop(video_name) range
