@@ -4,6 +4,8 @@
 autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
 autocmd BufEnter ~/.gitshrc setlocal filetype=sh
 
+autocmd FileType gitrebase RebaseSquash
+
 function! s:OpenGithubPr()
   silent! call system("~/.rubies/ruby-2.2.2/bin/ruby ~/bin/git-pr &")
 endfunction
@@ -18,6 +20,6 @@ function! s:GitPrCommits()
 endfunction
 command! GitPrCommits call <sid>GitPrCommits()
 
-command! RebaseSquash 2,$s/^pick/s/g|noh|2
+command! RebaseSquash 2,$s/^pick/s/|silent! w!|2
 
 " vim:ft=vim
