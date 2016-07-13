@@ -2,6 +2,8 @@
 --tag-relative
 --recurse
 --exclude=node_modules
+--exclude=coverage
+--exclude=vendor
 --exclude=bower_components
 
 --langdef=js
