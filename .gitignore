@@ -6,3 +6,4 @@ vim/Trashed-Bundles/**
 mutt/cache/**
 mutt/certificates
 mutt/aliases
+vim/sessions
