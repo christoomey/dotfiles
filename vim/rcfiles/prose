@@ -99,6 +99,8 @@ function! MarkdownMode()
   nnoremap <buffer> <leader>df :call system('open dict://'. expand('<cword>'))<cr>
 endfunction
 
+
+
 function! s:SmartLevelThreeHeader()
   call s:DeleteExistingUnderline()
   call s:DeleteExistingLeadingHeaderMarks()
@@ -127,7 +129,6 @@ function! s:SmartUnderline(char)
   call s:DeleteExistingLeadingHeaderMarks()
   let underline = repeat(a:char, len(getline('.')))
   call append(line('.'), underline)
-  normal! j
   if a:char == '='
     silent! call repeat#set("\<Plug>UnderlineH1", v:count)
   else
@@ -185,7 +186,7 @@ endfunction
 function! OpenCurrentFileInMarked() abort
   write
   let current_file = expand('%')
-  let open_cmd = join(["open -a Marked", current_file])
+  let open_cmd = join(["open -a 'Marked 2'", current_file])
   call system(open_cmd)
 endfunction
 command! OpenCurrentFileInMarked call OpenCurrentFileInMarked()
@@ -249,5 +250,12 @@ function! s:CheckLinks()
   endif
 endfunction
 command! CheckLinks :call <sid>CheckLinks()
+
+function! s:MakeTodo()
+  s/\v^-?\s?(.*)/- [ ] \1/g
+  silent! call repeat#set("\<Plug>MakeTodo", v:count)
+endfunction
+nnoremap <Plug>MakeTodo :MakeTodo<cr>
+map <leader>mt <Plug>MakeTodo
 
 " vim:ft=vim
