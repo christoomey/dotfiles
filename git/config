@@ -15,12 +15,13 @@
   cistatus = "!hub ci-status"
   co = checkout
   compare = !hub compare
-  conflicts = !git ls-files -u | awk '{print $4}' | sort -u
+  conflicted = !vim +Conflicted
   copysha = "!git rev-parse HEAD | tr -d '\n' | pbcopy"
   count = !git log --oneline | wc -l | awk '{print $1}'
   current-branch = !git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's/^HEAD$//'
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
+  dsf = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
   fall = "!for remote in $(git remote); do echo "Fetching $remote"; git fetch "$remote"; done"
   fpop = !git stash show -p | git apply && git stash drop
   full-commit = !git cat-file -p $(git rev-parse HEAD)
@@ -59,9 +60,9 @@
   ureset = !git upstream && git reset --hard $(git upstream)
 	vdf = difftool
 [core]
-  editor = mvim -v
+	editor = /usr/local/bin/vim
   excludesfile = ~/.gitignore
-	pager = less -F -X
+	pager = less -X
 [user]
   name = Chris Toomey
   email = chris@ctoomey.com
