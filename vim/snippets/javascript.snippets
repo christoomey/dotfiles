@@ -1,55 +1,46 @@
-# snippet onready
-#   $(function() {
-# 		${0:// body...}
-# 	});
-# snippet fun
-# 	function(${1:argument}) {
-# 		${0:// body...}
-# 	}
-# snippet log
-# 	console.log(${0:args});
-# snippet iife
-# 	(function() {
-# 		'use strict';
+snippet ncomp
+	import React, {
+		Component,
+	} from 'react-native';
 
-# 		${0:// your codez}
-# 	})();
+	class ${1:ComponentName} extends Component {
+		rednder() {
+			return (
+				${0:...stuff}
+			);
+		}
+	}
 
-# snippet ngd
-# 	(function() {
-# 		'use strict';
+	export default $1;
+snippet comp
+	import React from 'react';
+	import { StyleSheet, css } from 'aphrodite';
 
-# 		var ${1:directiveName} = function(${2:dependencies}) {
-# 			return {
-# 				retstrict: '${0:E}',
-# 			};
-# 		};
+	class ${1:ComponentName} extends React.Component {
+		render() {
+			return (
+				${0:...children}
+			);
+		}
+	}
 
-# 		angular.module('4ltr').directive('$1', $1);
-# 	})();
+	const styles = StyleSheet.create({
+	});
 
-# snippet ngf
-# 	(function() {
-# 		'use strict';
-
-# 		var ${1:FactoryName} = function(${2:dependencies}) {
-# 			var $1 = function(${3:constructorArgs}) {
-# 			};
-
-# 			return $1;
-# 		};
-
-# 		angular.module('4ltr').factory('$1', $1);
-# 	})();
-
-# snippet desc
-# 	describe('${1:function}', function() {
-# 		it('${2:behavior}', function() {
-# 			${0:testCode}
-# 		});
-# 	});
-
-# snippet it
-# 	it('${1:description}', function() {
-# 		${0:body}
-# 	});
+	export default $1;
+snippet cls
+	className={css(styles.${1:styleName})}
+snippet css
+	css(styles.${1:styleName})}
+snippet it
+	it('${1:doc string}', () => {
+		${0:...test stuff}
+	});
+snippet desc
+	describe('${1:doc string}', () => {
+		${0:...test stuff}
+	});
+snippet cont
+	context('${1:context string}', () => {
+		${0:...tests}
+	});
