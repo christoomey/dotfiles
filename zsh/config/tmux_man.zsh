@@ -4,8 +4,6 @@ tmux-man-for-current-word() {
   height=$(tmux display -p '#{pane_height}')
   normalized_height=$( echo "$height * 2.2" | bc )
 
-  echo " $normalized_height x $width " > /tmp/thinger
-
   if (( normalized_height > width )); then
     tmux split-window -v "man $cmd"
   else
