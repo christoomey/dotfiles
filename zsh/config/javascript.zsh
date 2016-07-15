@@ -1,0 +1,1 @@
+alias rn='react-native'
