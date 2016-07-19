@@ -1,5 +1,0 @@
-" Matchit - Extneded % open close pair matching
-
-Bundle "vim-scripts/matchit.zip"
-
-" vim:ft=vim

@@ -1,6 +1,0 @@
-" Javascript configurations
-"--------------------------
-
-" au BufRead,BufNewFile *.json set filetype=json
-
-" vim:ft=vim

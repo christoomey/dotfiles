@@ -1,7 +1,0 @@
-" Markdown-Folding - Defines a fold expression for markdown headings
-
-Bundle "nelstrom/vim-markdown-folding"
-
-let g:markdown_fold_style = 'nested'
-
-" vim:ft=vim

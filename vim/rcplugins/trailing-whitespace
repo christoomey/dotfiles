@@ -1,7 +1,0 @@
-" Trailing-Whitespace - Provides a list of buffers for organization
-
-Bundle "bronson/vim-trailing-whitespace"
-
-nmap <LEADER>wht :FixWhitespace<CR>
-
-" vim:ft=vim

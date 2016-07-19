@@ -1,6 +1,0 @@
-" Vundle - Manages plugin & filetype bundles.
-
-Bundle 'gmarik/vundle'
-nnoremap <leader>bi :BundleInstall<cr>
-
-" vim:ft=vim

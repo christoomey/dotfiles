@@ -1,5 +1,0 @@
-" Ack - Integrata ack (grep replacement) into vim
-
-Bundle "tpope/vim-rsi"
-
-" vim:ft=vim

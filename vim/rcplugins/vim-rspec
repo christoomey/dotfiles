@@ -1,9 +1,0 @@
-" Vim Rspec - Run specs from vim
-
-" Bundle 'thoughtbot/vim-rspec'
-
-" let g:rspec_command = "VtrSendCommandToRunner! rspec {spec}"
-
-" map <Leader>t :call RunNearestSpec()<CR>
-
-" vim:ft=vim

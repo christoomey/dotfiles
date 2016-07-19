@@ -1,5 +1,0 @@
-" JavaScript - Improved Filetype stuff for JS
-
-Bundle "pangloss/vim-javascript"
-
-" vim:ft=vim

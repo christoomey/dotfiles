@@ -1,3 +1,0 @@
-log --oneline --decorate -1
-:echo
-status --short --branch

@@ -1,4 +1,0 @@
---skip-test-unit
---skip-bundle
---database=postgresql
---skip-turbolinks

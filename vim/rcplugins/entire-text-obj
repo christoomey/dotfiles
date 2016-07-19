@@ -1,5 +1,0 @@
-" Entire (text obj) - Custom text object for the entire buffer
-
-Bundle "kana/vim-textobj-entire"
-
-" vim:ft=vim

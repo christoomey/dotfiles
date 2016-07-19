@@ -1,8 +1,0 @@
-" Zsh configurations
-"------------------------
-
-au BufRead,BufNewFile *.zsh-theme set filetype=zsh
-
-command! ReformatCurlRequest silent %s/\s\(-.\{-}\)\s/ \1 /g
-
-" vim:ft=vim

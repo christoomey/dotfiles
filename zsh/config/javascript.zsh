@@ -1,1 +1,0 @@
-alias rn='react-native'

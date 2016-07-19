@@ -1,5 +1,0 @@
-" Quicklink - quickly insert links from google searches into markdown docs
-
-Bundle 'christoomey/vim-quicklink'
-
-" vim:ft=vim

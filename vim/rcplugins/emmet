@@ -1,7 +1,0 @@
-" Emmet - Text expansion for html markup
-
-let g:user_emmet_leader_key = '<c-e>'
-
-Bundle 'mattn/emmet-vim'
-
-" vim:ft=vim

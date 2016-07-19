@@ -1,5 +1,0 @@
-" Elm - Syntax, indent, and compiler settings for elm-lang
-
-Bundle "ElmCast/elm-vim"
-
-" vim:ft=vim

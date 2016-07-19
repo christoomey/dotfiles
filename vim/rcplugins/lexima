@@ -1,5 +1,0 @@
-" Lexima - Auto close parens, quotes, brackets, etc
-
-Bundle "cohama/lexima.vim"
-
-" vim:ft=vim

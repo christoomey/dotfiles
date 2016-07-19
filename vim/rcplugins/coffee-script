@@ -1,5 +1,0 @@
-" Coffeescript - Syntax file and other support for Coffeescript
-
-Bundle "kchmck/vim-coffee-script"
-
-" vim:ft=vim

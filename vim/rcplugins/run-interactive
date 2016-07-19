@@ -1,7 +1,0 @@
-" Run-Interactive - Run commands via an interactive shell
-
-Bundle "christoomey/vim-run-interactive"
-
-nnoremap <leader>ri :RunInInteractiveShell<space>
-
-" vim:ft=vim

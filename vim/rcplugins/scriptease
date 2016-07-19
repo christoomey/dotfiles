@@ -1,5 +1,0 @@
-" Scriptease - Plugin for working with plugins
-
-Bundle "tpope/vim-scriptease"
-
-" vim:ft=vim

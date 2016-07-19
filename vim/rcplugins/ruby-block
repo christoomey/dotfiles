@@ -1,5 +1,0 @@
-" Ruby Block - Provide a custom text object for ruby blocks
-
-Bundle "nelstrom/vim-textobj-rubyblock"
-
-" vim:ft=vim

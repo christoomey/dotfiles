@@ -1,7 +1,0 @@
-" Statusline configurations
-"------------------------
-
-"Use this to prevent some settings from reloading
-let g:vimrc_loaded = 1
-
-" vim:ft=vim
