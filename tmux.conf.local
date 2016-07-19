@@ -21,9 +21,12 @@ bind-key ! run-shell '(tmux switch-client -l || tmux switch-client -n) && tmux k
 bind-key J command-prompt -p "join pane from: "  "join-pane -h -s '%%'"
 
 bind c new-window -c "#{pane_current_path}"
+bind C-d split-window -h -c ~/dotfiles-local "reattach-to-user-namespace vim +CtrlP"
 bind g split-window -c "#{pane_current_path}" -h -p 50 'gitsh'
 bind r split-window -h -c ~/ "reattach-to-user-namespace rcup"
 bind w split-window -h -c ~/wiki "reattach-to-user-namespace vim +CtrlP"
+
+bind C-t split-window -v "source ~/.zshrc && tm-select-session"
 
 # Make C-j display a selectable list of sessions
 # bind C-j choose-tree
