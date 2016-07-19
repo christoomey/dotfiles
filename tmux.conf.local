@@ -1,0 +1,55 @@
+# Keep plenty of history for scrollback
+set -g history-limit 10000
+
+# Use emacs / readline key-bindings at the tmux command prompt `<prefix>:`
+set -g status-keys emacs
+
+# Simplify status bar display.
+set -g status-left-length 40
+set -g status-left '[#S] '
+set -g status-right "#{?pane_synchronized,--SYNCED--,} #(is-online) #(battery -t -g black)  #(date '+%a, %b %d - %I:%M') "
+
+# Dismiss current pane to background window
+bind b break-pane -d
+bind C-b send-keys 'tat && exit' 'C-m'
+bind-key ! run-shell '(tmux switch-client -l || tmux switch-client -n) && tmux kill-session -t "#S" || tmux kill-session'
+bind-key J command-prompt -p "join pane from: "  "join-pane -h -s '%%'"
+
+bind c new-window -c "#{pane_current_path}"
+bind g split-window -c "#{pane_current_path}" -h -p 50 'gitsh'
+bind w split-window -h -c ~/wiki "reattach-to-user-namespace vim +CtrlP"
+
+# Quick session switching back and forth. I never use the built in layouts
+# (default mapping for Space), so I reclaimed the key for this
+bind-key Space switch-client -l
+
+# more intuitive keybindings for splitting
+bind \ split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# Smart pane switching with awareness of vim splits
+# See this blog post for additional detail:
+# http://robots.thoughtbot.com/post/53022241323/seamlessly-navigate-vim-and-tmux-splits
+is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+    | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
+bind -n C-h if-shell "$is_vim" "send-keys C-h"  "select-pane -L"
+bind -n C-j if-shell "$is_vim" "send-keys C-j"  "select-pane -D"
+bind -n C-k if-shell "$is_vim" "send-keys C-k"  "select-pane -U"
+bind -n C-l if-shell "$is_vim" "send-keys C-l"  "select-pane -R"
+bind -n C-\ if-shell "$is_vim" "send-keys C-\\" "select-pane -l"
+
+# Secondary binding for C-l to retain redraw
+bind C-l send-keys 'C-l'
+
+# Reload tmux.conf with prefix-r
+bind C-r source-file ~/.tmux.conf \; display "Reloaded ~/.tmux.conf"
+
+# bind resizing of panes to H,J,K,L (resizes by steps of 10 lines/columns)
+bind -n S-Left resize-pane -L 2
+bind -n S-Right resize-pane -R 2
+bind -n S-Down resize-pane -D 1
+bind -n S-Up resize-pane -U 1
+bind -n C-Left resize-pane -L 10
+bind -n C-Right resize-pane -R 10
+bind -n C-Down resize-pane -D 5
+bind -n C-Up resize-pane -U 5
