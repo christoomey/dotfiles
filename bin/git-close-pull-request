@@ -1,0 +1,176 @@
+#!/usr/bin/env ruby
+# Usage: git cpr
+#
+# Run this from a branch which has an upstream remote branch, and an associated
+# pull request.
+#
+# The script will merge the branch into master, push master (which will
+# automatically close the pull request), and delete both the local and remote
+# branches.
+
+GitCall = Struct.new(:cmd, :type, :pretend_resp)
+
+class ClosesPullRequests
+  def initialize(args)
+    @args = args
+  end
+
+  def run
+    remember_current_branch
+    confirm_ci_status_green
+    confirm_upstream_tracking_branch
+    ensure_working_dir_and_index_clean
+    fetch_origin
+    ensure_feature_branch_in_sync
+    ensure_master_in_sync
+    checkout_master
+    merge_local_banch
+    push_master
+    delete_remote_branch
+    delete_local_branch
+  end
+
+  private
+
+  def die_with_msg(msg)
+    puts " -> \e[31m#{msg}\e[0m"
+    exit 1
+  end
+
+  def has_ci_enabled?
+    `hub ci-status`.chomp != "no status"
+  end
+
+  def confirm_ci_status_green
+    gc = GitCall.new("hub ci-status > /dev/null 2>&1", :command, true)
+    if has_ci_enabled?
+      puts 'Confirming ci-status on PR is green...'
+      if force?
+        puts "  --force ignroing CI"
+      elsif !run_or_print(gc)
+        die_with_msg '  CI status is not green for the PR. Aborting'
+      end
+    else
+      puts "  CI not enabled, skipping check..."
+    end
+  end
+
+  def remember_current_branch
+    puts 'Capturing current branch name...'
+    current_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
+    gc = GitCall.new(current_branch_cmd, :query, 'my-feature-branch')
+    @current_branch = run_or_print(gc)
+  end
+
+  def confirm_upstream_tracking_branch
+    puts 'Confirming upstream tracking branch configured...'
+    confirm_cmd = "git config branch.#{@current_branch}.remote"
+    gc = GitCall.new(confirm_cmd, :command, true)
+    if run_or_print(gc)
+      upstream_branch_cmd = 'git rev-parse --abbrev-ref --symbolic-full-name @{u}'
+      gc = GitCall.new(upstream_branch_cmd, :query, 'upstream-feature-branch')
+      @upstream_branch = run_or_print(gc).gsub('origin/', '')
+    else
+      die_with_msg 'no upstream branch configured. Aborting'
+    end
+  end
+
+  def ensure_working_dir_and_index_clean
+    puts 'Ensuring that index and working directory are clean...'
+    index_clean_cmd = 'git diff --cached --exit-code'
+    index_gc = GitCall.new(index_clean_cmd, :command, true)
+    working_dir_clean_cmd = 'git diff --exit-code'
+    working_dir_gc = GitCall.new(working_dir_clean_cmd, :command, true)
+    unless run_or_print(index_gc) && run_or_print(working_dir_gc)
+      die_with_msg 'Index or working dir not clean. Aborting.'
+    end
+  end
+
+  def checkout_master
+    puts 'Checking out master...'
+    gc = GitCall.new('git checkout master', :command, true)
+    run_or_print(gc)
+  end
+
+  def fetch_origin
+    puts 'Fetching origin to confirm local and remote in sync...'
+    gc = GitCall.new('git fetch origin', :command, true)
+    run_or_print(gc)
+  end
+
+  def ensure_master_in_sync
+    ensure_branch_in_sync_with_upstream('master', 'master')
+  end
+
+  def ensure_feature_branch_in_sync
+    ensure_branch_in_sync_with_upstream(@current_branch, @upstream_branch)
+  end
+
+  def ensure_branch_in_sync_with_upstream(branch, upstream)
+    puts "Ensuring branch [#{branch}] is in sync with its upstream..."
+    local_tip_commit = tip_commit_of_branch(branch)
+    remote_tip_commit = tip_commit_of_branch("origin/#{upstream}")
+    unless local_tip_commit == remote_tip_commit
+      die_with_msg "Branch [#{branch}] was out of date; rebase needed. Aborting"
+    end
+  end
+
+  def merge_local_banch
+    puts 'Merging branch into master...'
+    merge_cmd = "git merge --ff-only #{@current_branch}"
+    gc = GitCall.new(merge_cmd, :command, true)
+    unless run_or_print(gc)
+      run_or_print GitCall.new("git checkout -", :command, true)
+      die_with_msg "Branch '#{@current_branch}' is not fast-forwardable"
+    end
+  end
+
+  def push_master
+    puts 'Pushing updated master branch...'
+    gc = GitCall.new('git push origin master', :command, true)
+    run_or_print(gc)
+  end
+
+  def delete_remote_branch
+    puts 'Deleting remote branch...'
+    gc = GitCall.new("git push origin :#{@upstream_branch}", :command, true)
+    run_or_print(gc)
+  end
+
+  def delete_local_branch
+    puts 'Deleting local branch...'
+    gc = GitCall.new("git branch -d #{@current_branch}", :command, true)
+    run_or_print(gc)
+  end
+
+  def tip_commit_of_branch(branch)
+    gc = GitCall.new("git rev-parse #{branch}", :query, '2ab342f')
+    run_or_print(gc)
+  end
+
+  def force?
+    has_arg? ['-f', '--force']
+  end
+
+  def pretend?
+    has_arg? ['-p', '--pretend']
+  end
+
+  def has_arg?(flags)
+    (flags & @args).any?
+  end
+
+  def run_or_print(gc)
+    if pretend?
+      gc.pretend_resp
+    else
+      if gc.type == :command
+        system("#{gc.cmd} > /dev/null 2>&1")
+      else
+        `#{gc.cmd}`.chomp
+      end
+    end
+  end
+end
+
+ClosesPullRequests.new(ARGV).run
