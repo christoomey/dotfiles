@@ -4,8 +4,13 @@ set -g history-limit 10000
 # Use emacs / readline key-bindings at the tmux command prompt `<prefix>:`
 set -g status-keys emacs
 
+# address vim mode switching delay (http://superuser.com/a/252717/65504)
+set -s escape-time 0
+
 # Simplify status bar display.
 set -g status-left-length 40
+set -g status-fg black
+set -g status-bg green
 set -g status-left '[#S] '
 set -g status-right "#{?pane_synchronized,--SYNCED--,} #(is-online) #(battery -t -g black)  #(date '+%a, %b %d - %I:%M') "
 
@@ -18,6 +23,10 @@ bind-key J command-prompt -p "join pane from: "  "join-pane -h -s '%%'"
 bind c new-window -c "#{pane_current_path}"
 bind g split-window -c "#{pane_current_path}" -h -p 50 'gitsh'
 bind w split-window -h -c ~/wiki "reattach-to-user-namespace vim +CtrlP"
+
+# Make C-j display a selectable list of sessions
+# bind C-j choose-tree
+bind C-j split-window -v "tmux list-sessions | sed -E 's/:.*$//' | grep -v \"^$(tmux display-message -p '#S')\$\" | fzf --reverse | xargs tmux switch-client -t"
 
 # Quick session switching back and forth. I never use the built in layouts
 # (default mapping for Space), so I reclaimed the key for this
