@@ -5,6 +5,7 @@
   df = diff --word-diff --color-words
   mup = !git checkout master && git pull && git checkout -
   pl = pull
+  ps = push
   sla = log --oneline --decorate --graph --all -20
 [gitsh "color"]
   default = cyan
