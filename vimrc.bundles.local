@@ -1,3 +1,26 @@
-Plug 'christoomey/vim-tmux-navigator'
 Plug 'nanotech/jellybeans.vim'
 Plug 'christoomey/vim-system-copy'
+Plug 'tpope/vim-unimpaired'
+Plug 'tpope/vim-rsi'
+Plug 'nelstrom/vim-visual-star-search'
+Plug 'tpope/vim-vinegar'
+
+Plug 'vim-scripts/ingo-library'
+Plug 'vim-scripts/ReplaceWithRegister'
+Plug 'vim-scripts/ReplaceWithSameIndentRegister'
+
+nmap <leader>gr "*gr
+nmap <leader>gR "*gR
+
+
+" My local plugins, prototypes and/or testing agains local branches
+Plug '~/code/vim/quicklink' " christoomey/vim-quicklink
+
+Plug 'christoomey/vim-tmux-navigator'
+Plug 'christoomey/vim-tmux-runner'
+nnoremap <leader>va :VtrAttachToPane<cr>
+noremap <C-f> :VtrSendLinesToRunner<cr>
+
+
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
