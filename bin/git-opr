@@ -1,0 +1,95 @@
+#!/usr/bin/env ruby
+#/ Usage: git pr [<branch>]
+#/ Open the pull request page for <branch>, or the current branch if not
+#/ specified. Lands on the new pull request page when no PR exists yet.
+#/ The local branch must be tracking the remote branch.
+
+# Based on script from @rtomayko. Translated into ruby and now uses branch
+# tracking rather than expecting local and remote branch to have same name
+
+require "json"
+require "yaml"
+
+OPEN_SWITCHES = %{-o --open}
+
+def remote_url
+  url = chomped_system_call('git config --get remote.origin.url')
+  repo_with_owner = url.match(/:(.*)\.git/)
+
+  if repo_with_owner
+    repo_with_owner[1]
+  else
+    die 'Unable to determine repo/owner for remote origin. Using https?'
+  end
+end
+
+def oauth_token
+  hub_config = YAML.load_file(File.expand_path('~/.config/hub'))
+  hub_config['github.com'][0]['oauth_token']
+end
+
+def open_or_build_pull_request
+  auth = "Authorization: token #{oauth_token}"
+  pulls_endpoint = "https://api.github.com/repos/#{remote_url}/pulls"
+  pulls = JSON.parse(`curl --silent -H '#{auth}' #{pulls_endpoint}`)
+  pull = pulls.detect { |pull| pull["head"]["ref"] == remote_tracking_branch }
+  if !pull.nil?
+    system "open-tab --reload #{pull['html_url']}"
+  else
+    system("open https://github.com/#{remote_url}/pull/#{remote_tracking_branch}")
+  end
+end
+
+def remote_tracking_branch
+  command = 'git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null'
+  tracking = chomped_system_call(command)
+
+  if tracking == '@{u}'
+    die 'Current local branch not setup to track remote branch.'
+  else
+    branch_without_remote_name(tracking)
+  end
+end
+
+def branch_without_remote_name(branch_and_remote)
+  branch = branch_and_remote.match(/origin\/(.*)/)
+
+  if branch
+    branch[1]
+  else
+    die 'Expected remote to be \'origin\''
+  end
+end
+
+def chomped_system_call(command)
+  `#{command}`.chomp
+end
+
+def open_pull_request_for_repo_branch(repo, branch)
+  system("open https://github.com/#{repo}/pull/#{branch}")
+end
+
+def opening?
+  argument = ARGV.pop
+  argument && OPEN_SWITCHES.include?(argument)
+end
+
+def main
+  # repo = remote_url
+  # branch = remote_tracking_branch
+  if opening?
+    system 'git log --reverse master..HEAD --format="%H%n%s%n%b" > .git/pr-commits'
+    system 'gh compare'
+    system 'gh pull-request'
+  else
+    # open_pull_request_for_repo_branch(repo, branch)
+    open_or_build_pull_request
+  end
+end
+
+def die(msg)
+  puts msg
+  exit 1
+end
+
+main
