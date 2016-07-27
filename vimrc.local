@@ -5,16 +5,41 @@ nnoremap <C-Space> <Esc>:noh<CR>
 vnoremap <C-Space> <Esc>gV
 onoremap <C-Space> <Esc>
 cnoremap <C-Space> <C-c>
-inoremap <C-Space> <Esc>`^
+inoremap <C-Space> <Esc>
 " Terminal sees <C-@> as <C-space> WTF, but ok
 nnoremap <C-@> <Esc>:noh<CR>
 vnoremap <C-@> <Esc>gV
 onoremap <C-@> <Esc>
 cnoremap <C-@> <C-c>
-inoremap <C-@> <Esc>`^
+inoremap <C-@> <Esc>
 
 nnoremap <leader>sop :source %<cr>
 
 set relativenumber
 
 nnoremap <leader>df :CtrlP ~/dotfiles-local<cr>
+
+nnoremap <leader>; :
+
+" automatically rebalance windows on vim resize
+autocmd VimResized * :wincmd =
+
+" zoom a vim pane, <C-w>= to re-balance
+nnoremap <leader>- :wincmd _<cr>:wincmd \|<cr>
+nnoremap <leader>= :wincmd =<cr>
+
+
+
+nnoremap <leader>dot :CtrlP ~/dotfiles-local<cr>
+
+nmap <leader>bi :PlugInstall<cr>
+
+
+
+nnoremap Q @q
+
+
+set hlsearch
+set incsearch
+nnoremap <leader>sub :%s///g<left><left>
+vnoremap <leader>sub :s///g<left><left>
