@@ -13,6 +13,8 @@ fi
 
 if [[ -f nwb.config.js ]]; then
   server_cmd="nwb serve --port $port"
+elif grep -q 'react-scripts start' package.json > /dev/null 2>&1; then
+  server_cmd="npm start"
 elif [[ -f config/environment.rb ]]; then
   server_cmd="bundle && bundle exec rails s -p $port"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
