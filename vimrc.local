@@ -17,7 +17,7 @@ nnoremap <leader>sop :source %<cr>
 
 set relativenumber
 
-nnoremap <leader>df :CtrlP ~/dotfiles-local<cr>
+nnoremap <leader>df :Files ~/dotfiles-local<cr>
 
 nnoremap <leader>; :
 
@@ -30,7 +30,7 @@ nnoremap <leader>= :wincmd =<cr>
 
 
 
-nnoremap <leader>dot :CtrlP ~/dotfiles-local<cr>
+nnoremap <leader>dot :Files ~/dotfiles-local<cr>
 
 nmap <leader>bi :PlugInstall<cr>
 
