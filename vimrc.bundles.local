@@ -22,5 +22,20 @@ nnoremap <leader>va :VtrAttachToPane<cr>
 noremap <C-f> :VtrSendLinesToRunner<cr>
 
 
+if has_key(g:plugs, 'ctrlp.vim')
+  call remove(g:plugs, 'ctrlp.vim')
+endif
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+let g:fzf_files_options =
+  \ '--reverse ' .
+  \ '--preview "(coderay {} || cat {}) 2> /dev/null | head -'.&lines.'"'
+nnoremap <C-p> :silent! call fzf#run({
+      \ 'source': 'ag -l --hidden',
+      \ 'sink': 'e',
+      \ 'options': '--reverse',
+      \ 'down': '30%',
+      \ })<cr>
+nnoremap <leader>gm :Files app/models/<cr>
+nnoremap <leader>gv :Files app/views/<cr>
+nnoremap <leader>gc :Files app/controllers/<cr>
