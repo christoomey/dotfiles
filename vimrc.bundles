@@ -1,3 +1,20 @@
+set nocompatible
+
+call plug#begin('~/.vim/bundle')
+
+" Define bundles via Github repos
+Plug 'pbrisbin/vim-mkdir'
+Plug 'scrooloose/syntastic'
+Plug 'tpope/vim-bundler'
+Plug 'tpope/vim-endwise'
+Plug 'tpope/vim-eunuch'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rails'
+Plug 'tpope/vim-rake'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'vim-ruby/vim-ruby'
+
 Plug 'nanotech/jellybeans.vim'
 Plug 'christoomey/vim-system-copy'
 Plug 'tpope/vim-unimpaired'
@@ -22,9 +39,6 @@ nnoremap <leader>va :VtrAttachToPane<cr>
 noremap <C-f> :VtrSendLinesToRunner<cr>
 
 
-if has_key(g:plugs, 'ctrlp.vim')
-  call remove(g:plugs, 'ctrlp.vim')
-endif
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 let g:fzf_files_options =
@@ -42,3 +56,5 @@ nnoremap <leader>gc :Files app/controllers/<cr>
 nnoremap <leader>gy :Files app/assets/stylesheets/<cr>
 nnoremap <leader>gj :Files app/assets/javascripts/<cr>
 nnoremap <leader>gs :Files spec/<cr>
+ 
+call plug#end()
