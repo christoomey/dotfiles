@@ -1,0 +1,3 @@
+EXCLUDES="README.md Brewfile"
+SYMLINK_DIRS="vim zsh bin"
+DOTFILES_DIRS="$HOME/code/dotfiles"
