@@ -3,6 +3,7 @@
   cm = commit -m
   dc = diff --word-diff --cached --color-words
   df = diff --word-diff --color-words
+  dsf = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
   fall = fetch --all
   mup = !git checkout master && git pull && git checkout -
   pl = pull
