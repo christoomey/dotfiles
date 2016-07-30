@@ -1,2 +1,4 @@
+.netrwhist
+vim/autoload/plug.vim
 vim/bundle
 vim/sessions

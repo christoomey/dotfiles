@@ -1,4 +1,5 @@
 [alias]
+  aa = add --all
   car = commit --amend --no-edit
   cm = commit -m
   dc = diff --word-diff --cached --color-words
