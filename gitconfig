@@ -13,8 +13,17 @@
   uncommit = reset --soft HEAD^
   unstage = reset
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
+[color]
+  ui = auto
+[core]
+  excludesfile = ~/.gitignore
+  autocrlf = input
+[merge]
+  ff = only
 [push]
   default = upstream
+[fetch]
+  prune = true
 [gitsh "color"]
   default = cyan
 [gitsh]
