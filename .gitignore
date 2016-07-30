@@ -1,9 +1,2 @@
-*.swp
-.netrwhist
-vim/bundle/**
-vim/bundles/**
-vim/Trashed-Bundles/**
-mutt/cache/**
-mutt/certificates
-mutt/aliases
+vim/bundle
 vim/sessions
