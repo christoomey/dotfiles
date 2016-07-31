@@ -5,8 +5,7 @@
 # zgen load zsh-users/zsh-syntax-highlighting
 # zgen load zsh-users/zsh-completions
 
-export ZPLUG_HOME=/usr/local/opt/zplug
-source $ZPLUG_HOME/init.zsh
+source ~/.zplug/init.zsh
 
 zplug 'mafredri/zsh-async'
 zplug 'sindresorhus/pure'
