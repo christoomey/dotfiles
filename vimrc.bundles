@@ -69,4 +69,6 @@ nnoremap <silent> <leader>he :call fzf#run({
       \ 'down': '50%',
       \ })<cr>
 
+Plug 'tpope/vim-commentary'
+
 call plug#end()
