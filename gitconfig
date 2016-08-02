@@ -10,6 +10,7 @@
   mup = !git checkout master && git pull && git checkout -
   pl = pull
   ps = push
+  ril = !git rebase -i $(git rev-parse --abbrev-ref --symbolic-full-name @{u})
   sl = log --oneline --decorate --graph -20
   sla = log --oneline --decorate --graph --all -20
   uncommit = reset --soft HEAD^
