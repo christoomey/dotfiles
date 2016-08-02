@@ -44,7 +44,7 @@ Plug 'junegunn/fzf.vim'
 let g:fzf_files_options =
   \ '--reverse ' .
   \ '--preview "(coderay {} || cat {}) 2> /dev/null | head -'.&lines.'"'
-nnoremap <C-p> :silent! call fzf#run({
+nnoremap <silent> <C-p> :call fzf#run({
       \ 'source': 'ag -l --hidden',
       \ 'sink': 'e',
       \ 'options': g:fzf_files_options,
@@ -56,5 +56,17 @@ nnoremap <leader>gc :Files app/controllers/<cr>
 nnoremap <leader>gy :Files app/assets/stylesheets/<cr>
 nnoremap <leader>gj :Files app/assets/javascripts/<cr>
 nnoremap <leader>gs :Files spec/<cr>
- 
+
+function! s:all_help_files()
+  return join(map(split(&runtimepath, ','), 'v:val ."\/doc\/tags"'), ' ')
+endfunction
+let full_help_cmd = "cat ". s:all_help_files() ." 2> /dev/null \| grep -i '^[a-z]' \| awk '{print $1}' \| sort"
+
+nnoremap <silent> <leader>he :call fzf#run({
+      \ 'source': full_help_cmd,
+      \ 'sink': 'help',
+      \ 'options': '--reverse',
+      \ 'down': '50%',
+      \ })<cr>
+
 call plug#end()
