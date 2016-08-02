@@ -71,4 +71,12 @@ nnoremap <silent> <leader>he :call fzf#run({
 
 Plug 'tpope/vim-commentary'
 
+
+" CUSTOM TEXT OBJECTS!!!!!
+
+Plug 'kana/vim-textobj-user'
+Plug 'kana/vim-textobj-line'
+Plug 'kana/vim-textobj-indent'
+Plug 'kana/vim-textobj-entire'
+
 call plug#end()
