@@ -12,15 +12,31 @@ zplug 'sindresorhus/pure'
 zplug 'zsh-users/zsh-syntax-highlighting', nice:10
 zplug 'zsh-users/zsh-completions', nice:10
 
-# Install plugins if there are plugins that have not been installed
-if ! zplug check --verbose; then
-    printf "Install? [y/N]: "
-    if read -q; then
-        echo; zplug install
-    fi
-fi
-
 zplug load
+
+# handy keybindings
+bindkey "^A" beginning-of-line
+bindkey "^E" end-of-line
+bindkey "^F" forward-char
+bindkey "^B" backward-char 
+bindkey "^K" kill-line
+bindkey "^D" delete-char
+bindkey "^R" history-incremental-search-backward
+bindkey "^P" history-search-backward
+bindkey "^Y" accept-and-hold
+bindkey "^N" insert-last-word
+bindkey "^Q" push-line-or-edit
+
+for zsh_source in $HOME/.zsh/configs/*.zsh; do
+  source $zsh_source
+done
+
+# makes color constants available
+autoload -U colors
+colors
+
+# enable colored output from ls, etc. on FreeBSD-based systems
+export CLICOLOR=1
 
 # compdef pdn=heroku
 function pdn {
