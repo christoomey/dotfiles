@@ -11,6 +11,7 @@
   pl = pull
   ps = push
   ril = !git rebase -i $(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+  rim = rebase -i master
   sl = log --oneline --decorate --graph -20
   sla = log --oneline --decorate --graph --all -20
   uncommit = reset --soft HEAD^
