@@ -36,6 +36,7 @@ Plug '~/code/vim/quicklink' " christoomey/vim-quicklink
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'christoomey/vim-tmux-runner'
 nnoremap <leader>va :VtrAttachToPane<cr>
+nnoremap <leader>fr :VtrFocusRunner<cr>
 noremap <C-f> :VtrSendLinesToRunner<cr>
 
 
@@ -78,5 +79,29 @@ Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-line'
 Plug 'kana/vim-textobj-indent'
 Plug 'kana/vim-textobj-entire'
+
+
+Plug 'gabebw/vim-spec-runner'
+map <leader>t <Plug>RunFocusedSpec
+
+Plug 'nelstrom/vim-markdown-folding'
+
+
+" Folding configurations
+"------------------------
+
+"Enable indent folding
+set foldenable
+set foldmethod=indent
+set foldlevel=999
+
+" So I never use s, and I want a single key map to toggle folds, thus
+" lower s = toggle <=> upper S = toggle recursive
+nnoremap <leader>ff za
+nnoremap <leader>FF zA
+
+"Maps for folding, unfolding all
+nnoremap <LEADER>fu zM<CR>
+nnoremap <LEADER>uf zR<CR>
 
 call plug#end()
