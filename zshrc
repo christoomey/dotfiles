@@ -88,4 +88,8 @@ zle -N pbcopy-buffer
 bindkey '^x^y' pbcopy-buffer
 
 
+alias nombom='npm cache clear && bower cache clean && rm -rf node_modules bower_components && npm install && bower install'
+
 sz() { source ~/.zshrc }
+
+export PATH="$HOME/.yarn/bin:$PATH"

@@ -1,27 +1,37 @@
 [alias]
   aa = add --all
+  ca = commit --amend
   car = commit --amend --no-edit
-  cm = commit -m
   co = checkout
-  dc = diff --word-diff --cached --color-words
-  df = diff --word-diff --color-words
-  dsf = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
+  conflicted = !vim +Conflicted
+  copysha = !git rev-parse HEAD | pbcopy
+  df = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
+  dfw = !git df -w
+  dc = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color --cached $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
+  dcw = !git dc -w
   fall = fetch --all
+  glog = log -E -i --grep
   mup = !git checkout master && git pull && git checkout -
   pl = pull
   ps = push
-  ril = !git rebase -i $(git rev-parse --abbrev-ref --symbolic-full-name @{u})
-  rim = rebase -i master
-  sl = log --oneline --decorate --graph -20
+  rbc = rebase --continue
+  riu = !git rebase -i $(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+  rid = !git rebase -i $(git merge-base develop HEAD)
+  rim = !git rebase -i $(git merge-base master HEAD)
+  sl = log --oneline --decorate -20
   sla = log --oneline --decorate --graph --all -20
+  slp = log --oneline --decorate
+  slap = log --oneline --decorate --graph --all
   uncommit = reset --soft HEAD^
   unstage = reset
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
+  ureset = !git reset --hard $(git upstream)
 [color]
   ui = auto
 [core]
   excludesfile = ~/.gitignore
   autocrlf = input
+  editor = /usr/local/bin/vim
 [merge]
   ff = only
 [push]

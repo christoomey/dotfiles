@@ -2,21 +2,22 @@
 " ================= START thoughtbot dotfiles import ===============
 " ======================================================================
 
-function! s:SourceConfigFilesIn(directory)
-  let directory_splat = '~/.vim/' . a:directory . '/*'
-  for config_file in split(glob(directory_splat), '\n')
-    if filereadable(config_file)
-        execute 'source' config_file
-    endif
-  endfor
-endfunction
-
-call s:SourceConfigFilesIn('rcfiles')
-
 set nocompatible
 
 " Leader
 let mapleader = " "
+
+function! s:SourceConfigFilesIn(directory)
+  let directory_splat = '~/.vim/' . a:directory . '/*'
+  for config_file in split(glob(directory_splat), '\n')
+    if filereadable(config_file)
+      execute 'source' config_file
+    endif
+  endfor
+endfunction
+
+call s:SourceConfigFilesIn('rcplugins')
+call s:SourceConfigFilesIn('rcfiles')
 
 set backspace=2   " Backspace deletes like most programs in insert mode
 set nobackup
@@ -124,12 +125,6 @@ inoremap <S-Tab> <c-n>
 " Switch between the last two files
 nnoremap <leader><leader> <c-^>
 
-" Get off my lawn
-nnoremap <Left> :echoe "Use h"<CR>
-nnoremap <Right> :echoe "Use l"<CR>
-nnoremap <Up> :echoe "Use k"<CR>
-nnoremap <Down> :echoe "Use j"<CR>
-
 " Treat <li> and <p> tags like the block tags they are
 let g:html_indent_tags = 'li\|p'
 
@@ -141,12 +136,6 @@ nmap k gk
 " Open new split panes to right and bottom, which feels more natural
 set splitbelow
 set splitright
-
-" Quicker window movement
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-h> <C-w>h
-nnoremap <C-l> <C-w>l
 
 " configure syntastic syntax checking to check on open as well as save
 let g:syntastic_check_on_open=1
@@ -163,11 +152,6 @@ set complete+=kspell
 
 " Always use vertical diffs
 set diffopt+=vertical
-
-" Local config
-if filereadable($HOME . "/.vimrc.local")
-  source ~/.vimrc.local
-endif
 
 " ======================================================================
 " ================= END thoughtbot dotfiles import ===============
@@ -216,9 +200,13 @@ nmap <leader>bi :PlugInstall<cr>
 
 nnoremap Q @q
 
+nnoremap 0 ^
+
 
 set hlsearch
 set incsearch
+set ignorecase
+set smartcase
 nnoremap <leader>sub :%s///g<left><left>
 vnoremap <leader>sub :s///g<left><left>
 
@@ -269,5 +257,22 @@ nnoremap <silent> <Plug>SmartLevelThreeHeader :call <sid>SmartLevelThreeHeader()
 nmap <leader>u1 <Plug>UnderlineH1
 nmap <leader>u2 <Plug>UnderlineH2
 nmap <leader>u3 <Plug>SmartLevelThreeHeader
+
+
+function! s:EslintAutofix()
+  write
+  call system('eslint_d ' . expand('%') . ' --fix') 
+  edit
+endfunction
+command! EslintAutofix call <sid>EslintAutofix()
+nnoremap <leader>ef :EslintAutofix<cr>
+
+function! s:CopyFilename()
+  let @" = expand('%') . "\n"
+  echohl String | echo 'Filepath copied' | echohl None
+endfunction
+command! CopyFilename call <sid>CopyFilename()
+nnoremap <leader>yp :CopyFilename<cr>
+
 
 " END headers

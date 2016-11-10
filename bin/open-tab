@@ -17,9 +17,10 @@ class TabOpener
   def open!
     if tab_exists?
       activate app_tab
-      focus_chrome
     else
       open_app_in_new_tab
+    end
+    unless options[:detached]
       focus_chrome
     end
   end
@@ -74,6 +75,10 @@ OptionParser.new do |opts|
 
   opts.on("-r", "--[no-]reload", "Reload tab after activating") do |r|
     options[:reload] = r
+  end
+
+  opts.on("-d", "--detached", "Detached -- do not focus chrome") do |d|
+    options[:detached] = d
   end
 end.parse!
 

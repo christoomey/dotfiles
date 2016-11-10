@@ -5,16 +5,16 @@
 # copies the ".dev" URL
 
 app_name=$(basename "`pwd`")
-port=`cat ~/.pow/$app_name 2> /dev/null`
+port=`cat ~/.pow/$app_name 2> /dev/null || echo 3312`
 
 if [[ -f .env ]]; then
   export $(cat .env | sed -E '/^(#|$)/d')
 fi
 
 if [[ -f nwb.config.js ]]; then
-  server_cmd="nwb serve --port $port"
+  server_cmd="PORT=$port npm start"
 elif grep -q 'react-scripts start' package.json > /dev/null 2>&1; then
-  server_cmd="npm start"
+  server_cmd="PORT=$port npm start"
 elif [[ -f config/environment.rb ]]; then
   server_cmd="bundle && bundle exec rails s -p $port"
 elif [[ -f config.rb ]] && [[ -d source ]]; then

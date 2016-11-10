@@ -64,10 +64,10 @@ command! SeekForward call <sid>Seek(5)
 command! SeekBackward call <sid>Seek(-5)
 command! SeekFarForward call <sid>Seek(30)
 command! SeekFarBackward call <sid>Seek(-30)
-nnoremap <Left> :SeekBackward<cr>
-nnoremap <Right> :SeekForward<cr>
-nnoremap <Up> :SeekFarForward<cr>
-nnoremap <Down> :SeekFarBackward<cr>
+" nnoremap <Left> :SeekBackward<cr>
+" nnoremap <Right> :SeekForward<cr>
+" nnoremap <Up> :SeekFarForward<cr>
+" nnoremap <Down> :SeekFarBackward<cr>
 
 
 function! s:VideosOnDesktop()

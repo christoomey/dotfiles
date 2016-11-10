@@ -31,7 +31,8 @@ end
 def open_or_build_pull_request
   auth = "Authorization: token #{oauth_token}"
   pulls_endpoint = "https://api.github.com/repos/#{remote_url}/pulls"
-  pulls = JSON.parse(`curl --silent -H '#{auth}' #{pulls_endpoint}`)
+  response = `curl --silent -H '#{auth}' #{pulls_endpoint}`
+  pulls = JSON.parse(response)
   pull = pulls.detect { |pull| pull["head"]["ref"] == remote_tracking_branch }
   if !pull.nil?
     system "open-tab --reload #{pull['html_url']}"

@@ -1,0 +1,31 @@
+" Chrome Cli bindings
+"--------------------
+
+function! s:HasFile()
+  return expand("%") != ""
+endfunction
+
+function! s:OpenTab(reload, detached)
+  let open_tab_command = "open-tab"
+  if s:HasFile()
+    update
+  endif
+  if a:reload
+    let open_tab_command .= " --reload"
+  endif
+  if a:detached
+    let open_tab_command .= " --detached"
+  endif
+  if exists("g:app_url")
+    let open_tab_command .= " " . g:app_url
+  endif
+  call system(open_tab_command)
+endfunction
+
+command! OpenAndReloadTab call <sid>OpenTab(1, 0)
+command! OpenTab call <sid>OpenTab(0, 0)
+command! OpenTabDetached call <sid>OpenTab(0, 1)
+nnoremap gl :OpenAndReloadTab<cr>
+nnoremap gL :OpenTabDetached<cr>
+
+" vim:ft=vim
