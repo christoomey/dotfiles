@@ -48,4 +48,4 @@ wvim() {
     "not found") _handle_unknown_command "$command_name"
   esac
 }
-#compdef wvim=which
+compdef wvim=which
