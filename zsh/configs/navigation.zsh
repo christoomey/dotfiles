@@ -41,3 +41,11 @@ tm-select-session() {
 projects() {
   _cdpath_directories $1 | _is_a_git_repo
 }
+
+itree() {
+  if [ -f .gitignore ]; then
+    tree -I "$(cat .gitignore | paste -s -d'|' -)" -C | less -R
+  else
+    tree -I node_modules -C
+  fi
+}
