@@ -7,10 +7,6 @@
 app_name=$(basename "`pwd`")
 port=`cat ~/.pow/$app_name 2> /dev/null || echo 3312`
 
-if [[ -f .env ]]; then
-  export $(cat .env | sed -E '/^(#|$)/d')
-fi
-
 if [[ -f nwb.config.js ]]; then
   server_cmd="PORT=$port npm start"
 elif grep -q 'react-scripts start' package.json > /dev/null 2>&1; then
