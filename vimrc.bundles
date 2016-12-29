@@ -4,11 +4,13 @@ call plug#begin('~/.vim/bundle')
 
 " Define bundles via Github repos
 Plug 'pbrisbin/vim-mkdir'
-Plug 'scrooloose/syntastic'
 
-let g:syntastic_javascript_checkers = ['eslint']
-let g:syntastic_javascript_eslint_exec = 'eslint_d'
-
+Plug 'w0rp/ale'
+let g:ale_linters = {
+      \ 'javascript': ['eslint']
+      \ }
+nmap <silent> [r <Plug>(ale_previous_wrap)
+nmap <silent> ]r <Plug>(ale_next_wrap)
 
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-endwise'
