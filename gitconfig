@@ -1,5 +1,6 @@
 [alias]
   aa = add --all
+  bselect = !git branch | grep -v '^*' | fzf-tmux --reverse | xargs git checkout
   ca = commit --amend
   car = commit --amend --no-edit
   co = checkout
