@@ -4,8 +4,8 @@
 
 set nocompatible
 
-" Leader
-let mapleader = " "
+" Need to set the leader before defining any leader mappings
+let mapleader = "\<Space>"
 
 function! s:SourceConfigFilesIn(directory)
   let directory_splat = '~/.vim/' . a:directory . '/*'
@@ -260,12 +260,16 @@ nmap <leader>u3 <Plug>SmartLevelThreeHeader
 
 
 function! s:EslintAutofix()
+  let saved_cursor = getpos(".")
+  %! eslint_d --stdin --fix-to-stdout
   write
-  call system('eslint_d ' . expand('%') . ' --fix') 
-  edit
+  call setpos('.', saved_cursor)
 endfunction
 command! EslintAutofix call <sid>EslintAutofix()
-nnoremap <leader>ef :EslintAutofix<cr>
+nnoremap <leader>rf :EslintAutofix<cr>
+
+command! EslintDStop echo system('eslint_d stop')
+nnoremap <leader>es :EslintDStop<cr>
 
 function! s:CopyFilename()
   let @" = expand('%') . "\n"
