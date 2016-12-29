@@ -62,8 +62,6 @@ nnoremap <leader>fr :VtrFocusRunner<cr>
 noremap <C-f> :VtrSendLinesToRunner<cr>
 
 
-Plug 'ruanyl/vim-fixmyjs'
-
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 let g:fzf_files_options =
@@ -79,7 +77,6 @@ command! BranchFiles call fzf#run(fzf#wrap('BranchFiles',
 command! BranchFilesDevelop call fzf#run(fzf#wrap('BranchFilesDevelop',
       \ extend(branch_files_options_develop, { 'options': g:fzf_files_options }), 0))
 nnoremap <silent> <leader>gp :BranchFiles<cr>
-nnoremap <silent> <leader>gP :BranchFilesDevelop<cr>
 
 
 nnoremap <leader>gm :Files app/models/<cr>
