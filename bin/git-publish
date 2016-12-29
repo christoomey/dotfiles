@@ -15,7 +15,7 @@ def main
     $stderr.puts "Currently on master, aborting."
     exit 1
   else
-    system("git push -u origin #{current_branch}:cjt/#{current_branch}")
+    system("git push -u origin #{current_branch}:cjt-#{current_branch}")
   end
 end
 
