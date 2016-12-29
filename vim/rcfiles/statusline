@@ -1,0 +1,9 @@
+set statusline=\ %f           " Path to the file
+set statusline+=\ %m          " Modified flag
+set statusline+=\ %y          " Filetype
+set statusline+=%=          " Switch to the right side
+set statusline+=%l          " current line
+set statusline+=/%L       " Total lines
+set statusline+=\ -\ %{ALEGetStatusLine()}\ 
+
+" vim:ft=vim
