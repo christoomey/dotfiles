@@ -1,17 +1,3 @@
-set nocompatible
-
-call plug#begin('~/.vim/bundle')
-
-" Define bundles via Github repos
-Plug 'pbrisbin/vim-mkdir'
-
-Plug 'w0rp/ale'
-let g:ale_linters = {
-      \ 'javascript': ['eslint']
-      \ }
-nmap <silent> [r <Plug>(ale_previous_wrap)
-nmap <silent> ]r <Plug>(ale_next_wrap)
-
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-eunuch'
@@ -162,5 +148,3 @@ nnoremap <leader>FF zA
 "Maps for folding, unfolding all
 nnoremap <LEADER>fu zM<CR>
 nnoremap <LEADER>uf zR<CR>
-
-call plug#end()

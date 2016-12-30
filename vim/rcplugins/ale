@@ -1,0 +1,10 @@
+" ALE - Asynchronous linting engine, checks files as you work
+
+Plug 'w0rp/ale'
+let g:ale_linters = {
+      \ 'javascript': ['eslint']
+      \ }
+nmap <silent> [r <Plug>(ale_previous_wrap)
+nmap <silent> ]r <Plug>(ale_next_wrap)
+
+" vim:ft=vim

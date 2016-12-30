@@ -16,17 +16,22 @@ function! s:SourceConfigFilesIn(directory)
   endfor
 endfunction
 
+
+call plug#begin('~/.vim/bundle')
+
+if filereadable(expand("~/.vimrc.bundles"))
+  source ~/.vimrc.bundles
+endif
 call s:SourceConfigFilesIn('rcplugins')
+
+call plug#end()
+
 call s:SourceConfigFilesIn('rcfiles')
 
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
 if (&t_Co > 2 || has("gui_running")) && !exists("syntax_on")
   syntax on
-endif
-
-if filereadable(expand("~/.vimrc.bundles"))
-  source ~/.vimrc.bundles
 endif
 
 " Load matchit.vim, but only if the user hasn't installed a newer version.
