@@ -5,12 +5,4 @@ autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
 autocmd FileType gitrebase RebaseSquash
 command! RebaseSquash silent execute '2,$s/^pick/s/|silent! w!|2'
 
-function! s:Gadd()
-  let file_with_path = expand('%')
-  call system('git add ' . file_with_path)
-  echo 'File: <' . file_with_path . '> staged in git'
-endfunction
-command! Gadd call <sid>Gadd()
-nnoremap <silent> <leader>ga :Gadd<cr>
-
 " vim:ft=vim
