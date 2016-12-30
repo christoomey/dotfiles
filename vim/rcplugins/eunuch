@@ -1,0 +1,5 @@
+" Eunuch - Add handful of UNIXy commands to Vim
+
+Plug 'tpope/vim-eunuch'
+
+" vim:ft=vim

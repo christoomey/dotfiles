@@ -1,0 +1,8 @@
+" Vim Tmux Runner - Connect Vim and tmux to allow running lines & commands
+
+" Plug 'christoomey/vim-tmux-runner'
+Plug '~/code/vim/tmux-runner'
+nnoremap <leader>va :VtrAttachToPane<cr>
+nnoremap <leader>fr :VtrFocusRunner<cr>
+
+" vim:ft=vim

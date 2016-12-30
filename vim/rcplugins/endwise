@@ -1,0 +1,5 @@
+" Endwise - Automatic insertion of closings like do..end
+
+Plug 'tpope/vim-endwise'
+
+" vim:ft=vim

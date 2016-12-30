@@ -1,0 +1,10 @@
+" Titlecase - operator for titlecasing over a motion or text object
+
+" Plug 'christoomey/vim-titlecase'
+Plug '~/code/vim/titlecase'
+let g:titlecase_map_keys = 0
+nmap <leader>gt <Plug>Titlecase
+vmap <leader>gt <Plug>Titlecase
+nmap <leader>gT <Plug>TitlecaseLine
+
+" vim:ft=vim

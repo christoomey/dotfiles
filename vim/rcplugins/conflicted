@@ -1,0 +1,10 @@
+" Conflicted - Enhancements build on fugitive to handle git conflicts
+" -------------------------------------------------------------------
+
+" Plug 'christoomey/vim-conflicted'
+Plug '~/code/vim/conflicted'
+nnoremap <leader>gnc :GitNextConflict<cr>
+
+" set stl+=%{ConflictedVersion()}
+
+" vim:ft=vim

@@ -1,0 +1,6 @@
+" Markdown Folding - Fold based on markdown heading level
+"--------------------------------------------------------
+
+Plug 'nelstrom/vim-markdown-folding'
+
+" vim:ft=vim

@@ -1,7 +1,3 @@
-" ======================================================================
-" ================= START thoughtbot dotfiles import ===============
-" ======================================================================
-
 set nocompatible
 
 " Need to set the leader before defining any leader mappings
@@ -18,12 +14,7 @@ endfunction
 
 
 call plug#begin('~/.vim/bundle')
-
-if filereadable(expand("~/.vimrc.bundles"))
-  source ~/.vimrc.bundles
-endif
 call s:SourceConfigFilesIn('rcplugins')
-
 call plug#end()
 
 call s:SourceConfigFilesIn('rcfiles')

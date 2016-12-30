@@ -1,0 +1,7 @@
+" Trusted Local - Read in a .vimrc.local config using `.git/safe/../../` trust
+" bridge as used to put binstubs in path
+
+" Plug 'christoomey/vim-trusted-local'
+Plug '~/code/vim/trusted-local'
+
+" vim:ft=vim

@@ -1,0 +1,5 @@
+" Bundler - Vim meets bundler, adds commands like :Bundle and :Bopen
+
+Plug 'tpope/vim-bundler'
+
+" vim:ft=vim

@@ -1,4 +1,21 @@
 " Ack - Integrata ack (grep replacement) into vim
 
+Plug 'mileszs/ack.vim'
+
+nmap <LEADER>ck :Ack!<space>
+nnoremap <leader>cc :cclose<cr>
+
+function! s:VisualAck()
+  let temp = @"
+  normal! gvy
+  let escaped_pattern = escape(@", "[]().*")
+  let @" = temp
+  execute "Ack! '" . escaped_pattern . "'"
+endfunction
+
+nnoremap K :Ack! '<C-r><C-w>'<cr>
+vnoremap K :<C-u>call <sid>VisualAck()<cr>
+
+let g:ackprg = 'ag --nogroup --nocolor --column'
 
 " vim:ft=vim
