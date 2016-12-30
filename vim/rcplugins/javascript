@@ -1,0 +1,7 @@
+" JavaScript - JS syntax and indent settings, along with JSX support
+
+Plug 'pangloss/vim-javascript'
+Plug 'mxw/vim-jsx'
+let g:jsx_ext_required = 0
+
+" vim:ft=vim
