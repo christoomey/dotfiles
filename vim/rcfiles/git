@@ -3,6 +3,7 @@
 
 autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
 autocmd FileType gitrebase RebaseSquash
+autocmd FileType gitcommit,gitrebase set spell
 command! RebaseSquash silent execute '2,$s/^pick/s/|silent! w!|2'
 
 " vim:ft=vim
