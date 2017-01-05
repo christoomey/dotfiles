@@ -1,0 +1,16 @@
+" JavaScript configurations
+"--------------------------
+
+function! s:EslintAutofix()
+  let saved_cursor = getpos(".")
+  %! eslint_d --stdin --fix-to-stdout
+  write
+  call setpos('.', saved_cursor)
+endfunction
+command! EslintAutofix call <sid>EslintAutofix()
+nnoremap <leader>rf :EslintAutofix<cr>
+
+command! EslintDStop echo system('eslint_d stop')
+nnoremap <leader>es :EslintDStop<cr>
+
+" vim:ft=vim

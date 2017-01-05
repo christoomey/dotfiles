@@ -1,0 +1,49 @@
+" Convience - configs & mappings to smooth out rough edges and make vim feel like home
+
+" Move between wrapped lines, rather than jumping over wrapped segments
+nmap j gj
+nmap k gk
+
+" Use C-Space to Esc out of any mode
+nnoremap <C-Space> <Esc>:noh<CR>
+vnoremap <C-Space> <Esc>gV
+onoremap <C-Space> <Esc>
+cnoremap <C-Space> <C-c>
+inoremap <C-Space> <Esc>
+" Terminal sees <C-@> as <C-space>
+nnoremap <C-@> <Esc>:noh<CR>
+vnoremap <C-@> <Esc>gV
+onoremap <C-@> <Esc>
+cnoremap <C-@> <C-c>
+inoremap <C-@> <Esc>
+
+" Quick sourcing of the current file, allowing for quick vimrc testing
+nnoremap <leader>sop :source %<cr>
+
+nnoremap <leader>df :Files ~/code/dotfiles<cr>
+nnoremap <leader>; :
+nmap <leader>bi :PlugInstall<cr>
+
+" Q for Ex mode is useless. This will run the macro in q register
+nnoremap Q @q
+
+" Swap 0 and ^. I tend to want to jump to the first non-whitesapce character
+" so make that the easier one to do.
+nnoremap 0 ^
+nnoremap ^ 0
+
+augroup vimrcEx
+  autocmd!
+  " When editing a file, always jump to the last known cursor position.
+  " Don't do it for commit messages, when the position is invalid, or when
+  " inside an event handler (happens when dropping a file on gvim).
+  autocmd BufReadPost *
+    \ if &ft != 'gitcommit' && line("'\"") > 0 && line("'\"") <= line("$") |
+    \   exe "normal g`\"" |
+    \ endif
+augroup END
+
+" Switch between the last two files
+nnoremap <leader><leader> <c-^>
+
+" vim:ft=vim

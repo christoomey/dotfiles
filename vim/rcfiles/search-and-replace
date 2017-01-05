@@ -1,0 +1,13 @@
+" Search / Substitute related configurations
+"-------------------------------------------
+
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+nnoremap <leader>sub :%s///g<left><left>
+vnoremap <leader>sub :s///g<left><left>
+
+colorscheme jellybeans
+
+" vim:ft=vim
