@@ -1,0 +1,7 @@
+" Better Whitespace - Highlight trailing whitespace and provide command to kill
+
+Plug 'ntpeters/vim-better-whitespace'
+
+nnoremap <leader>wht :StripWhitespace<cr>:w<cr>
+
+" vim:ft=vim
