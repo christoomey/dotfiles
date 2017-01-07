@@ -1,29 +1,63 @@
-# Dotfiles
+Dotfiles
+========
 
-Here is the collection of my dotfiles. I do my best to keep them clean and up
-to date, but these are constantly changing as I update my dev environment and
-shell custimizations so they are bound to be a bit inconsistent from time to
-time. O well...
+My dotfiles, a constantly evolving set of configurations which I arguably spend
+too much time tweaking, but they make the command like feel like home, so here
+we are.
 
-## Key Features
+Vim
+---
 
-- Zsh - I use the Z shell along with
-  [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh). I recently switched
-from bash, so I expect my shell related customizations will increase very soon.
+I do love me some Vim, that's for sure. I run Vim with [vim-plug][] to manage
+plugins. I have _many_ plugins and customizations (stored in `vim/rcfiles` and
+`vim/rcplugins` respectively) which may not be everyone's cup of tea, but I sure
+do love a sharp tool.
 
-- Vim - Vim is my editor and I am a huge fan of it. I end up spending equal
-  time in shell vim while doing things in the terminal, and using MacVim for
-more focussed or extended development. I use
-[pathogen](https://github.com/tpope/vim-pathogen) along with the
-[vim-update-bundle](https://github.com/bronson/vim-update-bundles) ruby script
-to mangage installing and removing plugins.
+[vim-plug]: https://github.com/junegunn/vim-plug
 
-- Git - Git for version control, obviously. I originally used mercurial back
-  when I was working in python more, but once I tried git, there was no going
-back.
 
-## Inspiration
+Zsh
+---
 
+I run zsh as my shell, finding it to be a great middle ground between adding
+additional niceties and features, while remaining a largely compatible shell
+scripting target. I use [zplug][] to manage zsh plugins (like the amazing
+[zsh-syntax-highlighting][] plugin), and I use [pure][] as my prompt.
+
+[zplug]: https://github.com/zplug/zplug
+[zsh-syntax-highlighting]: https://github.com/zsh-users/zsh-syntax-highlighting
+[pure]: https://github.com/sindresorhus/pure
+
+
+Tmux
+----
+
+Tmux allows me to combine processes, shells, and Vim in any way I need for the
+project at hand. I'm able to build my own IDE-like experience at the command
+line while still using the best tool for any given job. I'm a big fan.
+
+Core to my tmux work is the combination of two plugins that bring Vim & tmux
+together, [vim-tmux-navigator][] for navigation, and [vim-tmux-runner][] for
+sending commands from vim to tmux.
+
+[vim-tmux-navigator]: https://github.com/christoomey/vim-tmux-navigator
+[vim-tmux-runner]: https://github.com/christoomey/vim-tmux-runner
+
+
+fzf
+---
+
+Lastly have [fzf][], "a command-line fuzzy finder". In the end this is a much
+smaller component being just a shell command, but I find I use it across each of
+Vim, zsh, and tmux, and it has become absolutely core to many of my workflows,
+thus it gets top billing.
+
+[fzf]: https://github.com/junegunn/fzf
+
+Inspiration
+-----------
+
+- [thoughtbot](https://github.com/thoughtbot/dotfiles)
 - [Ryanb](https://github.com/ryanb/dotfiles)
 - [Gary Bernhardt](https://github.com/garybernhardt/dotfiles)
 - [Rtomayko](https://github.com/rtomayko/dotfiles)
