@@ -10,6 +10,3 @@ if [[ -e /usr/local/share/chruby ]]; then
     chruby $(cat ~/.ruby-version)
   fi
 fi
-
-export PATH="/usr/local/bin:$PATH"
-export PATH="$HOME/bin:$PATH"
