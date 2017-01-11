@@ -1,0 +1,21 @@
+" Markdown - Syntax file for Markdowm files
+
+Plug 'tpope/vim-markdown'
+
+let g:markdown_fenced_languages = [
+      \ 'javascript',
+      \ 'ruby',
+      \ 'sh',
+      \ 'yaml',
+      \ 'javascript',
+      \ 'html',
+      \ 'vim',
+      \ 'json',
+      \ 'diff',
+      \ 'css',
+      \ 'scss',
+      \ 'haskell',
+      \ 'python'
+      \ ]
+
+" vim:ft=vim
