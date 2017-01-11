@@ -1,5 +1,5 @@
 --sort=yes
---tag-relative
+--tag-relative=yes
 --recurse
 --exclude=node_modules
 --exclude=coverage
