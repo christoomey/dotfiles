@@ -1,0 +1,5 @@
+snippet func
+	function! s:${1:Name}()
+		${0:code}
+	endfunction
+	command! $1 call <sid>$1()
