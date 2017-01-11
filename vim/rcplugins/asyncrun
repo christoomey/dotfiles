@@ -13,7 +13,4 @@ augroup async_ctags
   autocmd BufWritePre * CtagsAsync
 augroup END
 
-nnoremap <cr> <C-]>
-nnoremap <backspace> <C-o>
-
 " vim:ft=vim
