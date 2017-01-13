@@ -1,0 +1,27 @@
+" Async.vim - Normalized interface to Vim 8 & NeoVim async jobs
+
+Plug 'prabirshrestha/async.vim'
+
+function! s:CtagsAsync()
+  let job_id = async#job#start(['atomic-ctags'],
+        \ {
+        \   'on_exit': function('s:on_exit'),
+        \ })
+endfunction
+command! CtagsAsync call <sid>CtagsAsync()
+
+function! s:on_exit(job_id, exit_code, _)
+  if a:exit_code != 0
+    echohl Error
+    echom 'Error running: ' . a:job_id . '; exit code: ' . a:exit_code
+    echohl None
+  endif
+endfunction
+
+augroup async_ctags
+  autocmd!
+  autocmd VimEnter * CtagsAsync
+  autocmd BufWritePost * CtagsAsync
+augroup END
+
+" vim:ft=vim
