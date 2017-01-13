@@ -3,8 +3,8 @@
 
 autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
 autocmd BufEnter PULLREQ_EDITMSG setlocal filetype=gitcommit
-autocmd FileType gitrebase RebaseSquash
-autocmd FileType gitcommit,gitrebase set spell
+" autocmd FileType gitrebase RebaseSquash
+autocmd FileType gitcommit set spell
 autocmd BufRead,BufNewFile git/config set filetype=gitconfig
 command! RebaseSquash silent execute '2,$s/^pick/s/|silent! w!|2'
 
