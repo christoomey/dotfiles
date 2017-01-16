@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+cat - > ./tmp/rubocop-fix
+rubocop ./tmp/rubocop-fix --auto-correct &>/dev/null || true
+cat ./tmp/rubocop-fix
