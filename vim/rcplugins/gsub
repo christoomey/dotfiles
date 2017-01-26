@@ -1,0 +1,9 @@
+" Gsub - Project wide find and replace
+
+Plug '~/code/vim/gsub'
+
+" Mappings to search for the <cword> or visual highlight, and run Gsearch
+nmap K *:Gsearch<cr>
+vmap K *:Gsearch<cr>
+
+" vim:ft=vim
