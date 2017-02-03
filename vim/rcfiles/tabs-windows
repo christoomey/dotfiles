@@ -1,0 +1,5 @@
+" Tab & Window related configurations
+
+command TO tabonly|only
+
+" vim:ft=vim
