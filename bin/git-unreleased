@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+git fetch --all
+git pull
+
+echo "\nStaging unreleased"
+git log --oneline --decorate staging/master..master
+
+
+echo "\nProduction unreleased"
+git log --oneline --decorate production/master..master
