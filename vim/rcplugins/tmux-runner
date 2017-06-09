@@ -2,7 +2,10 @@
 
 " Plug 'christoomey/vim-tmux-runner'
 Plug '~/code/vim/tmux-runner'
+nnoremap <leader>vo :VtrOpenRunner<cr>
 nnoremap <leader>va :VtrAttachToPane<cr>
 nnoremap <leader>fr :VtrFocusRunner<cr>
+
+nnoremap <leader>q :VtrSendCommandToRunner q<cr>
 
 " vim:ft=vim
