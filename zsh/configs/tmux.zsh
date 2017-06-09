@@ -14,3 +14,13 @@ tmux-smart-pane() {
   [[ $(_tmux_orientation) = 'portrait' ]] && orient='-v' || orient='-h'
   eval "tmux split-window $orient $@"
 }
+
+_not_inside_tmux() {
+  [[ -z "$TMUX" ]]
+}
+
+ensure_tmux_is_running() {
+  if _not_inside_tmux; then
+    tat
+  fi
+}
