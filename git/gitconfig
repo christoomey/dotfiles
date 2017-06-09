@@ -12,7 +12,7 @@
   dcw = !git dc -w
   fall = fetch --all
   glog = log -E -i --grep
-  mup = !git checkout master && git pull && git checkout -
+  mup = !git checkout master && git fetch origin && echo && git sl master..origin/master && echo && git pull && git checkout -
   pl = pull
   ps = push
   rbc = rebase --continue
