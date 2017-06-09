@@ -77,6 +77,7 @@ _1st_arguments=(
   "ps\:scale":"scale processes by the given amount"
   "releases":"list releases"
   "releases\:info":"view detailed information for a release"
+  "restore":"restore the DB from the most recent backup"
   "rollback":"roll back to an older release"
   "run":"run an attached process"
   "run\:rake":"remotely execute a rake command"
