@@ -16,14 +16,20 @@ function sgn {
 }
 function dev {
   if [[ $# -gt 0 ]]; then
-    bundle exec rails "$@"
+    if [[ $1 == 'migrate' ]]; then
+      bin/rake db:migrate db:test:prepare
+    else
+      bin/rails "$@"
+    fi
   else
-    bundle exec rails console
+    bin/rails console
   fi
 }
-_partiy_complete() { reply=(deploy run) }
-compctl -K _partiy_complete sgn
-compctl -K _partiy_complete pdn
+compdef production=heroku
+compdef pdn=heroku
+
+compdef staging=heroku
+compdef sgn=heroku
 
 copy-production-to() {
   if [ "$1" != "staging" ] && [ "$1" != "development" ]; then
