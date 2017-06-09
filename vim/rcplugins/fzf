@@ -9,14 +9,20 @@ nnoremap <C-p> :Files<cr>
 let $FZF_DEFAULT_COMMAND = 'ag -g "" --hidden'
 
 let branch_files_options = { 'source': '( git status --porcelain | awk ''{print $2}''; git diff --name-only HEAD $(git merge-base HEAD master) ) | sort | uniq'}
-let branch_files_options_develop = { 'source': '( git status --porcelain | awk ''{print $2}''; git diff --name-only HEAD $(git merge-base HEAD develop) ) | sort | uniq'}
+let uncommited_files_options = { 'source': '( git status --porcelain | awk ''{print $2}'' ) | sort | uniq'}
+
+let s:diff_options =
+  \ '--reverse ' .
+  \ '--preview "(git diff --color=always master -- {} | tail -n +5 || cat {}) 2> /dev/null | head -'.&lines.'"'
 command! BranchFiles call fzf#run(fzf#wrap('BranchFiles',
-      \ extend(branch_files_options, { 'options': g:fzf_files_options }), 0))
-command! BranchFilesDevelop call fzf#run(fzf#wrap('BranchFilesDevelop',
-      \ extend(branch_files_options_develop, { 'options': g:fzf_files_options }), 0))
+      \ extend(branch_files_options, { 'options': s:diff_options }), 0))
+command! UncommitedFiles call fzf#run(fzf#wrap('UncommitedFiles',
+      \ extend(uncommited_files_options, { 'options': s:diff_options }), 0))
 nnoremap <silent> <leader>gp :BranchFiles<cr>
+nnoremap <silent> <leader>GP :UncommitedFiles<cr>
 
 
+nnoremap <leader>ga :Files app/<cr>
 nnoremap <leader>gm :Files app/models/<cr>
 nnoremap <leader>gv :Files app/views/<cr>
 nnoremap <leader>gc :Files app/controllers/<cr>
