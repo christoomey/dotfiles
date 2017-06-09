@@ -6,3 +6,17 @@ snippet spec
 			it "${3:docstring}"
 		end
 	end
+snippet desc
+	describe "${1:#method}" do
+	  it "${2:docstring}" do
+		  ${3:expectation...}
+		end
+	end
+snippet feat
+	require "rails_helper"
+
+	feature "${1:feature summary}" do
+		scenario "${2:and...}" do
+			${3:code}
+		end
+	end
