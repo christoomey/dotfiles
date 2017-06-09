@@ -6,4 +6,6 @@ Plug '~/code/vim/gsub'
 nmap K *:Gsearch<cr>
 vmap K *:Gsearch<cr>
 
+autocmd FileType gsub nnoremap <buffer> <cr><cr> :Gsub<cr>
+
 " vim:ft=vim
