@@ -3,6 +3,7 @@
 Plug 'tpope/vim-markdown'
 
 let g:markdown_fenced_languages = [
+      \ 'sql',
       \ 'javascript',
       \ 'ruby',
       \ 'sh',
