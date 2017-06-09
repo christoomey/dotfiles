@@ -23,6 +23,7 @@
   sla = log --oneline --decorate --graph --all -20
   slp = log --oneline --decorate
   slap = log --oneline --decorate --graph --all
+  todo = !git log --format=%B -n 1 | grep -A999 '^This change$'
   uncommit = reset --soft HEAD^
   unstage = reset
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
