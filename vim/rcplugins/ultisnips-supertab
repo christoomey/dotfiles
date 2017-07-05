@@ -1,12 +1,14 @@
 " UltiSnips - Snippet manager
 
+Plug 'ervandew/supertab'
+
 Plug 'SirVer/ultisnips'
 
 let g:UltiSnipsSnippetsDir='~/.vim/snippets'
 let g:UltiSnipsEditSplit='vertical'
-let g:UltiSnipsExpandTrigger           = '<tab>'
-let g:UltiSnipsJumpForwardTrigger      = '<tab>'
-let g:UltiSnipsJumpBackwardTrigger     = '<s-tab>'
+let g:UltiSnipsExpandTrigger           = '<C-]>'
+let g:UltiSnipsJumpForwardTrigger      = '<C-]>'
+let g:UltiSnipsJumpBackwardTrigger     = '<C-[>'
 
 nnoremap <leader>ue :UltiSnipsEdit<cr>
 
