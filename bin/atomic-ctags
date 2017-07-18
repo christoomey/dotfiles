@@ -3,5 +3,6 @@
 set -e
 
 if [ -d .git ]; then
-  ctags -R -f .git/tags.temp && mv .git/tags.temp .git/tags
+  tempfile=$(mktemp .git/tags.temp.XXXXX)
+  ctags -R -f "$tempfile" && mv "$tempfile" .git/tags
 fi
