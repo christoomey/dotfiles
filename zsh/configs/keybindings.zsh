@@ -41,7 +41,9 @@ bindkey '^r' fuzzy-history
 _fuzzy_git_branches() {
   zle -U "$(
     git branch --color=always | \
-    fzf-tmux --reverse --ansi --tac | \
+    grep -v '^* ' | \
+    grep -v '^\s\+master' | \
+    fzf-tmux --reverse --ansi --tac --select-1 | \
     sed -E 's/^[ \t]*//'
   )"
 }
