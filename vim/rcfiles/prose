@@ -17,6 +17,7 @@ function! s:FixLastSpellingError()
 endfunction
 command! FixLastSpellingError call <sid>FixLastSpellingError()
 nnoremap <Plug>FixLastSpellingError :FixLastSpellingError<cr>
+imap <C-j> <C-o>:write<cr><C-o>:FixLastSpellingError<cr>
 " map <leader>sp <Plug>FixLastSpellingError
 " imap <C-y> <C-o>:w<cr><C-o><leader>sp
 
