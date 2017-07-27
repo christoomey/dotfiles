@@ -31,6 +31,7 @@ _1st_arguments=(
   "apps\:destroy":"permanently destroy an app"
   "auth\:login":"log in with your heroku credentials"
   "auth\:logout":"clear local authentication credentials"
+  "backup":"capture a backup of the DB"
   "browse":"open the configuration page for the app on Heroku's dashboard"
   "config":"display a config vars for an app"
   "config\:get":"display a config value for an app"
