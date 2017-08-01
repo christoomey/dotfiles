@@ -3,7 +3,6 @@
 set -e
 
 if [ -d .git ]; then
-  current_directory=${PWD##*/}
-  tempfile=$(mktemp "/tmp/tags-$current_directory.XXXXX")
+  tempfile=$(mktemp ".git/tags.XXXXX")
   ctags -R -f "$tempfile" && mv "$tempfile" .git/tags
 fi
