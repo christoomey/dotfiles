@@ -2,10 +2,16 @@
 
 " Plug 'christoomey/vim-tmux-runner'
 Plug '~/code/vim/tmux-runner'
-nnoremap <leader>vo :VtrOpenRunner<cr>
+nnoremap <leader>v- :VtrOpenRunner { "orientation": "v" }<cr>
+nnoremap <leader>v\ :VtrOpenRunner { "orientation": "h" }<cr>
+nnoremap <leader>vk :VtrKillRunner<cr>
 nnoremap <leader>va :VtrAttachToPane<cr>
 nnoremap <leader>fr :VtrFocusRunner<cr>
 
-nnoremap <leader>q :VtrSendCommandToRunner q<cr>
+nnoremap <leader>sq :VtrSendKeysRaw q<cr>
+nnoremap <leader>sd :VtrSendKeysRaw ^D<cr>
+nnoremap <leader>sl :VtrSendKeysRaw ^L<cr>
+nnoremap <leader>sc :VtrSendKeysRaw ^C<cr>
+nnoremap <leader>vs :VtrSendCommandToRunner<space>
 
 " vim:ft=vim
