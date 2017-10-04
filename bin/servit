@@ -5,7 +5,7 @@
 # copies the ".dev" URL
 
 app_name=$(basename "`pwd`")
-port=`cat ~/.pow/$app_name 2> /dev/null || echo 3312`
+port=`cat ~/.pow/$app_name 2> /dev/null || [[ -f .vimrc.local ]] && cat .vimrc.local | grep 'g:app_url' | grep -oE '[0-9]+' || echo 3312`
 
 if [[ -f nwb.config.js ]]; then
   server_cmd="PORT=$port npm start"
