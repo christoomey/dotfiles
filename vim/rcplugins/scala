@@ -1,0 +1,6 @@
+" Scala - Syntax and filetype settings for Scala
+
+Plug 'derekwyatt/vim-scala'
+Plug 'gre/play2vim'
+
+" vim:ft=vim
