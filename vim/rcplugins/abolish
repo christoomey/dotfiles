@@ -1,0 +1,5 @@
+" Abolish - Coerce strings to different cases (and some other stuff)
+
+Plug 'tpope/tpope-vim-abolish'
+
+" vim:ft=vim
