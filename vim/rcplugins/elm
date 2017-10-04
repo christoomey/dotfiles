@@ -1,0 +1,10 @@
+" Elm.vim - Elm syntax and other fun
+
+Plug 'ElmCast/elm-vim'
+
+let g:elm_setup_keybindings = 0
+let g:elm_format_fail_silently = 1
+
+nnoremap <leader>eo :ElmShowDocs<cr>
+
+" vim:ft=vim
