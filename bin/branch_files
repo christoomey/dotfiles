@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+def main(arg)
+  if arg == "-w"
+    formatted_list(working_modified_files).each { |file| puts file }
+  else
+    formatted_list(branch_modified_files + working_modified_files).
+      each { |file| puts file }
+  end
+end
+
+def formatted_list(list)
+  list.sort.reverse.uniq
+end
+
+def branch_modified_files
+  `git diff --name-status $(git merge-base master HEAD) HEAD | grep -v '^D'`.
+    chomp.
+    split("\n").
+    map { |status| current_file(status) }
+end
+
+def working_modified_files
+  `git status --porcelain | grep -v '^D'`.
+    chomp.
+    split("\n").
+    map { |status| status.gsub(/^.../, "").split(" -> ").last }
+end
+
+def current_file(status)
+  _first, *rest = *status.split("\t")
+  rest.last
+end
+
+main ARGV[0]

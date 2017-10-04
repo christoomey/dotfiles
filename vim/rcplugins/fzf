@@ -8,12 +8,12 @@ let g:fzf_files_options =
 nnoremap <C-p> :Files<cr>
 let $FZF_DEFAULT_COMMAND = 'ag -g "" --hidden'
 
-let branch_files_options = { 'source': '( git status --porcelain | awk ''{print $2}''; git diff --name-only HEAD $(git merge-base HEAD master) ) | sort | uniq'}
-let uncommited_files_options = { 'source': '( git status --porcelain | awk ''{print $2}'' ) | sort | uniq'}
+let branch_files_options = { 'source': 'branch_files' }
+let uncommited_files_options = { 'source': 'branch_files -w' }
 
 let s:diff_options =
   \ '--reverse ' .
-  \ '--preview "(git diff --color=always master -- {} | tail -n +5 || cat {}) 2> /dev/null | head -'.&lines.'"'
+  \ '--preview "(mdiff {} | tail -n +5 || cat {}) 2> /dev/null | head -'.&lines.'"'
 command! BranchFiles call fzf#run(fzf#wrap('BranchFiles',
       \ extend(branch_files_options, { 'options': s:diff_options }), 0))
 command! UncommitedFiles call fzf#run(fzf#wrap('UncommitedFiles',
