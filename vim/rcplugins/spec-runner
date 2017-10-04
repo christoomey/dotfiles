@@ -3,4 +3,6 @@
 Plug 'gabebw/vim-spec-runner'
 map <leader>t <Plug>RunFocusedSpec
 
+let g:spec_runner_dispatcher = "VtrSendCommand! bin/{command}"
+
 " vim:ft=vim
