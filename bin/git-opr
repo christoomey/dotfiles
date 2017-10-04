@@ -75,6 +75,16 @@ def opening?
   argument && OPEN_SWITCHES.include?(argument)
 end
 
+def ensure_published
+  if not_published?
+    system("git publish")
+  end
+end
+
+def not_published?
+  !system("git upstream > /dev/null 2>&1")
+end
+
 def main
   # repo = remote_url
   # branch = remote_tracking_branch
@@ -83,7 +93,7 @@ def main
     system 'gh compare'
     system 'gh pull-request'
   else
-    # open_pull_request_for_repo_branch(repo, branch)
+    ensure_published
     open_or_build_pull_request
   end
 end
