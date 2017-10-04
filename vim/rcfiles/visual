@@ -16,4 +16,7 @@ nnoremap <leader>= :wincmd =<cr>
 set splitbelow
 set splitright
 
+" Ignore whitespace only changes in diff
+set diffopt+=iwhite
+
 " vim:ft=vim
