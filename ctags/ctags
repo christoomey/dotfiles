@@ -2,6 +2,16 @@
 --tag-relative=yes
 --recurse
 --exclude=node_modules
+--exclude=build
 --exclude=coverage
 --exclude=vendor
 --exclude=bower_components
+
+
+--langdef=Elm
+--langmap=Elm:.elm
+--regex-Elm=/^ *([[:lower:]][[:alnum:]_]+)[[:blank:]]*:[^:].*->.*/\1/f,function,functions/
+--regex-Elm=/^ *([[:lower:]][[:alnum:]_]+)[[:blank:]]*:[^:][^-]+$/\1/c,constant,constants/
+--regex-Elm=/^port +([[:lower:]][[:alnum:]_]+)[[:blank:]]*:[^:]/\1/p,port,ports/
+--regex-Elm=/^type +([[:upper:]][[:alnum:]_]+)/\1/t,type,types/
+--regex-Elm=/^type[[:blank:]]+alias[[:blank:]]+([[:upper:]][[:alnum:]_]+)/\1/a,type-alias,type-aliases/
