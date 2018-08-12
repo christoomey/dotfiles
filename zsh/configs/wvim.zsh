@@ -1,3 +1,14 @@
+wvim() {
+  command_name="$1"
+  case "$(_definition_type "$command_name")" in
+    "alias") _edit_shell_alias "$command_name";;
+    "function") _edit_shell_function "$command_name";;
+    "script") _edit_script "$command_name";;
+    "not found") _handle_unknown_command "$command_name"
+  esac
+}
+compdef wvim=which
+
 _handle_unknown_command() {
   echo "\"$1\" is not recognized as a script, function, or alias" >&2
   return 1
@@ -21,7 +32,7 @@ _edit_script() {
 }
 
 _definition_field_for_pattern() {
-  definition=$(grep -En "$2" ~/.zshrc ~/.zshenv ~/.zsh/**/*.zsh ~/.other.thing 2>/dev/null)
+  definition=$(grep -En "$2" ~/.zshrc ~/.zshenv ~/.zsh/**/*.zsh 2>/dev/null)
   echo "$definition" | cut -d ":" -f "$1"
 }
 
@@ -38,14 +49,3 @@ _edit_shell_function() {
 _edit_shell_alias() {
   _edit_based_on_pattern "alias $1="
 }
-
-wvim() {
-  command_name="$1"
-  case "$(_definition_type "$command_name")" in
-    "alias") _edit_shell_alias "$command_name";;
-    "function") _edit_shell_function "$command_name";;
-    "script") _edit_script "$command_name";;
-    "not found") _handle_unknown_command "$command_name"
-  esac
-}
-compdef wvim=which
