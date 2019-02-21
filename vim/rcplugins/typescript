@@ -1,0 +1,10 @@
+" TypeScript - Filetype and syntax settings
+
+Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript', { 'for': 'typescript.jsx' }
+
+" Plug 'HerringtonDarkholme/yats.vim'
+
+" autocmd BufNewFile,BufRead *.tsx set filetype=typescript.jsx
+
+" vim:ft=vim
