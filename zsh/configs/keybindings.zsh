@@ -24,27 +24,13 @@ function _pbcopy_last_command(){
 zle -N pbcopy-last-command _pbcopy_last_command
 bindkey '^x^y' pbcopy-last-command
 
-# Fuzzy match against history, edit selected value
-_uniqe_without_sort() { awk '!x[$0]++' }
-_fuzzy_history() {
-  zle -U "$(
-    history | \
-    tail -2000 | \
-    sed 's/ *[0-9]* *//' | \
-    _uniqe_without_sort | \
-    fzf-tmux --tac --reverse --no-sort
-  )"
-}
-zle -N fuzzy-history _fuzzy_history
-bindkey '^r' fuzzy-history
-
 # Git branches
 _fuzzy_git_branches() {
   zle -U "$(
-    git branch --color=always | \
+    git branch --color=always --sort=-committerdate | \
     grep -v '^* ' | \
     grep -v '^\s\+master' | \
-    fzf-tmux --reverse --ansi --tac --select-1 | \
+    fzf-tmux --reverse --ansi --select-1 | \
     sed -E 's/^[ \t]*//'
   )"
 }
