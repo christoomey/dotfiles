@@ -1,0 +1,5 @@
+" CSS3 - Enhanced keyword and syntax definitions for CSS3
+
+Plug 'hail2u/vim-css3-syntax'
+
+" vim:ft=vim
