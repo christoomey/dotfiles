@@ -2,6 +2,5 @@
 
 " Plug 'christoomey/vim-tmux-navigator'
 Plug '~/code/vim/tmux-navigator'
-noremap <C-f> :VtrSendLinesToRunner<cr>
 
 " vim:ft=vim
