@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Continue a rebase or cherry-pick in the event of conflicts.
+
+if [[ -e .git/CHERRY_PICK_HEAD ]] ; then
+    exec git cherry-pick --continue "$@"
+elif [[ -e .git/rebase-apply/applying ]] ; then
+    exec git rebase --continue "$@"
+elif [[ -e .git/rebase-apply ]] ; then
+    exec git rebase --continue "$@"
+elif [[ -e .git/rebase-merge ]] ; then
+    exec git rebase --continue "$@"
+else
+    echo git-abort: unknown state
+    exit -1
+fi
