@@ -1,9 +1,13 @@
 " JavaScript - JS syntax and indent settings, along with JSX support
 
-Plug 'pangloss/vim-javascript'
+" Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
 let g:jsx_ext_required = 0
 
+Plug 'chemzqm/vim-jsx-improve', { 'for': 'javascript.jsx' }
+
 autocmd BufEnter *.es6 setf javascript
+
+command! EslintDStop call system("./node_modules/.bin/eslint_d stop")
 
 " vim:ft=vim
