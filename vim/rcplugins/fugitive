@@ -2,4 +2,6 @@
 
 Plug 'tpope/vim-fugitive'
 
+nnoremap \<space> :Gstatus<cr>
+
 " vim:ft=vim
