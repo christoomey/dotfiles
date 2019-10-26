@@ -2,21 +2,8 @@
 
 Plug 'tpope/vim-markdown'
 
-let g:markdown_fenced_languages = [
-      \ 'sql',
-      \ 'javascript',
-      \ 'ruby',
-      \ 'sh',
-      \ 'yaml',
-      \ 'javascript',
-      \ 'html',
-      \ 'vim',
-      \ 'json',
-      \ 'diff',
-      \ 'css',
-      \ 'scss',
-      \ 'haskell',
-      \ 'python'
-      \ ]
+hi def link markdownH1Delimiter           PreProc
+hi def link markdownH2Delimiter           Type
+hi def link markdownH3Delimiter           Directory
 
 " vim:ft=vim
