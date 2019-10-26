@@ -6,7 +6,7 @@ set textwidth=80
 set colorcolumn=+1
 
 " automatically rebalance windows on vim resize
-autocmd VimResized * :wincmd =
+autocmd VimResized * GoldenRatioResize
 
 " zoom a vim pane, <C-w>= to re-balance
 nnoremap <leader>- :wincmd _<cr>:wincmd \|<cr>
@@ -16,7 +16,8 @@ nnoremap <leader>= :wincmd =<cr>
 set splitbelow
 set splitright
 
-" Ignore whitespace only changes in diff
+" Ignore whitespace only changes in diff, always use vertical diffs
 set diffopt+=iwhite
+set diffopt+=vertical
 
 " vim:ft=vim
