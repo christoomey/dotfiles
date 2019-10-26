@@ -11,7 +11,10 @@
   dc = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color --cached $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
   dcw = !git dc -w
   fall = fetch --all
+  fad = !git add $(git ls-files --others --exclude-standard -m | fzf --reverse --multi)
+  fadd = !git fadd
   glog = log -E -i --grep
+  dup = !git checkout develop && git fetch origin && echo && git sl develop..origin/develop && echo && git pull --quiet && git checkout -
   mup = !git checkout master && git fetch origin && echo && git sl master..origin/master && echo && git pull --quiet && git checkout -
   pl = pull
   ps = push
@@ -19,6 +22,7 @@
   riu = !git rebase -i $(git rev-parse --abbrev-ref --symbolic-full-name @{u})
   rid = !git rebase -i $(git merge-base develop HEAD)
   rim = !git rebase -i $(git merge-base master HEAD)
+  rdup = !git dup && git rebase develop
   rmup = !git mup && git rebase master
   sl = log --oneline --decorate -20
   sla = log --oneline --decorate --graph --all -20
@@ -34,7 +38,7 @@
 [core]
   excludesfile = ~/.gitignore
   autocrlf = input
-  editor = /usr/local/bin/vim
+  editor =/Applications/MacVim.app/Contents/bin/mvim -v
 [merge]
   ff = only
 [push]
@@ -49,6 +53,11 @@
   nogreeting = true
   prompt = "\n%D %c(%b%#)%w ➜"
 [user]
-  name = Chris Toomey
-  email = chris@ctoomey.com
+	name = Chris Toomey
+	email = chris@ctoomey.com
   signingkey = Chris Toomey <chris@ctoomey.com>
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
