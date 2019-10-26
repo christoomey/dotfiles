@@ -2,21 +2,38 @@
 
 Plug 'w0rp/ale'
 
-let g:ale_linters = {
-      \ 'javascript': ['eslint']
+let g:ale_completion_enabled = 1
+" set completeopt=menu,menuone,noselect,noinsert
+
+" let g:ale_linters = {
+"       \ 'javascript': ['eslint'],
+"       \ 'ruby': ['rubocop', 'ruby']
+"       \ }
+
+let g:ale_pattern_options = {
+      \ '.env': { 'ale_enabled': 0 }
       \ }
+
+nnoremap <leader>ed :!./node_modules/.bin/eslint_d stop<Cr>
 
 nmap <silent> [r <Plug>(ale_previous_wrap)
 nmap <silent> ]r <Plug>(ale_next_wrap)
 
-" Linting on all changes felt too aggressive. The below settings calls lint on
-" certain events, either when I stop interacting or when entering / leaving
-" insert mode
-set updatetime=1000
-autocmd CursorHold * call ale#Lint()
-autocmd CursorHoldI * call ale#Lint()
-autocmd InsertLeave * call ale#Lint()
-autocmd TextChanged * call ale#Lint()
-let g:ale_lint_on_text_changed = 0
+nnoremap <leader>ed :ALEDetail<cr>
+" nnoremap <leader>ef :ALEFix<cr>
+" nnoremap <leader>eg :ALEGoToDefinition<cr>
+nnoremap <leader>eh :ALEHover<cr>
+" nnoremap <leader>er :ALEFindReferences<cr>
+" nnoremap <leader>et :ALEToggle<cr>
 
-" vim:ft=vim
+" " Linting on all changes felt too aggressive. The below settings calls lint on
+" " certain events, either when I stop interacting or when entering / leaving
+" " insert mode
+" set updatetime=1000
+" autocmd CursorHold * call ale#Lint()
+" autocmd CursorHoldI * call ale#Lint()
+" autocmd InsertLeave * call ale#Lint()
+" autocmd TextChanged * call ale#Lint()
+" let g:ale_lint_on_text_changed = 0
+
+" " vim:ft=vim
