@@ -1,5 +1,21 @@
 " Tab & Window related configurations
 
-command TO tabonly|only
+command! TO tabonly|only
+
+nnoremap <C-w>1 1gt
+nnoremap <C-w>2 2gt
+nnoremap <C-w>3 3gt
+nnoremap <C-w>4 4gt
+nnoremap <C-w>5 5gt
+nnoremap <C-w>6 6gt
+nnoremap <C-w>9 :tablast<cr>
+
+nnoremap <leader>w1 1gt
+nnoremap <leader>w2 2gt
+nnoremap <leader>w3 3gt
+nnoremap <leader>w4 4gt
+nnoremap <leader>w5 5gt
+nnoremap <leader>w6 6gt
+nnoremap <leader>w9 :tablast<cr>
 
 " vim:ft=vim
