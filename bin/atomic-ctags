@@ -4,5 +4,5 @@ set -e
 
 if [ -d .git ]; then
   tempfile=$(mktemp ".git/tags.XXXXX")
-  ctags -R -f "$tempfile" && mv "$tempfile" .git/tags
+  ctags -R --tag-relative=yes --exclude=node_modules --exclude=tmp --exclude=elm-stuff -f "$tempfile" && mv "$tempfile" .git/tags
 fi
