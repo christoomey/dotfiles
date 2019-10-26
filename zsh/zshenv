@@ -4,5 +4,4 @@ export PATH="/usr/local/bin:$PATH"
 # Add my custom commands
 export PATH="$HOME/bin:$PATH"
 
-# Yarn bin. Would dynamically check, but adds too much to startup time.
-export PATH="/usr/local/Cellar/node/8.1.0_1/bin:$PATH"
+export PATH="$HOME/.npm-packages/bin:$PATH"
