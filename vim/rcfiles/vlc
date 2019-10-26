@@ -1,0 +1,4 @@
+nmap <right> :call system("vlc-seek forward")<cr>
+nmap <left> :call system("vlc-seek")<cr>
+
+" vim:ft=vim

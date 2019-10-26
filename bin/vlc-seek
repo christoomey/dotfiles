@@ -1,0 +1,18 @@
+#!/usr/bin/osascript
+# Step forward. The step width can be changed below.
+
+# nmap <right> :call system("vlc-seek forward")<cr>
+# nmap <left> :call system("vlc-seek")<cr>
+
+on run argv
+  if running of application "/Applications/VLC.app" is true then
+    tell application "/Applications/VLC.app"
+      # Step width (1=extraShort, 2=short, 3=medium, 4=long).
+      if (count of argv) > 0 and item 1 of argv is equal to "forward" then
+        step forward 2
+      else
+        step backward 2
+      end if
+    end tell
+  end if
+end run
