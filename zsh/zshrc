@@ -15,3 +15,5 @@ ensure_tmux_is_running
 . $HOME/.asdf/asdf.sh
 . $HOME/.asdf/completions/asdf.bash
 . /usr/local/etc/bash_completion.d
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
