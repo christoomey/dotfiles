@@ -1,0 +1,6 @@
+" VIP - Vim Integrated Presentations
+
+" Plug 'christoomey/vim-vip'
+Plug '~/code/vim/vip'
+
+" vim:ft=vim
