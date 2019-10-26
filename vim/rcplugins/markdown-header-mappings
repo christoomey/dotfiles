@@ -1,6 +1,13 @@
 " Markdown Header Mappings - Easy setting of markdown headers
 "------------------------------------------------------------
 
+function! s:SmartLevelFourHeader()
+  call s:DeleteExistingUnderline()
+  call s:DeleteExistingLeadingHeaderMarks()
+  s/^/#### /
+  silent! call repeat#set("\<Plug>SmartLevelFourHeader")
+endfunction
+
 function! s:SmartLevelThreeHeader()
   call s:DeleteExistingUnderline()
   call s:DeleteExistingLeadingHeaderMarks()
@@ -39,8 +46,10 @@ endfunction
 nnoremap <silent> <Plug>UnderlineH1 :call <sid>SmartUnderline('=')<cr>
 nnoremap <silent> <Plug>UnderlineH2 :call <sid>SmartUnderline('-')<cr>
 nnoremap <silent> <Plug>SmartLevelThreeHeader :call <sid>SmartLevelThreeHeader()<cr>
+nnoremap <silent> <Plug>SmartLevelFourHeader :call <sid>SmartLevelFourHeader()<cr>
 nmap <leader>u1 <Plug>UnderlineH1
 nmap <leader>u2 <Plug>UnderlineH2
 nmap <leader>u3 <Plug>SmartLevelThreeHeader
+nmap <leader>u4 <Plug>SmartLevelFourHeader
 
 " vim:ft=vim
