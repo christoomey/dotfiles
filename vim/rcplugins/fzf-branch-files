@@ -1,0 +1,8 @@
+" FZF Branch Files - Fuzzy select from files on the current branch
+
+Plug '~/code/vim/fzf-branch-files'
+
+nnoremap <silent> <leader>gp :FzfBranchFiles<cr>
+nnoremap <silent> <leader>GP :FzfWorkingFiles<cr>
+
+" vim:ft=vim
