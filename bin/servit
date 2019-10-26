@@ -7,12 +7,16 @@
 app_name=$(basename "`pwd`")
 port=`cat ~/.pow/$app_name 2> /dev/null || [[ -f .vimrc.local ]] && cat .vimrc.local | grep 'g:app_url' | grep -oE '[0-9]+' || echo 3312`
 
-if [[ -f nwb.config.js ]]; then
+if [[ -f config/environment.rb ]]; then
+  server_cmd="bundle check || bundle install && PORT='$port' bin/rails server"
+elif [[ -f yarn.lock ]]; then
+  server_cmd="yarn start --port=$port"
+elif [[ -f nwb.config.js ]]; then
   server_cmd="PORT=$port npm start"
 elif grep -q 'react-scripts start' package.json > /dev/null 2>&1; then
   server_cmd="PORT=$port npm start"
-elif [[ -f config/environment.rb ]]; then
-  server_cmd="bundle && bundle exec rails s -p $port"
+elif grep -q 'razzle start' package.json > /dev/null 2>&1; then
+  server_cmd="PORT=$port npm start"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
   server_cmd="bundle && bundle exec middleman -p $port"
 elif [[ -f package.json ]]; then
