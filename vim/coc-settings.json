@@ -1,4 +1,33 @@
 {
-  "coc.preferences.hoverTarget": "echo",
-  "diagnostic.enableSign": "false"
+  "coc.preferences.jumpCommand": "drop",
+  "coc.preferences.hoverTarget": "float",
+  "diagnostic.refreshOnInsertMode": true,
+  "suggest.floatEnable": true,
+  "suggest.noselect": false,
+  "suggest.acceptSuggestionOnCommitCharacter": true,
+  "suggest.enablePreview": true,
+  "suggest.enablePreselect": true,
+  "diagnostic.errorSign": "!!",
+  "diagnostic.warningSign": "!!",
+  "diagnostic.infoSign": "!!",
+  "diagnostic.hintSign": "!!",
+  "diagnostic.signOffset": 999999,
+  "diagnostic.maxWindowHeight": 20,
+  "signature.maxWindowHeight": 20,
+  "diagnostic.checkCurrentLine": true,
+  "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+  "coc.preferences.formatOnSaveFiletypes": [
+    "css",
+    "markdown",
+    "Markdown",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "prettier.requireConfig": true,
+  "eslint.autoFixOnSave": true,
+  "html.format.enable": true,
+  "tsserver.formatOnType": true,
+  "coc.preferences.formatOnType": true
 }
