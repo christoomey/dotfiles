@@ -45,6 +45,7 @@ set complete+=kspell
 
 " Always use vertical diffs
 set diffopt+=vertical
+set splitright
 
 " Don't require saving before closing a buffer
 set hidden
