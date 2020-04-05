@@ -1,7 +1,7 @@
 " Prose - Configurations related to those times I write things that aren't code
 
 function! s:PreviewInMarked()
-  silent! call system("open -a 'Marked 2' " . expand("%:p:h"))
+  silent! call system("open -a 'Marked 2' " . expand("%:p"))
 endfunction
 command! PreviewInMarked call <sid>PreviewInMarked()
 nnoremap <leader>md :PreviewInMarked<cr>
