@@ -1,6 +1,6 @@
 " Markdown - Syntax file for Markdowm files
 
-Plug 'tpope/vim-markdown'
+Plug 'plasticboy/vim-markdown'
 
 hi def link markdownH1Delimiter           PreProc
 hi def link markdownH2Delimiter           Type
