@@ -4,6 +4,8 @@ zplug 'mafredri/zsh-async'
 zplug 'sindresorhus/pure'
 zplug 'zsh-users/zsh-syntax-highlighting', nice:10
 zplug 'zsh-users/zsh-completions', nice:10
+zplug 'zsh-users/zsh-autosuggestions', nice:10
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 
 zplug load
 
