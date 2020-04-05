@@ -46,11 +46,11 @@ _git_aliases() {
 
 _edit_git_alias() {
   line=$(grep -En "^\s+$(_git_alias_name "$1") =" ~/.gitconfig | cut -d ":" -f 1)
-  vim ~/.gitconfig "+$line"
+  $EDITOR ~/.gitconfig "+$line"
 }
 
 _edit_script() {
-  vim "$(which "$1")"
+  $EDITOR "$(which "$1")"
 }
 
 _definition_field_for_pattern() {
@@ -61,7 +61,7 @@ _definition_field_for_pattern() {
 _edit_based_on_pattern() {
   file=$(_definition_field_for_pattern 1 "$1")
   line=$(_definition_field_for_pattern 2 "$1")
-  vim "$file" "+$line"
+  $EDITOR "$file" "+$line"
 }
 
 _edit_shell_function() {
