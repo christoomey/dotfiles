@@ -7,20 +7,20 @@
 app_name=$(basename "`pwd`")
 port=`cat ~/.pow/$app_name 2> /dev/null || [[ -f .vimrc.local ]] && cat .vimrc.local | grep 'g:app_url' | grep -oE '[0-9]+' || echo 3312`
 
-if [[ -f config/environment.rb ]]; then
+if [[ -f Procfile.dev ]]; then
+  server_cmd="bundle check || bundle install && yarn && heroku local -f Procfile.dev -e .env.local"
+elif [[ -f config/environment.rb ]]; then
   server_cmd="bundle check || bundle install && PORT='$port' bin/rails server"
 elif [[ -f yarn.lock ]]; then
   server_cmd="yarn start --port=$port"
 elif [[ -f nwb.config.js ]]; then
   server_cmd="PORT=$port npm start"
-elif grep -q 'react-scripts start' package.json > /dev/null 2>&1; then
+elif [[ -f package.json ]]; then
   server_cmd="PORT=$port npm start"
 elif grep -q 'razzle start' package.json > /dev/null 2>&1; then
   server_cmd="PORT=$port npm start"
 elif [[ -f config.rb ]] && [[ -d source ]]; then
   server_cmd="bundle && bundle exec middleman -p $port"
-elif [[ -f package.json ]]; then
-  server_cmd="grunt serve -p $port"
 else
   server_cmd="python -m SimpleHTTPServer $port"
 fi
