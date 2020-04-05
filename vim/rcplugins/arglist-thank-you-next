@@ -1,0 +1,15 @@
+" Thank you Next - Small wrapper around using the arglist as todo list
+
+function! s:ThankYouNext() abort
+  argdelete %
+  bdelete
+  if empty(argv())
+    echohl String | echon "All files processed!" | echohl None
+  else
+    argument
+  endif
+endfunction
+
+command! ThankYouNext call <sid>ThankYouNext()
+
+" vim:ft=vim
