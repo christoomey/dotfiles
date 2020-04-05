@@ -2,8 +2,7 @@
 
 Plug 'plasticboy/vim-markdown'
 
-hi def link markdownH1Delimiter           PreProc
-hi def link markdownH2Delimiter           Type
-hi def link markdownH3Delimiter           Directory
+hi def link htmlH2           Type
+hi def link htmlH3           PreProc
 
 " vim:ft=vim
