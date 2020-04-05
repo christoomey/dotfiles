@@ -39,6 +39,17 @@ _fuzzy_git_branches() {
 zle -N fuzzy-git-branches _fuzzy_git_branches
 bindkey '^g^b' fuzzy-git-branches
 
+# cat package.json| jq '.scripts | keys[]' | tr -d '"' |
+#   fzf-tmux --reverse --ansi --preview 'cat package.json | jq ".scripts" | jq .["{}"]'
+_yarn_scripts() {
+  zle -U "$(
+    cat package.json| jq '.scripts | keys[]' | tr -d '"' |
+      fzf-tmux --reverse --ansi
+  )"
+}
+zle -N yarn-scripts _yarn_scripts
+bindkey '^g^y' yarn-scripts
+
 # Git files
 _fuzzy_git_status_files() {
   zle -U "$(
