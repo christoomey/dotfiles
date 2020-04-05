@@ -30,6 +30,8 @@ _fuzzy_git_branches() {
     git branch --color=always --sort=-committerdate | \
     grep -v '^* ' | \
     grep -v '^\s\+master' | \
+    grep -v '^\s\+develop' | \
+    grep -v '^\s\+development' | \
     fzf-tmux --reverse --ansi --select-1 | \
     sed -E 's/^[ \t]*//'
   )"
