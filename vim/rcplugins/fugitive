@@ -2,6 +2,6 @@
 
 Plug 'tpope/vim-fugitive'
 
-nnoremap \<space> :Gstatus<cr>
+nnoremap \<space> :Gstatus<cr>:wincmd _<cr>
 
 " vim:ft=vim
