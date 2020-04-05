@@ -20,9 +20,4 @@ set splitright
 set diffopt+=iwhite
 set diffopt+=vertical
 
-" floating windows
-highlight VertSplit guibg=NONE
-highlight NormalFloat guifg=#999999 guibg=#222222
-hi Pmenu guibg=#222222 guifg=#999999
-
 " vim:ft=vim
