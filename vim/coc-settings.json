@@ -2,6 +2,13 @@
   "coc.preferences.jumpCommand": "drop",
   "coc.preferences.hoverTarget": "float",
   "diagnostic.refreshOnInsertMode": true,
+  "eslint.enable": false,
+  "eslint.filetypes": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
   "suggest.floatEnable": true,
   "suggest.noselect": false,
   "suggest.acceptSuggestionOnCommitCharacter": true,
@@ -21,13 +28,30 @@
     "markdown",
     "Markdown",
     "javascript",
+    "javascript.jsx",
     "javascriptreact",
     "typescript",
     "typescriptreact"
   ],
   "prettier.requireConfig": true,
+  "prettier.disableSuccessMessage": true,
   "eslint.autoFixOnSave": true,
   "html.format.enable": true,
-  "tsserver.formatOnType": true,
-  "coc.preferences.formatOnType": true
+  "tsserver.formatOnType": false,
+  "coc.preferences.formatOnType": false,
+  "tailwindCSS.jsLanguages": [
+    "javascript",
+    "javascriptreact",
+    "reason",
+    "typescriptreact",
+    "typescript.jsx"
+  ],
+  "tailwindCSS.trace.server": "verbose",
+  "languageserver": {
+    "elmLS": {
+      "command": "elm-language-server",
+      "filetypes": ["elm"],
+      "rootPatterns": ["elm.json"]
+    }
+  }
 }

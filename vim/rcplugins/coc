@@ -8,8 +8,10 @@ Plug 'neoclide/coc-highlight', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-tsserver', {'do': 'yarn install --frozen-lockfile'}
 Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
-Plug 'neoclide/coc-yaml', {'do': 'yarn install --frozen-lockfile'}
-Plug 'neoclide/coc-solargraph'
+Plug 'iamcco/coc-tailwindcss', {'do': 'yarn install --frozen-lockfile'}
+" Plug 'neoclide/coc-yaml', {'do': 'yarn install --frozen-lockfile'}
+
+nmap <leader>do <Plug>(coc-codeaction)
 
 " don't give |ins-completion-menu| messages.
 set shortmess+=c
@@ -23,7 +25,10 @@ endfunction
 " inoremap <silent><expr> <c-space> coc#refresh()
 
 " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
-inoremap <expr> <TAB> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<TAB>"
+" inoremap <expr> <TAB> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<TAB>"
+
+" Use <cr> to confirm completion, but maybe correctly?
+" inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
 " Use `[g` and `]g` to navigate diagnostics
 nmap <silent> [r <Plug>(coc-diagnostic-prev)
@@ -31,9 +36,10 @@ nmap <silent> ]r <Plug>(coc-diagnostic-next)
 
 " Remap keys for gotos
 nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> <C-]> <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
+nmap <silent> <leader>gu <Plug>(coc-references)
 
 " show documentation
 function! s:show_documentation()
@@ -51,11 +57,14 @@ function! ShowDocIfNoDiagnostic(timer_id)
     silent call CocActionAsync('doHover')
   endif
 endfunction
+
 function! s:show_hover_doc()
   call timer_start(200, 'ShowDocIfNoDiagnostic')
 endfunction
-autocmd CursorHoldI * :call <SID>show_hover_doc()
-autocmd CursorHold * :call <SID>show_hover_doc()
+" autocmd CursorHoldI * :call <SID>show_hover_doc()
+" autocmd CursorHold * :call <SID>show_hover_doc()
+
+nnoremap <leader>k :call <SID>show_hover_doc()<cr>
 
 " common editor actions
 nmap <leader>rn <Plug>(coc-rename)
@@ -90,21 +99,8 @@ command! -nargs=? Fold :call     CocAction('fold', <f-args>)
 " use `:OR` for organize import of current buffer
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
-" Show all diagnostics
-nnoremap <silent> <space>d :<C-u>CocList diagnostics<cr>
-" Manage extensions
-nnoremap <silent> <space>e :<C-u>CocList extensions<cr>
-" Show commands
-nnoremap <silent> <space>c :<C-u>CocList commands<cr>
-" Find symbol of current document
-nnoremap <silent> <space>o :<C-u>CocList outline<cr>
-" Search workspace symbols
-nnoremap <silent> <space>s :<C-u>CocList -I symbols<cr>
-" Do default action for next item.
-nnoremap <silent> <space>j :<C-u>CocNext<CR>
-" Do default action for previous item.
-nnoremap <silent> <space>k :<C-u>CocPrev<CR>
-" Resume latest coc list
-nnoremap <silent> <space>p :<C-u>CocListResume<CR>
+map <silent> <leader>gl <leader>cceyla<BS><c-r>"
+nnoremap <leader>gR :silent! CocRestart<cr>
+nnoremap <leader>GR :silent! CocRestart<cr>
 
 " vim:ft=vim
