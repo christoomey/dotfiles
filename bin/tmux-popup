@@ -1,0 +1,5 @@
+#!/bin/sh
+
+width=${2:-80%}
+
+tmux popup -d '#{pane_current_path}' -xC -yC -w$width -h80% -K -E -R "${1:-zsh}" || true
