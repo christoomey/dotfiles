@@ -5,3 +5,6 @@ export PATH="/usr/local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
 
 export PATH="$HOME/.npm-packages/bin:$PATH"
+
+# Use postgres.app versions of pg utilites
+export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH

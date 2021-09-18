@@ -37,9 +37,12 @@
 [color]
   ui = auto
 [core]
+  pager = delta --dark
   excludesfile = ~/.gitignore
   autocrlf = input
   editor = nvim
+[interactive]
+  diffFilter = delta --color-only
 [merge]
   ff = only
 [push]
@@ -62,3 +65,5 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[pull]
+	ff = only

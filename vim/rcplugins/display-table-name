@@ -1,0 +1,45 @@
+" Display Table Name for current Rails model file
+
+Plug '~/code/vim/display-table-summary'
+
+nnoremap <leader>dt :DisplayTableSummary<cr>
+
+" function! s:DisplayTableDetail() abort
+"   call popup_create(systemlist(s:table_info_query()), s:popup_options)
+" endfunction
+
+" let s:popup_options =
+"   \ {
+"   \   'close': 'button',
+"   \   'border': [1,1,1,1],
+"   \   'drag': 1,
+"   \   'maxheight': 50,
+"   \   'scrollbar': 1,
+"   \   'resize': 1
+"   \ }
+
+" command! DisplayTableDetail call s:DisplayTableDetail()
+
+" function! s:table_info_query() abort
+"   return "psql -d " . s:database_name() . " -c '\\d " . s:table_name() . "'"
+" endfunction
+
+" function! s:table_name() abort
+"   return system("table-name-rails " . expand("%"))
+" endfunction
+
+" function! s:database_name() abort
+"   if exists('g:display_table_database_name')
+"     return g:display_table_database_name
+"   else
+"     if executable('yq')
+"       return trim(system("cat config/database.yml | yq read - development.database"))
+"     else
+"       return trim(system("basename $(pwd)")) . "_development"
+"     end
+"   endif
+" endfunction
+
+" nnoremap <leader>dt :DisplayTableDetail<cr>
+
+" " vim:ft=vim

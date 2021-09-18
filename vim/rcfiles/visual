@@ -4,6 +4,7 @@
 " Make it obvious where 80 characters is
 set textwidth=80
 set colorcolumn=+1
+set noshowmode
 
 " automatically rebalance windows on vim resize
 autocmd VimResized * GoldenRatioResize
@@ -19,5 +20,9 @@ set splitright
 " Ignore whitespace only changes in diff, always use vertical diffs
 set diffopt+=iwhite
 set diffopt+=vertical
+
+" For neovim, in hopes of making the 'spurious `q`s' go away
+" https://github.com/neovim/neovim/issues/8234
+set guicursor=
 
 " vim:ft=vim

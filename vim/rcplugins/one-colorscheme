@@ -1,0 +1,6 @@
+Plug 'rakr/vim-one'
+
+" colorscheme one
+" call one#highlight('Normal', '', 'ffffff', 'none')
+
+" vim:ft=vim

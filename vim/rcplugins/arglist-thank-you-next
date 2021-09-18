@@ -1,6 +1,7 @@
 " Thank you Next - Small wrapper around using the arglist as todo list
 
 function! s:ThankYouNext() abort
+  update
   argdelete %
   bdelete
   if empty(argv())

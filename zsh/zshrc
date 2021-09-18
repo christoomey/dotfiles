@@ -15,12 +15,11 @@ done
 
 ensure_tmux_is_running
 
-alias vim="nvim"
-alias vi="nvim"
-
 . $HOME/.asdf/asdf.sh
 . $HOME/.asdf/completions/asdf.bash
 . /usr/local/etc/bash_completion.d
 
 [ -f ~/.client-config.zsh ] && source ~/.client-config.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"

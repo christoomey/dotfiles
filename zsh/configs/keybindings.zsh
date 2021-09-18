@@ -32,7 +32,8 @@ _fuzzy_git_branches() {
     grep -v '^\s\+master' | \
     grep -v '^\s\+develop' | \
     grep -v '^\s\+development' | \
-    fzf-tmux --reverse --ansi --select-1 | \
+    fzf --reverse --ansi --select-1 --multi | \
+    xargs echo | \
     sed -E 's/^[ \t]*//'
   )"
 }
@@ -44,7 +45,7 @@ bindkey '^g^b' fuzzy-git-branches
 _yarn_scripts() {
   zle -U "$(
     cat package.json| jq '.scripts | keys[]' | tr -d '"' |
-      fzf-tmux --reverse --ansi
+      fzf --reverse --ansi
   )"
 }
 zle -N yarn-scripts _yarn_scripts
@@ -54,7 +55,7 @@ bindkey '^g^y' yarn-scripts
 _fuzzy_git_status_files() {
   zle -U "$(
     git -c color.status=always status --short | \
-    fzf-tmux --ansi --reverse --no-sort | \
+    fzf --ansi --reverse --no-sort --multi | \
     cut -d ' ' -f 3
   )"
 }
@@ -64,8 +65,8 @@ bindkey '^g^f' fuzzy-git-status-files
 # Git files
 _fuzzy_git_shalector() {
   commit=$(
-    git log --color=always --oneline --decorate --all -35 | \
-    fzf-tmux --ansi --reverse --no-sort
+    git log --color=always --oneline --decorate -35 | \
+    fzf --ansi --reverse --no-sort
   )
   zle -U "$(echo $commit | cut -d ' ' -f 1)"
   zle -M "$commit"

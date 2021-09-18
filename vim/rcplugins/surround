@@ -2,4 +2,6 @@
 
 Plug 'tpope/vim-surround'
 
+let g:surround_99 = "```\r```"
+
 " vim:ft=vim

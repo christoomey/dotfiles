@@ -2,6 +2,18 @@
 
 Plug 'plasticboy/vim-markdown'
 
+nnoremap <leader>co :Toch<cr>
+
+autocmd FileType markdown setlocal conceallevel=2
+autocmd FileType markdown nnoremap <buffer> <tab> :call search('\s[\w', 'w')<cr>:noh<cr>2l
+autocmd FileType markdown nnoremap <buffer> <S-tab> F[h:call search('\s[\w', 'wb')<cr>:noh<cr>2l
+autocmd FileType markdown nmap <buffer> <cr> <Plug>Markdown_OpenUrlUnderCursor
+autocmd FileType markdown setlocal nowrap
+
+let g:vim_markdown_new_list_item_indent = 0
+let g:vim_markdown_fenced_languages = ['rb=ruby']
+let g:vim_markdown_conceal_code_blocks = 0
+
 hi def link htmlH2           Type
 hi def link htmlH3           PreProc
 

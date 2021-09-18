@@ -18,6 +18,9 @@ function! s:SourceConfigFilesIn(directory)
   endfor
 endfunction
 
+" Force shell to /bin/bash to avoid E484 can't find tmp files in /var/folders/*
+set shell=/bin/bash
+
 call plug#begin('~/.vim/bundle')
 call s:SourceConfigFilesIn('rcplugins')
 call plug#end()

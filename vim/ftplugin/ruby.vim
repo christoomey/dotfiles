@@ -1,1 +1,1 @@
-nnoremap <leader>bp orequire "pry"; binding.pry<esc>
+nnoremap <leader>bp obinding.pry<esc>

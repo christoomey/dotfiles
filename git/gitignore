@@ -15,3 +15,6 @@ vim/view
 .project-notes
 .vimrc.local
 node_modules
+.project-notes/*
+.notes/*
+.notes-archive/*

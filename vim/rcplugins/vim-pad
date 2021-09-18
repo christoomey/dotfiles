@@ -1,0 +1,8 @@
+" Vim Pad - quick access notes, project specific and global
+
+Plug 'fmoralesc/vim-pad'
+
+let g:pad#dir = '~/.notes'
+let g:pad#local_dir = '.notes'
+
+" vim:ft=vim

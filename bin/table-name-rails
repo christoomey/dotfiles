@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'active_support/inflector'
+
+puts ARGV.first.gsub("app/models/", "").gsub(/\.rb$/, "").gsub("\/","_").tableize

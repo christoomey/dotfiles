@@ -1,6 +1,6 @@
 # General ZSH configurations
 
-export EDITOR="nvim"
+export EDITOR="vim"
 
 sz() { source ~/.zshrc }
 

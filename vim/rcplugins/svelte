@@ -1,0 +1,10 @@
+" Svelte runtime and syntax files
+
+Plug 'evanleck/vim-svelte', {'branch': 'main'}
+Plug 'isRuslan/vim-es6'
+
+let g:svelte_preprocessors = ['typescript']
+let g:svelte_indent_script = 0
+let g:svelte_indent_style = 0
+
+" vim:ft=vim

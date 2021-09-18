@@ -26,7 +26,8 @@ function! s:ClearEmAll()
   cclose
   pclose
   lclose
-  call coc#util#float_hide()
+  " call coc#util#float_hide()
+  call popup_clear()
 endfunction
 
 " Quick sourcing of the current file, allowing for quick vimrc testing

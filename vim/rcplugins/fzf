@@ -10,7 +10,7 @@ let g:fzf_layout = { 'down': '~60%' }
 nnoremap <C-p> :Files<cr>
 let $FZF_DEFAULT_COMMAND = 'ag -g "" --hidden'
 
-let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6, 'highlight': 'Todo', 'border': 'sharp' } }
+" let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6, 'highlight': 'Todo', 'border': 'sharp' } }
 " " Creates a floating window with a most recent buffer to be used
 " function! CreateCenteredFloatingWindow()
 "     let width = float2nr(&columns * 0.75)
