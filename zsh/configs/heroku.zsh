@@ -17,12 +17,12 @@ function sgn {
 function dev {
   if [[ $# -gt 0 ]]; then
     if [[ $1 == 'migrate' ]]; then
-      bin/rake db:migrate db:test:prepare
+      bundle exec rake db:migrate db:test:prepare
     else
-      bin/rails "$@"
+      bundle exec rails "$@"
     fi
   else
-    bin/rails console
+    bundle exec rails console
   fi
 }
 compdef production=heroku
