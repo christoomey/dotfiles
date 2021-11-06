@@ -60,5 +60,6 @@
       "filetypes": ["elm"],
       "rootPatterns": ["elm.json"]
     }
-  }
+  },
+  "svelte.ask-to-enable-ts-plugin": false
 }
