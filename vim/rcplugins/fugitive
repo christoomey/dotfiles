@@ -2,7 +2,7 @@
 
 Plug 'tpope/vim-fugitive'
 
-nnoremap \<space> :Gstatus<cr>:wincmd _<cr>
+nnoremap \<space> :Git<cr>:wincmd _<cr>
 nnoremap \gr :Grebase -i master<cr>
 
 " vim:ft=vim
