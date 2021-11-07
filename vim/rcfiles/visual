@@ -17,10 +17,6 @@ nnoremap <leader>= :wincmd =<cr>
 set splitbelow
 set splitright
 
-" Ignore whitespace only changes in diff, always use vertical diffs
-set diffopt+=iwhite
-set diffopt+=vertical
-
 " For neovim, in hopes of making the 'spurious `q`s' go away
 " https://github.com/neovim/neovim/issues/8234
 set guicursor=
