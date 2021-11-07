@@ -1,10 +1,11 @@
-source ~/.zplug/init.zsh
+export ZPLUG_HOME=/opt/homebrew/opt/zplug
+source $ZPLUG_HOME/init.zsh
 
 zplug 'mafredri/zsh-async'
 zplug 'sindresorhus/pure'
-zplug 'zsh-users/zsh-syntax-highlighting', nice:10
-zplug 'zsh-users/zsh-completions', nice:10
-zplug 'zsh-users/zsh-autosuggestions', nice:10
+zplug 'zsh-users/zsh-syntax-highlighting', defer:2
+zplug 'zsh-users/zsh-completions', defer:2
+zplug 'zsh-users/zsh-autosuggestions', defer:2
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 
 zplug load
@@ -16,8 +17,8 @@ done
 ensure_tmux_is_running
 
 . $HOME/.asdf/asdf.sh
-. $HOME/.asdf/completions/asdf.bash
-. /usr/local/etc/bash_completion.d
+# . $HOME/.asdf/completions/asdf.bash
+# . /usr/local/etc/bash_completion.d
 
 [ -f ~/.client-config.zsh ] && source ~/.client-config.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
