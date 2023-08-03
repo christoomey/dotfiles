@@ -1,0 +1,16 @@
+#!/bin/zsh
+
+set -e
+
+git branch --color=always --sort=-committerdate | \
+  grep -v '^* ' | \
+  grep -v '^\s\+master' | \
+  grep -v '^\s\+main' | \
+  grep -v '^\s\+develop' | \
+  grep -v '^\s\+development' | \
+  fzf --reverse --ansi --select-1 --multi | \
+  xargs echo | \
+  sed -E 's/^[ \t]*//' | \
+  xargs git checkout
+
+tmux refresh-client -S

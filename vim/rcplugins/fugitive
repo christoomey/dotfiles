@@ -3,6 +3,7 @@
 Plug 'tpope/vim-fugitive'
 
 nnoremap \<space> :Git<cr>:wincmd _<cr>
-nnoremap \gr :Grebase -i master<cr>
+nnoremap \gr :Git rebase -i master<cr>
+nnoremap \gd :Gvdiffsplit<cr>
 
 " vim:ft=vim

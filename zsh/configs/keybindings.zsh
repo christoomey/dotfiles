@@ -30,6 +30,7 @@ _fuzzy_git_branches() {
     git branch --color=always --sort=-committerdate | \
     grep -v '^* ' | \
     grep -v '^\s\+master' | \
+    grep -v '^\s\+main' | \
     grep -v '^\s\+develop' | \
     grep -v '^\s\+development' | \
     fzf --reverse --ansi --select-1 --multi | \

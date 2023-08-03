@@ -13,7 +13,7 @@ nnoremap <leader>v3 :VtrAttachToPane 3<cr>:call system("tmux clock-mode -t 3 && 
 nnoremap <leader>v4 :VtrAttachToPane 4<cr>:call system("tmux clock-mode -t 4 && sleep 0.1 && tmux send-keys -t 4 q")<cr>
 nnoremap <leader>v5 :VtrAttachToPane 5<cr>:call system("tmux clock-mode -t 5 && sleep 0.1 && tmux send-keys -t 5 q")<cr>
 nnoremap <leader>fr :VtrFocusRunner<cr>
-noremap <C-f> :VtrSendLinesToRunner<cr>
+" noremap <C-f> :VtrSendLinesToRunner<cr>
 
 nnoremap <leader>sq :VtrSendKeysRaw q<cr>
 nnoremap <leader>sd :VtrSendKeysRaw ^D<cr>

@@ -3,8 +3,9 @@
 Plug 'evanleck/vim-svelte', {'branch': 'main'}
 Plug 'isRuslan/vim-es6'
 
-let g:svelte_preprocessors = ['typescript']
-let g:svelte_indent_script = 0
-let g:svelte_indent_style = 0
+let g:svelte_preprocessor_tags = [
+  \ { 'name': 'ts', 'tag': 'script', 'as': 'typescript' }
+  \ ]
+let g:svelte_preprocessors = ['ts', 'scss']
 
 " vim:ft=vim

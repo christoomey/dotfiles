@@ -8,7 +8,7 @@ let g:fzf_files_options =
   \ '--preview "(coderay {} || cat {}) 2> /dev/null | head -'.&lines.'"'
 let g:fzf_layout = { 'down': '~60%' }
 nnoremap <C-p> :Files<cr>
-let $FZF_DEFAULT_COMMAND = 'ag -g "" --hidden'
+let $FZF_DEFAULT_COMMAND = 'ag -g "" --hidden --ignore .git'
 
 " let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6, 'highlight': 'Todo', 'border': 'sharp' } }
 " " Creates a floating window with a most recent buffer to be used
@@ -35,16 +35,10 @@ let $FZF_DEFAULT_COMMAND = 'ag -g "" --hidden'
     " au BufWipeout <buffer> exe 'bw '.s:buf
 " endfunction
 
-" function! s:OpenLazyGit() abort
-"     call OpenTerm('lazygit')
-" endfunction
-
 " function! OpenTerm(cmd)
 "     call CreateCenteredFloatingWindow()
 "     call termopen(a:cmd, { 'on_exit': function('OnTermExit') })
 " endfunction
-
-nnoremap <leader>gi :call <sid>OpenLazyGit()<cr>
 
 " let g:fzf_layout = { 'window': 'call CreateCenteredFloatingWindow()' }
 

@@ -2,6 +2,8 @@
 
 Plug '~/code/vim/fzf-branch-files'
 
+let g:fzf_branch_files_default_branch = 'main'
+
 nnoremap <silent> <leader>gp :FzfBranchFiles<cr>
 nnoremap <silent> <leader>GP :FzfWorkingFiles<cr>
 

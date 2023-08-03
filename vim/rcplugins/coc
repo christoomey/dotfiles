@@ -1,5 +1,7 @@
 " COC - the Conquerer of Completion
 
+let g:coc_node_path = '/Users/christoomey/.asdf/shims/node'
+
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 let g:coc_global_extensions = [
   \ 'coc-css',
@@ -12,13 +14,24 @@ let g:coc_global_extensions = [
   \ 'coc-yaml',
   \ 'coc-vimlsp',
   \ 'coc-svg',
-  \ 'coc-actions',
   \ 'coc-lists',
   \ 'coc-json',
   \ 'coc-yank',
   \ 'coc-highlight',
   \ 'coc-solargraph',
   \ ]
+
+" autocmd FileType * let b:coc_suggest_disable = 1
+" inoremap <silent><expr> <c-j> coc#refresh()
+
+nmap <leader>rn <Plug>(coc-rename)
+
+inoremap <silent><expr> <TAB>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+
+" \ 'coc-actions',
 
 if isdirectory('./node_modules') && isdirectory('./node_modules/prettier')
   let g:coc_global_extensions += ['coc-prettier']
@@ -49,20 +62,10 @@ endfunction
 command! RestartCoc call s:RestartCoc()
 nnoremap <leader>re :RestartCoc<cr>
 
-" inoremap <silent><expr> <TAB>
-"       \ pumvisible() ? coc#_select_confirm() :
-"       \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
-"       \ <SID>check_back_space() ? "\<TAB>" :
-"       \ coc#refresh()
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
+inoremap <silent><expr> <Tab> coc#pum#visible() ? "\<C-n>" : "\<Tab>"
 
-" function! s:check_back_space() abort
-"   let col = col('.') - 1
-"   return !col || getline('.')[col - 1]  =~# '\s'
-" endfunction
-
-" let g:coc_snippet_next = '<tab>'
-
-" nnoremap <leader>es :vsplit<cr>:CocCommand snippets.editSnippets<cr>
+" hi! CocMenuSel ctermbg=8
 
 nmap <silent> <C-]> <Plug>(coc-definition)
 nmap <leader>do <Plug>(coc-codeaction)
@@ -92,5 +95,4 @@ function! s:show_hover_doc()
 endfunction
 nnoremap <leader>k :call <SID>show_hover_doc()<cr>
 
-" " vim:ft=vim
-
+" vim:ft=vim

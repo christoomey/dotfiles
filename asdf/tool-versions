@@ -1,2 +1,4 @@
-nodejs 12.14.1
+nodejs 16.14.2
+yarn 1.22.19
 ruby 2.6.1
+python 2.7.18

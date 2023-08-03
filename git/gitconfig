@@ -10,10 +10,13 @@
   dfw = !git df -w
   dc = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color --cached $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
   dcw = !git dc -w
+  yep = !vim hello.md
+  down = !git checkout master && git pull && git gone
   fall = fetch --all
   fad = !git add $(git ls-files --others --exclude-standard -m | fzf --reverse --multi)
   fadd = !git fadd
   glog = log -E -i --grep
+  gone = !"git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" {print $1}' | xargs -r git branch -D"
   dup = !git checkout development && git fetch origin && echo && git sl development..origin/development && echo && git pull --quiet && git checkout -
   mup = !git checkout master && git fetch origin && echo && git sl master..origin/master && echo && git pull --quiet && git checkout -
   pl = pull
@@ -40,7 +43,7 @@
   pager = delta --dark
   excludesfile = ~/.gitignore
   autocrlf = input
-  editor = nvim
+  editor = vim
 [interactive]
   diffFilter = delta --color-only
 [merge]
