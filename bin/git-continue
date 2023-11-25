@@ -2,15 +2,19 @@
 
 # Continue a rebase or cherry-pick in the event of conflicts.
 
-if [[ -e .git/CHERRY_PICK_HEAD ]] ; then
+set -eou pipefail
+
+GIT_REPO_ROOT=$(git rev-parse --show-toplevel)
+
+if [[ -e "$GIT_REPO_ROOT/.git/CHERRY_PICK_HEAD" ]] ; then
     exec git cherry-pick --continue "$@"
-elif [[ -e .git/rebase-apply/applying ]] ; then
+elif [[ -e "$GIT_REPO_ROOT/.git/rebase-apply/applying" ]] ; then
     exec git rebase --continue "$@"
-elif [[ -e .git/rebase-apply ]] ; then
+elif [[ -e "$GIT_REPO_ROOT/.git/rebase-apply" ]] ; then
     exec git rebase --continue "$@"
-elif [[ -e .git/rebase-merge ]] ; then
+elif [[ -e "$GIT_REPO_ROOT/.git/rebase-merge" ]] ; then
     exec git rebase --continue "$@"
 else
     echo git-abort: unknown state
-    exit -1
+    exit 1
 fi
