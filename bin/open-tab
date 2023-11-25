@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env -S ruby --disable-gems -x
 
 require 'optparse'
 
@@ -31,9 +31,9 @@ class TabOpener
 
   def app_tab
     @app_tab ||= begin
-                   tab_info = `chrome-cli list links | grep '#{app_url}' | head -1`.chomp
-                   if tab_info != ""
-                     tab_info.match(/^\[(?:\d+:)?(\d+)\]/)[1]
+                   tab_info = `chrome-cli list links | grep -Fn '#{app_url}' | cut -d ':' -f 1`.chomp.to_i
+                   if tab_info != 0
+                     tab_info
                    else
                      TAB_NOT_FOUND
                    end
@@ -48,11 +48,8 @@ class TabOpener
     app_tab != TAB_NOT_FOUND
   end
 
-  def activate(tab)
-    system "chrome-cli activate -t #{tab}"
-    if options[:reload]
-      system "chrome-cli reload -t #{tab}"
-    end
+  def activate(tab_index)
+    system "osascript -e 'tell application \"Google Chrome\" to set active tab index of first window to #{tab_index}'"
   end
 
   def focus_chrome
