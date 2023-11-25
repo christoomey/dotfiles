@@ -44,6 +44,7 @@
   excludesfile = ~/.gitignore
   autocrlf = input
   editor = vim
+  commentChar = ";"
 [interactive]
   diffFilter = delta --color-only
 [merge]
