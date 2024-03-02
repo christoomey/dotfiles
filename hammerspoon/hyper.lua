@@ -13,17 +13,31 @@ function k:exited()
   menuItem:setTitle("Hyper")
 end
 
-function runAndExit(action)
+local function runAndExit(action)
   return function()
     k:exit()
     action()
   end
 end
 
-local bind = function(mods, key, action)
+local function bind(mods, key, action)
   k:bind(mods, key, runAndExit(action))
+end
+
+local function bindAll(keyMap)
+  for key, action in pairs(keyMap) do
+    if type(action) == 'table' then
+      print('var is a table')
+    elseif type(action) == 'function' then
+      bind({}, key, action)
+    else
+      print('config value for ' .. key .. ' is neither a table nor a function')
+    end
+
+  end
 end
 
 return {
   bind = bind,
+  bindAll = bindAll,
 }
