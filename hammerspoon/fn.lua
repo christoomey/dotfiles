@@ -32,10 +32,17 @@ function sendKeys(mods, key)
   end
 end
 
+function runShortcut(shortcutName)
+  return function()
+    hs.execute('shortcuts run "' .. shortcutName .. '"')
+  end
+end
+
 return {
   openApp = openApp,
   openRaycastExtension = openRaycastExtension,
   openRaycastScriptCommand = openRaycastScriptCommand,
   sendKeys = sendKeys,
   reloadHammerspoonConfig = reloadHammerspoonConfig,
+  runShortcut = runShortcut
 }

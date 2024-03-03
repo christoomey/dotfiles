@@ -25,12 +25,19 @@ local function bind(mods, key, action)
 end
 
 local function bindAll(keyMap)
-  for key, value in pairs(keyMap) do
-    if type(value) == 'table' then
-      bind({}, key, value.base)
-      bind({"shift"}, key, value.withShift)
-    elseif type(value) == 'function' then
-      bind({}, key, value)
+  for key, bindings in pairs(keyMap) do
+    if type(bindings) == 'table' then
+      for _, binding in pairs(bindings) do
+        if type(binding) == "table" then
+          for mods, action in pairs(binding) do
+            bind(mods, key, action)
+          end
+        else
+          bind({}, key, binding)
+        end
+      end
+    elseif type(bindings) == 'function' then
+      bind({}, key, bindings)
     else
       print('config value for ' .. key .. ' is neither a table nor a function')
     end
