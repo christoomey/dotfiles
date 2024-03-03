@@ -1,46 +1,42 @@
+local fn = require("fn")
 local hyper = require("hyper")
 
-function openAppFn(name)
-  return function()
-    hs.application.launchOrFocus(name)
-    if name == 'Finder' then
-      hs.appfinder.appFromName(name):activate()
-    end
-  end
-end
-
--- https://manual.raycast.com/deeplinks#e460b1f1c034468db3fbf9f028d8f01c
--- Get the deep link from Cmd-k in the menu
-function openRaycastCommandFn(extensionDeepLinkPath)
-  return function()
-    hs.execute("open " .. "raycast://extensions/" .. extensionDeepLinkPath)
-  end
-end
-
-function reloadHammerspoonConfig()
-  hs.reload()
-  hs.notify.show("Hammerspoon", "Config reloaded", "")
-end
-
 hyper.bindAll({
-  ["\\"] = openRaycastCommandFn("raycast/clipboard-history/clipboard-history"),
-  i = openAppFn("Google Chrome"),
-  j = openAppFn("IntelliJ IDEA"),
-  p = openRaycastCommandFn("raycast/raycast-ai/ai-chat"),
-  s = openAppFn("iTerm"),
-  r = openAppFn("Spotify"),
+  ["\\"] = fn.openRaycastExtension("raycast/clipboard-history/clipboard-history"),
+  ["]"] = fn.openRaycastExtension("raycast/snippets/search-snippets"),
+  ["1"] = { base = fn.openApp("1Password"), withShift = fn.sendKeys({ "ctrl", "alt", "cmd" }, "1") },
+  ["space"] = fn.openApp("Finder"),
+  f = fn.openApp("Slack"),
+  h = { base = fn.openApp("Hammerspoon"), withShift = reloadHammerspoonConfig },
+  i = fn.openApp("Google Chrome"),
+  j = fn.openApp("IntelliJ IDEA"),
+  l = {
+    base = fn.openApp("Linear"),
+    withShift = fn.openRaycastExtension("thomaslombart/linear/assigned-issues"),
+  },
+  n = {
+    base = fn.openApp("Notes"),
+    withShift = fn.openRaycastExtension("tumtum/apple-notes/index"),
+  },
+  o = {
+    base = fn.openApp("Obsidian"),
+    withShift = fn.openRaycastExtension("KevinBatdorf/obsidian/searchNoteCommand"),
+  },
+  p = fn.openRaycastExtension("raycast/raycast-ai/ai-chat"),
+  s = fn.openApp("iTerm"),
+  r = {
+    base = fn.openApp("Spotify"),
+    withShift = fn.openRaycastExtension("mattisssa/spotify-player/yourLibrary"),
+  },
+  t = {
+    base = fn.openRaycastScriptCommand("open-trello"),
+    withShift = fn.openRaycastExtension("ChrisChinchilla/trello/searchBoards")
+  },
+  u = {
+    base = fn.openApp("Things3"),
+    withShift = fn.sendKeys({ "cmd", "shift", "ctrl" }, "u"),
+  },
 })
 
-
-hyper.bind({}, "h", openAppFn("Hammerspoon"))
-hyper.bind({"shift"}, "h", reloadHammerspoonConfig)
-
-hyper.bind({}, "l", openAppFn("Linear"))
-hyper.bind({"shift"}, "l", openRaycastCommandFn("thomaslombart/linear/assigned-issues"))
-
-hyper.bind({}, "n", openAppFn("Notes"))
-hyper.bind({"shift"}, "n", openRaycastCommandFn("tumtum/apple-notes/index"))
-
-
--- TODO -- Use a table (key value style) for config
--- TODO -- any non-mapped key should exit and send through
+-- TODO things, 1password, etc even when the app is closed
+-- https://evantravers.com/articles/2020/06/08/hammerspoon-a-better-better-hyper-key/#even-when-the-app-is-closed
