@@ -38,8 +38,15 @@ function runShortcut(shortcutName)
   end
 end
 
+function openTab(tabUrl)
+  return function()
+    hs.execute("~/bin/open-tab '" .. "https://" .. tabUrl .. "'")
+  end
+end
+
 return {
   openApp = openApp,
+  openTab = openTab,
   openRaycastExtension = openRaycastExtension,
   openRaycastScriptCommand = openRaycastScriptCommand,
   sendKeys = sendKeys,

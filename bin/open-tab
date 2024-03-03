@@ -30,18 +30,19 @@ class TabOpener
   attr_reader :app_url, :options
 
   def app_tab
-    @app_tab ||= begin
-                   tab_info = `chrome-cli list links | grep -Fn '#{app_url}' | cut -d ':' -f 1`.chomp.to_i
-                   if tab_info != 0
-                     tab_info
-                   else
-                     TAB_NOT_FOUND
-                   end
-                 end
+    @app_tab ||=
+      begin
+        tab_info = `/opt/homebrew/bin/chrome-cli list links | grep -Fn '#{app_url}' | cut -d ':' -f 1`.chomp.to_i
+        if tab_info != 0
+          tab_info
+        else
+          TAB_NOT_FOUND
+        end
+      end
   end
 
   def open_app_in_new_tab
-    system "chrome-cli open #{app_url} > /dev/null 2>&1"
+    system "/opt/homebrew/bin/chrome-cli open #{app_url} > /dev/null 2>&1"
   end
 
   def tab_exists?

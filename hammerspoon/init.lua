@@ -17,6 +17,10 @@ hyper.bindAll({
     fn.openApp("Linear"),
     { ["shift"] = fn.openRaycastExtension("thomaslombart/linear/assigned-issues") },
   },
+  m = {
+    fn.openTab("mail.google.com/mail/u/0"),
+    { ["shift"] = fn.openTab("mail.google.com/mail/u/1") },
+  },
   n = {
     fn.openApp("Notes"),
     { ["shift"] = fn.openRaycastExtension("tumtum/apple-notes/index") },
@@ -33,7 +37,7 @@ hyper.bindAll({
     { ["shift,ctrl"] = fn.runShortcut("Spotify Random") },
   },
   t = {
-    fn.openRaycastScriptCommand("open-trello"),
+    fn.openTab("trello.com"),
     { ["shift"] = fn.openRaycastExtension("ChrisChinchilla/trello/searchBoards") }
   },
   u = {
@@ -41,6 +45,7 @@ hyper.bindAll({
     { ["shift"] = fn.sendKeys({ "cmd", "shift", "ctrl" }, "u") },
   },
 })
+
 
 -- TODO things, 1password, etc even when the app is closed
 -- https://evantravers.com/articles/2020/06/08/hammerspoon-a-better-better-hyper-key/#even-when-the-app-is-closed
