@@ -11,7 +11,7 @@ end
 -- Get the deep link from Cmd-k in the menu
 function openRaycastExtension(extensionDeepLinkPath)
   return function()
-    hs.execute("open " .. "raycast://extensions/" .. extensionDeepLinkPath)
+    hs.execute("open -g " .. "raycast://extensions/" .. extensionDeepLinkPath)
   end
 end
 
