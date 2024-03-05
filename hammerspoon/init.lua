@@ -1,9 +1,14 @@
 local fn = require("fn")
 local hyper = require("hyper")
 
+local windowModal = hs.hotkey.modal.new({}, nil)
+
 hyper.bindAll({
   ["\\"] = fn.openRaycastExtension("raycast/clipboard-history/clipboard-history"),
   ["]"] = fn.openRaycastExtension("raycast/snippets/search-snippets"),
+  ["0"] = function()
+    windowModal:enter()
+  end,
   ["1"] = {
     fn.openApp("1Password"),
     { ["shift"] = fn.sendKeys({ "ctrl", "alt", "cmd" }, "1") },
@@ -75,6 +80,43 @@ hyper.bindAll({
   },
 })
 
+windowModal:bind({}, "0", nil, function() windowModal:exit() end)
+windowModal:bind({}, "escape", nil, function() windowModal:exit() end)
+
+windowModal:bind({}, "a", nil, fn.openRaycastExtension("raycast/window-management/almost-maximize"))
+
+windowModal:bind({}, "q", nil, fn.openRaycastExtension("raycast/window-management/first-two-thirds"))
+windowModal:bind({}, "p", nil, fn.openRaycastExtension("raycast/window-management/last-third"))
+
+windowModal:bind({}, "h", nil, fn.openRaycastExtension("raycast/window-management/maximize-height"))
+windowModal:bind({}, "w", nil, fn.openRaycastExtension("raycast/window-management/maximize-width"))
+
+windowModal:bind({}, "f", nil, fn.openRaycastExtension("raycast/window-management/maximize"))
+windowModal:bind({}, "m", nil, fn.openRaycastExtension("raycast/window-management/center-three-fourths"))
+
+windowModal:bind({}, "h", nil, fn.openRaycastExtension("raycast/window-management/move-left"))
+windowModal:bind({}, "k", nil, fn.openRaycastExtension("raycast/window-management/move-up"))
+windowModal:bind({}, "j", nil, fn.openRaycastExtension("raycast/window-management/move-down"))
+windowModal:bind({}, "l", nil, fn.openRaycastExtension("raycast/window-management/move-right"))
+
+windowModal:bind({}, "r", nil, fn.openRaycastExtension("raycast/window-management/restore"))
+
+windowModal:bind({}, "-", nil, fn.openRaycastExtension("raycast/window-management/make-smaller"))
+windowModal:bind({}, "=", nil, fn.openRaycastExtension("raycast/window-management/make-larger"))
+
+
+local menuItem = hs.menubar.new(true, 'window')
+menuItem:setTitle("Window")
+
+function windowModal:entered()
+  hyper.exit()
+  menuItem:setTitle("WINDOW")
+  hs.timer.doAfter(10, function() windowModal:exit() end) -- make this count from last action
+end
+
+function windowModal:exited()
+  menuItem:setTitle("Window")
+end
 
 -- TODO things, 1password, etc even when the app is closed
 -- https://evantravers.com/articles/2020/06/08/hammerspoon-a-better-better-hyper-key/#even-when-the-app-is-closed
