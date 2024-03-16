@@ -13,6 +13,10 @@ function k:exited()
   menuItem:setTitle("Hyper")
 end
 
+local function exit()
+  k:exit()
+end
+
 local function runAndExit(action)
   return function()
     k:exit()
@@ -46,6 +50,7 @@ local function bindAll(keyMap)
 end
 
 return {
+  exit = exit,
   bind = bind,
   bindAll = bindAll,
 }

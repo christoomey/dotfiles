@@ -6,9 +6,7 @@ local windowModal = hs.hotkey.modal.new({}, nil)
 hyper.bindAll({
   ["\\"] = fn.openRaycastExtension("raycast/clipboard-history/clipboard-history"),
   ["]"] = fn.openRaycastExtension("raycast/snippets/search-snippets"),
-  ["0"] = function()
-    windowModal:enter()
-  end,
+  ["0"] = function() windowModal:enter() end,
   ["1"] = {
     fn.openApp("1Password"),
     { ["shift"] = fn.sendKeys({ "ctrl", "alt", "cmd" }, "1") },
@@ -18,6 +16,7 @@ hyper.bindAll({
     { ["shift"] = fn.openRaycastExtension("jameslyons/session/session-finish") },
   },
   ["space"] = fn.openApp("Finder"),
+  a = fn.openRaycastExtension("raycast/floating-notes/toggle-floating-notes-window"),
   b = fn.sendKeys({ "shift", "ctrl", "cmd" }, "y"), -- Bartender quick search
   c = {
     fn.openTab("calendar.google.com/calendar/u/0/r"),
@@ -34,7 +33,7 @@ hyper.bindAll({
   },
   h = {
     fn.openApp("Hammerspoon"),
-    { ["shift"] = reloadHammerspoonConfig },
+    { ["shift"] = fn.reloadHammerspoonConfig },
   },
   i = {
     fn.openApp("Google Chrome"),
@@ -80,29 +79,45 @@ hyper.bindAll({
   },
 })
 
-windowModal:bind({}, "0", nil, function() windowModal:exit() end)
-windowModal:bind({}, "escape", nil, function() windowModal:exit() end)
+local windowModalTimer = nil
+local function resetTimer()
+  if type(windowModalTimer) == 'table' then windowModalTimer:stop() end
+  windowModalTimer = hs.timer.doAfter(5, function() windowModal:exit() end)
+  print("5 more seconds on the clock")
+end
 
-windowModal:bind({}, "a", nil, fn.openRaycastExtension("raycast/window-management/almost-maximize"))
+local function bind(key, action)
+  windowModal:bind({}, key, nil, function()
+    action()
+    resetTimer()
+  end)
+end
 
-windowModal:bind({}, "q", nil, fn.openRaycastExtension("raycast/window-management/first-two-thirds"))
-windowModal:bind({}, "p", nil, fn.openRaycastExtension("raycast/window-management/last-third"))
+bind("0", function() windowModal:exit() end)
+bind("escape", function() windowModal:exit() end)
 
-windowModal:bind({}, "h", nil, fn.openRaycastExtension("raycast/window-management/maximize-height"))
-windowModal:bind({}, "w", nil, fn.openRaycastExtension("raycast/window-management/maximize-width"))
+bind("tab", fn.windowCommand("next-display"))
 
-windowModal:bind({}, "f", nil, fn.openRaycastExtension("raycast/window-management/maximize"))
-windowModal:bind({}, "m", nil, fn.openRaycastExtension("raycast/window-management/center-three-fourths"))
+bind("a", fn.windowCommand("almost-maximize"))
 
-windowModal:bind({}, "h", nil, fn.openRaycastExtension("raycast/window-management/move-left"))
-windowModal:bind({}, "k", nil, fn.openRaycastExtension("raycast/window-management/move-up"))
-windowModal:bind({}, "j", nil, fn.openRaycastExtension("raycast/window-management/move-down"))
-windowModal:bind({}, "l", nil, fn.openRaycastExtension("raycast/window-management/move-right"))
+bind("q", fn.windowCommand("first-two-thirds"))
+bind("p", fn.windowCommand("last-third"))
 
-windowModal:bind({}, "r", nil, fn.openRaycastExtension("raycast/window-management/restore"))
+bind("h", fn.windowCommand("maximize-height"))
+bind("w", fn.windowCommand("maximize-width"))
 
-windowModal:bind({}, "-", nil, fn.openRaycastExtension("raycast/window-management/make-smaller"))
-windowModal:bind({}, "=", nil, fn.openRaycastExtension("raycast/window-management/make-larger"))
+bind("f", fn.windowCommand("maximize"))
+bind("m", fn.windowCommand("center-three-fourths"))
+
+bind("h", fn.windowCommand("move-left"))
+bind("k", fn.windowCommand("move-up"))
+bind("j", fn.windowCommand("move-down"))
+bind("l", fn.windowCommand("move-right"))
+
+bind("r", fn.windowCommand("restore"))
+
+bind("-", fn.windowCommand("make-smaller"))
+bind("=", fn.windowCommand("make-larger"))
 
 
 local menuItem = hs.menubar.new(true, 'window')
@@ -111,12 +126,12 @@ menuItem:setTitle("Window")
 function windowModal:entered()
   hyper.exit()
   menuItem:setTitle("WINDOW")
-  hs.timer.doAfter(10, function() windowModal:exit() end) -- make this count from last action
 end
 
 function windowModal:exited()
   menuItem:setTitle("Window")
 end
+
 
 -- TODO things, 1password, etc even when the app is closed
 -- https://evantravers.com/articles/2020/06/08/hammerspoon-a-better-better-hyper-key/#even-when-the-app-is-closed

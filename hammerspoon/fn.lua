@@ -1,4 +1,4 @@
-function openApp(name)
+local function openApp(name)
   return function()
     hs.application.launchOrFocus(name)
     if name == 'Finder' then
@@ -7,40 +7,55 @@ function openApp(name)
   end
 end
 
+local function execute(command)
+  print("Debug: running command `" .. command .. "`")
+  local _, exitedSuccessfully, _, _ = hs.execute(command)
+  if not exitedSuccessfully then
+    hs.notify.show("Command exited non-zero", "Command: `" .. command .."`")
+  end
+end
+
 -- https://manual.raycast.com/deeplinks#e460b1f1c034468db3fbf9f028d8f01c
 -- Get the deep link from Cmd-k in the menu
-function openRaycastExtension(extensionDeepLinkPath)
+local function openRaycastExtension(extensionDeepLinkPath)
   return function()
-    hs.execute("open -g " .. "raycast://extensions/" .. extensionDeepLinkPath)
+    execute("open -g " .. "raycast://extensions/" .. extensionDeepLinkPath)
   end
 end
 
-function openRaycastScriptCommand(scriptCommand)
+local function windowCommand(commandName)
   return function()
-    hs.execute("open " .. "raycast://script-commands/" .. scriptCommand)
+    print("Debug: running function 'windowCommand' with: `" .. commandName .. "`")
+    openRaycastExtension("raycast/window-management/" .. commandName)()
   end
 end
 
-function reloadHammerspoonConfig()
+local function openRaycastScriptCommand(scriptCommand)
+  return function()
+    execute("open " .. "raycast://script-commands/" .. scriptCommand)
+  end
+end
+
+local function reloadHammerspoonConfig()
   hs.reload()
   hs.notify.show("Hammerspoon", "Config reloaded", "")
 end
 
-function sendKeys(mods, key)
+local function sendKeys(mods, key)
   return function()
     hs.eventtap.keyStroke(mods, key)
   end
 end
 
-function runShortcut(shortcutName)
+local function runShortcut(shortcutName)
   return function()
-    hs.execute('shortcuts run "' .. shortcutName .. '"')
+    execute('shortcuts run "' .. shortcutName .. '"')
   end
 end
 
-function openTab(tabUrl)
+local function openTab(tabUrl)
   return function()
-    hs.execute("~/bin/open-tab '" .. "https://" .. tabUrl .. "'")
+    execute("~/bin/open-tab '" .. "https://" .. tabUrl .. "'")
   end
 end
 
@@ -51,5 +66,6 @@ return {
   openRaycastScriptCommand = openRaycastScriptCommand,
   sendKeys = sendKeys,
   reloadHammerspoonConfig = reloadHammerspoonConfig,
-  runShortcut = runShortcut
+  runShortcut = runShortcut,
+  windowCommand = windowCommand,
 }
