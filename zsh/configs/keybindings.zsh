@@ -74,3 +74,11 @@ _fuzzy_git_shalector() {
 }
 zle -N fuzzy-git-shalector _fuzzy_git_shalector
 bindkey '^g^g' fuzzy-git-shalector
+
+# Ctrl-w stops at `/`s
+my-backward-delete-word() {
+  local WORDCHARS=${WORDCHARS/\//}
+  zle backward-delete-word
+}
+zle -N my-backward-delete-word
+bindkey '^W' my-backward-delete-word
