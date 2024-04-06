@@ -17,54 +17,147 @@
                     "mouse_motion_to_scroll.speed": 100
                 },
                 "rules": [
-                  {
-                    "manipulators": [
-                      {
-                        "description": "Cmd-based hyper key! (left)",
-                        "from": {
-                          "key_code": "left_command",
-                          "modifiers": {
-                            "optional": [
-                              "any"
-                            ]
-                          }
-                        },
-                        "to": [
-                          {
-                            "key_code": "left_command"
-                          }
-                        ],
-                        "to_if_alone": [
-                          {
-                            "key_code": "f19"
-                          }
-                        ],
-                        "type": "basic"
-                      },
-                      {
-                        "description": "Cmd-based hyper key! (right)",
-                        "from": {
-                          "key_code": "right_command",
-                          "modifiers": {
-                            "optional": [
-                              "any"
-                            ]
-                          }
-                        },
-                        "to": [
-                          {
-                            "key_code": "right_command"
-                          }
-                        ],
-                        "to_if_alone": [
-                          {
-                            "key_code": "f19"
-                          }
-                        ],
-                        "type": "basic"
-                      }
-                    ]
-                  }
+                    {
+                        "manipulators": [
+                            {
+                                "description": "Cmd-based hyper key! (left)",
+                                "from": {
+                                    "key_code": "left_command",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "left_command"
+                                    }
+                                ],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "f19"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "description": "Cmd-based hyper key! (right)",
+                                "from": {
+                                    "key_code": "right_command",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "right_command"
+                                    }
+                                ],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "f19"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Map space+i to left_command+left_option+left_control+i and space+j to left_command+left_option+left_control+j",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "spacebar",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "spacebar_pressed",
+                                            "value": 1
+                                        }
+                                    }
+                                ],
+                                "to_after_key_up": [
+                                    {
+                                        "set_variable": {
+                                            "name": "spacebar_pressed",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "spacebar"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "spacebar_pressed",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "i",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "i",
+                                        "modifiers": [
+                                            "left_command",
+                                            "left_option",
+                                            "left_control"
+                                        ]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "spacebar_pressed",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "j",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "j",
+                                        "modifiers": [
+                                            "left_command",
+                                            "left_option",
+                                            "left_control"
+                                        ]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    }
                 ]
             },
             "devices": [

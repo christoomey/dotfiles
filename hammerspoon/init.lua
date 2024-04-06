@@ -1,6 +1,9 @@
 local fn = require("fn")
 local hyper = require("hyper")
 
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "i", fn.openApp("Google Chrome"))
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "j", fn.openApp("IntelliJ IDEA"))
+
 local windowModal = hs.hotkey.modal.new({}, nil)
 
 hyper.bindAll({

@@ -2,3 +2,5 @@
 vim/autoload/plug.vim
 vim/bundle
 vim/sessions
+karabiner/assets
+karabiner/automatic_backups
