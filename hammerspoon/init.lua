@@ -1,9 +1,6 @@
 local fn = require("fn")
 local hyper = require("hyper")
 
-hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "i", fn.openApp("Google Chrome"))
-hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "j", fn.openApp("IntelliJ IDEA"))
-
 local windowModal = hs.hotkey.modal.new({}, nil)
 
 hyper.bindAll({
@@ -12,7 +9,7 @@ hyper.bindAll({
   ["0"] = function() windowModal:enter() end,
   ["1"] = {
     fn.openApp("1Password"),
-    { ["shift"] = fn.sendKeys({ "ctrl", "alt", "cmd" }, "1") },
+    { ["shift"] = fn.sendKeys({ "shift", "ctrl", "cmd" }, "1") },
   },
   ["."] = {
     fn.runShortcut("Start Session"),
@@ -65,7 +62,6 @@ hyper.bindAll({
   r = {
     fn.openApp("Spotify"),
     { ["shift"] = fn.openRaycastExtension("mattisssa/spotify-player/yourLibrary") },
-    { ["shift,ctrl"] = fn.runShortcut("Spotify Random") },
   },
   t = {
     fn.openTab("trello.com"),
@@ -74,12 +70,12 @@ hyper.bindAll({
   u = {
     fn.openApp("Things3"),
     { ["shift"] = fn.sendKeys({ "cmd", "shift", "ctrl" }, "u") },
-    { ["shift,ctrl"] = fn.openRaycastExtension("loris/things/show-today-list") },
   },
   w = { -- Notion ("w" for "wiki")
     fn.openTab("notion.so"),
     { ["shift"] = fn.openRaycastExtension("notion/notion/search-page") }
   },
+  z = fn.openApp("zoom.us")
 })
 
 local windowModalTimer = nil

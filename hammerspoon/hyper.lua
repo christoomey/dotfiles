@@ -4,6 +4,13 @@ local k = hs.hotkey.modal.new({}, 'F19')
 local menuItem = hs.menubar.new(true, 'hyperKey')
 menuItem:setTitle("Hyper")
 
+local function table_is_empty(t)
+  if type(t) ~= "table" then
+      return false
+  end
+  return next(t) == nil
+end
+
 function k:entered()
   menuItem:setTitle("HYPER")
   hs.timer.doAfter(1, function() k:exit() end)
@@ -25,7 +32,12 @@ local function runAndExit(action)
 end
 
 local function bind(mods, key, action)
-  k:bind(mods, key, runAndExit(action))
+  -- k:bind(mods, key, runAndExit(action))
+  if table_is_empty(mods) then
+    hs.hotkey.bind({ "ctrl", "alt", "cmd" }, key, action)
+  else
+    hs.hotkey.bind({ "ctrl", "alt", "cmd", "shift" }, key, action)
+  end
 end
 
 local function bindAll(keyMap)
