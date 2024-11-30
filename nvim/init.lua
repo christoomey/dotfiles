@@ -213,9 +213,9 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
-function buildFinder(cwd)
+local function buildFinder(cwd)
   return function()
-    require('telescope.builtin').git_files { cwd = cwd, hidden = true }
+    require('telescope.builtin').find_files { cwd = cwd }
   end
 end
 
@@ -262,6 +262,17 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+
+  {
+    'stevearc/oil.nvim',
+    ---@module 'oil'
+    config = function()
+      require('oil').setup()
+      vim.keymap.set('n', '-', '<cmd>Oil<cr>', { desc = 'Open parent directory' })
+    end,
+    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
+    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -334,7 +345,7 @@ require('lazy').setup({
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     keys = {
-      { '<C-p>', buildFinder './' },
+      { '<C-p>', '<cmd>Telescope git_files<cr>' },
       { '<leader>gj', buildFinder 'app/frontend' },
       { '<leader>gc', buildFinder 'app/controllers' },
       { '<leader>gm', buildFinder 'app/models' },
