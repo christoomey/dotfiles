@@ -3,6 +3,8 @@ source $ZPLUG_HOME/init.zsh
 
 zplug 'mafredri/zsh-async'
 zplug 'sindresorhus/pure'
+zplug "plugins/gh", from:gh-r
+zplug "source ~/.config/gh/completion.zsh", defer:2
 zplug 'zsh-users/zsh-syntax-highlighting', defer:2
 zplug 'zsh-users/zsh-completions', defer:2
 zplug 'zsh-users/zsh-autosuggestions', defer:2
@@ -17,10 +19,15 @@ done
 ensure_tmux_is_running
 
 . $HOME/.asdf/asdf.sh
-# . $HOME/.asdf/completions/asdf.bash
-# . /usr/local/etc/bash_completion.d
+autoload bashcompinit; bashcompinit
+. $HOME/.asdf/completions/asdf.bash
 
 [ -f ~/.client-config.zsh ] && source ~/.client-config.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+compdef _flyctl fly

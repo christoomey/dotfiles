@@ -1,6 +1,5 @@
 {
   "coc.preferences.jumpCommand": "drop",
-  "coc.preferences.hoverTarget": "float",
   "eslint.autoFixOnSave": true,
 	"eslint.probe": [
 		"javascript",
@@ -29,26 +28,8 @@
   "diagnostic.hintSign": "!!",
   "diagnostic.checkCurrentLine": true,
   "coc.preferences.currentFunctionSymbolAutoUpdate": true,
-  "coc.preferences.formatOnSaveFiletypes": [
-    "css",
-    "scss",
-    "markdown",
-    "Markdown",
-    "javascript",
-    "javascript.jsx",
-    "javascriptreact",
-    "ruby",
-    "eruby",
-    "svelte",
-    "typescript",
-    "typescriptreact",
-    "yaml"
-  ],
   "prettier.requireConfig": true,
-  "prettier.disableSuccessMessage": true,
-  "tsserver.formatOnType": false,
   "coc.preferences.formatOnType": false,
-  "solargraph.diagnostics": true,
   "tailwindCSS.headwind.runOnSave": false,
   "tailwindCSS.trace.server": "verbose",
   "svelte.plugin.typescript.diagnostics.enable": true,
@@ -59,5 +40,10 @@
       "rootPatterns": ["elm.json"]
     }
   },
-  "svelte.ask-to-enable-ts-plugin": false
+  "svelte.ask-to-enable-ts-plugin": false,
+  "svelte.enable-ts-plugin": false,
+  "coc.preferences.formatOnSave": true,
+  "[ruby][typescript][svelte]": {
+    "coc.preferences.formatOnSave": true
+  }
 }

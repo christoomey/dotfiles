@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -eou pipefail
+
+frontend_proc_index=3
+
+main() {
+  yarn
+  run_mprocs_cmd "{c: select-proc, index: $frontend_proc_index}"
+  run_mprocs_cmd "{c: restart-proc}"
+  echo
+  echo " >> Frontend server restarting..."
+}
+
+run_mprocs_cmd() {
+  mprocs --server 127.0.0.1:4050 --ctl "$@"
+}
+
+main

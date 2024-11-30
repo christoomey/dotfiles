@@ -18,8 +18,9 @@ let g:coc_global_extensions = [
   \ 'coc-json',
   \ 'coc-yank',
   \ 'coc-highlight',
-  \ 'coc-solargraph',
   \ ]
+
+" \ 'coc-solargraph',
 
 " autocmd FileType * let b:coc_suggest_disable = 1
 " inoremap <silent><expr> <c-j> coc#refresh()
@@ -70,9 +71,11 @@ inoremap <silent><expr> <Tab> coc#pum#visible() ? "\<C-n>" : "\<Tab>"
 nmap <silent> <C-]> <Plug>(coc-definition)
 nmap <leader>do <Plug>(coc-codeaction)
 
+nmap <leader>du <Plug>(coc-references)
+
 " Jump to next / previous error
-nmap <silent> [r <Plug>(coc-diagnostic-prev)
-nmap <silent> ]r <Plug>(coc-diagnostic-next)
+nmap <silent> ]r <Plug>(coc-diagnostic-next-error)
+nmap <silent> [r <Plug>(coc-diagnostic-prev-error)
 
 " show documentation
 function! s:show_documentation()

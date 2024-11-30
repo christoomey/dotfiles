@@ -11,20 +11,20 @@
   dc = "!f() { [ \"$GIT_PREFIX\" != \"\" ] && cd "$GIT_PREFIX"; git diff --color --cached $@ | diff-so-fancy | less --tabs=4 -RFX; }; f"
   dcw = !git dc -w
   yep = !vim hello.md
-  down = !git checkout master && git pull && git gone
+  down = !git checkout $(git trunkname) && git pull && git gone
   fall = fetch --all
   fad = !git add $(git ls-files --others --exclude-standard -m | fzf --reverse --multi)
   fadd = !git fadd
   glog = log -E -i --grep
   gone = !"git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" {print $1}' | xargs -r git branch -D"
   dup = !git checkout development && git fetch origin && echo && git sl development..origin/development && echo && git pull --quiet && git checkout -
-  mup = !git checkout master && git fetch origin && echo && git sl master..origin/master && echo && git pull --quiet && git checkout -
+  mup = !git checkout $(git trunkname) && git fetch origin && echo && git sl $(git trunkname)..origin/$(git trunkname) && echo && git pull --quiet && git checkout -
   pl = pull
   ps = push
   rbc = rebase --continue
   riu = !git rebase -i $(git rev-parse --abbrev-ref --symbolic-full-name @{u})
   rid = !git rebase -i $(git merge-base development HEAD)
-  rim = !git rebase -i $(git merge-base master HEAD)
+  rim = !git rebase -i $(git merge-base $(git trunkname) HEAD)
   dim = !git rebase -i $(git merge-base development HEAD)
   rdup = !git dup && git rebase development
   rmup = !git mup && git rebase master
@@ -33,6 +33,7 @@
   slp = log --oneline --decorate
   slap = log --oneline --decorate --graph --all
   todo = !git log --format=%B -n 1 | grep -A999 '^This change$'
+  trunkname = !git branch -l main master --format '%(refname:short)'
   uncommit = reset --soft HEAD^
   unstage = reset
   upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
@@ -71,3 +72,5 @@
 	required = true
 [pull]
 	ff = only
+[init]
+	defaultBranch = main

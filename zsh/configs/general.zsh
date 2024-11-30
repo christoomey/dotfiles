@@ -2,6 +2,8 @@
 
 export EDITOR="vim"
 
+alias vim=nvim
+
 sz() { source ~/.zshrc }
 
 

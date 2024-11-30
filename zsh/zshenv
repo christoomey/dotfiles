@@ -2,11 +2,15 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Add homebrew binaries
 export PATH="/usr/local/bin:$PATH"
+export HOMEBREW_NO_AUTO_UPDATE=1
 
 # Add my custom commands
 export PATH="$HOME/bin:$PATH"
 
 export PATH="$HOME/.npm-packages/bin:$PATH"
+
+export JAVA_HOME="$HOME/.java_home"
+export NODE_GYP_FORCE_PYTHON=/opt/homebrew/bin/python3.10
 
 # Use postgres.app versions of pg utilites
 export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH

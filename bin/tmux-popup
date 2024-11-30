@@ -1,5 +1,5 @@
 #!/bin/sh
 
-width=${2:-80%}
+width=${2:-85%}
 
-tmux popup -d '#{pane_current_path}' -xC -yC -w$width -h80% -E "${1:-zsh}" || true
+tmux popup -d '#{pane_current_path}' -xC -yC -w$width -h85% -E "${1:-zsh}" || true

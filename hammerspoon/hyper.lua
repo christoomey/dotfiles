@@ -32,7 +32,8 @@ local function runAndExit(action)
 end
 
 local function bind(mods, key, action)
-  -- k:bind(mods, key, runAndExit(action))
+  k:bind(mods, key, runAndExit(action))
+  -- hs.logger.i("hello")
   if table_is_empty(mods) then
     hs.hotkey.bind({ "ctrl", "alt", "cmd" }, key, action)
   else
