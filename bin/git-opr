@@ -24,14 +24,13 @@ def remote_url
 end
 
 def oauth_token
-  hub_config = YAML.load_file(File.expand_path('~/.config/hub'))
-  hub_config['github.com'][0]['oauth_token']
+  `gh auth token`.chomp
 end
 
 def open_or_build_pull_request
   auth = "Authorization: token #{oauth_token}"
-  pulls_endpoint = "https://api.github.com/repos/#{remote_url}/pulls"
-  response = `curl --silent -H '#{auth}' #{pulls_endpoint}`
+  pulls_endpoint = "https://api.github.com/repos/#{remote_url}/pulls?state=open"
+  response = `curl --silent -H '#{auth}' #{pulls_endpoint}`.force_encoding("UTF-8")
   pulls = JSON.parse(response)
   pull = pulls.detect { |pull| pull["head"]["ref"] == remote_tracking_branch }
   if !pull.nil?
