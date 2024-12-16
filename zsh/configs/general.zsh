@@ -1,6 +1,6 @@
 # General ZSH configurations
 
-export EDITOR="vim"
+export EDITOR="nvim"
 
 alias vim=nvim
 
