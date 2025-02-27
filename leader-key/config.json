@@ -8,39 +8,46 @@
       "actions": [
         {
           "key": "a",
-          "value": "raycast://script-commands/august",
           "type": "url",
-          "label": "Dev scripts"
+          "label": "Dev scripts",
+          "value": "raycast://script-commands/august"
         },
         {
-          "key": "p",
-          "label": "Pull requests",
-          "type": "url",
-          "value": "https://github.com/pulls"
-        },
-        {
-          "key": "s",
-          "value": "https://superset.admin.augusthealth.com/superset/sqllab/",
-          "type": "url",
-          "label": "Superset"
-        },
-        {
-          "label": "Toggle Server ([k]ill)",
-          "type": "command",
-          "key": "S",
-          "value": "tmux switch-client -t july && $HOME/code/work/august/july/bin/toggle-server"
-        },
-        {
-          "key": "k",
-          "type": "url",
-          "value": "slack://channel?team=TTSDKQ0G3&id=C01G3BE9XN0",
-          "label": "Slack (team-eng)"
-        },
-        {
-          "key": "m",
-          "type": "url",
-          "label": "G[m]ail",
-          "value": "raycast://script-commands/open-work-email"
+          "key": "b",
+          "type": "group",
+          "label": "Backend",
+          "actions": [
+            {
+              "key": "k",
+              "type": "url",
+              "label": "Slack (team-eng-backend)",
+              "value": "slack://channel?team=TTSDKQ0G3&id=C05LLD6EJCD"
+            },
+            {
+              "key": "n",
+              "type": "url",
+              "label": "Notion (backend sync)",
+              "value": "https://www.notion.so/augusthealth/Backend-Sync-32feb7b01c534b6592fde7a851c9e653"
+            },
+            {
+              "key": "p",
+              "type": "url",
+              "label": "Pull requests",
+              "value": "https://github.com/augusthealth/august-backend/pulls"
+            },
+            {
+              "key": "s",
+              "type": "command",
+              "label": "Toggle Server ([k]ill)",
+              "value": "tmux switch-client -t july && $HOME/code/work/august/july/bin/toggle-server"
+            },
+            {
+              "key": "u",
+              "type": "url",
+              "label": "Unreleased",
+              "value": "raycast://script-commands/unreleased?arguments=augusthealth%2Faugust-backend"
+            }
+          ]
         },
         {
           "key": "c",
@@ -49,72 +56,65 @@
           "value": "raycast://script-commands/open-work-calendar"
         },
         {
+          "key": "f",
+          "type": "group",
+          "label": "Frontend",
+          "actions": [
+            {
+              "key": "k",
+              "type": "url",
+              "label": "Slack (team-frontend)",
+              "value": "slack://channel?team=TTSDKQ0G3&id=C04BKFW0HFA"
+            },
+            {
+              "key": "n",
+              "type": "url",
+              "label": "Notion (frontend sync)",
+              "value": "https://www.notion.so/augusthealth/c687b4e04e7b4f328f726e42771352fc"
+            },
+            {
+              "key": "p",
+              "type": "url",
+              "label": "Pull requests",
+              "value": "https://github.com/augusthealth/august-frontend/pulls"
+            },
+            {
+              "key": "u",
+              "type": "url",
+              "label": "Unreleased",
+              "value": "raycast://script-commands/unreleased?arguments=augusthealth%2Faugust-frontend"
+            }
+          ]
+        },
+        {
+          "key": "k",
+          "type": "url",
+          "label": "Slack (team-eng)",
+          "value": "slack://channel?team=TTSDKQ0G3&id=C01G3BE9XN0"
+        },
+        {
+          "key": "m",
+          "type": "url",
+          "label": "G[m]ail",
+          "value": "raycast://script-commands/open-work-email"
+        },
+        {
           "key": "n",
           "type": "url",
           "label": "Notion (frontend sync)",
           "value": "https://www.notion.so/augusthealth/4aa0cd302b74451f999eba34b7729acf?v=dcd948ba42ed4c4092be0ba415252546"
         },
         {
-          "key": "b",
-          "type": "group",
-          "label": "Backend",
-          "actions": [
-            {
-              "label": "Pull requests",
-              "key": "p",
-              "value": "https://github.com/augusthealth/august-backend/pulls",
-              "type": "url"
-            },
-            {
-              "label": "Unreleased",
-              "value": "raycast://script-commands/unreleased?arguments=augusthealth%2Faugust-backend",
-              "type": "url",
-              "key": "u"
-            },
-            {
-              "value": "slack://channel?team=TTSDKQ0G3&id=C05LLD6EJCD",
-              "type": "url",
-              "key": "k",
-              "label": "Slack (team-eng-backend)"
-            },
-            {
-              "key": "n",
-              "value": "https://www.notion.so/augusthealth/Backend-Sync-32feb7b01c534b6592fde7a851c9e653",
-              "type": "url",
-              "label": "Notion (backend sync)"
-            }
-          ]
+          "key": "p",
+          "type": "url",
+          "label": "Pull requests",
+          "value": "https://github.com/pulls"
         },
         {
-          "key": "f",
-          "type": "group",
-          "label": "Frontend",
-          "actions": [
-            {
-              "value": "https://github.com/augusthealth/august-frontend/pulls",
-              "type": "url",
-              "label": "Pull requests",
-              "key": "p"
-            },
-            {
-              "label": "Unreleased",
-              "type": "url",
-              "key": "u",
-              "value": "raycast://script-commands/unreleased?arguments=augusthealth%2Faugust-frontend"
-            },
-            {
-              "type": "url",
-              "value": "slack://channel?team=TTSDKQ0G3&id=C04BKFW0HFA",
-              "key": "k",
-              "label": "Slack (team-frontend)"
-            },
-            {
-              "type": "url",
-              "value": "https://www.notion.so/augusthealth/c687b4e04e7b4f328f726e42771352fc",
-              "label": "Notion (frontend sync)",
-              "key": "n"
-            }
-          ]
+          "key": "s",
+          "type": "url",
+          "label": "Superset",
+          "value": "https://superset.admin.augusthealth.com/superset/sqllab/"
         }
       ]
     }
