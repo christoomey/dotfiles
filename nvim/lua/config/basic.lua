@@ -65,6 +65,9 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+vim.keymap.set('n', 'j', 'gj')
+vim.keymap.set('n', 'k', 'gk')
+
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.highlight.on_yank()`
@@ -75,3 +78,29 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
+vim.keymap.set('n', '0', '^')
+
+-- Function to close the hover window and clear search highlighting
+local function enhanced_ctrl_c()
+  -- Close floating windows (e.g., hover)
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local config = vim.api.nvim_win_get_config(win)
+    if config.relative ~= '' then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+
+  -- Clear search highlighting
+  vim.cmd 'nohlsearch'
+
+  -- Perform the default <C-c> behavior
+  -- This is typically a no-op in normal mode, but you can map it to <Esc> if needed
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+end
+
+-- Keymap to execute the enhanced <C-c> functionality
+vim.keymap.set('n', '<C-c>', enhanced_ctrl_c, { noremap = true, silent = true })
+
+vim.keymap.set('n', '<leader>x', '<cmd>.lua<CR>', { desc = 'Execute the current line' })
+vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>', { desc = 'Execute the current file' })

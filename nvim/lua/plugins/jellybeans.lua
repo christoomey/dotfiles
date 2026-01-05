@@ -1,8 +1,10 @@
 return {
-  'metalelf0/jellybeans-nvim',
-  dependencies = { 'rktjmp/lush.nvim' },
+  'wtfox/jellybeans.nvim',
   priority = 1000,
-  init = function()
-    vim.cmd.colorscheme 'jellybeans-nvim'
+  config = function()
+    require('jellybeans').setup {
+      flat_ui = false,
+    }
+    vim.cmd.colorscheme 'jellybeans'
   end,
 }

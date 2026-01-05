@@ -1,4 +1,4 @@
-local function buildFinder(cwd)
+function buildTelescopeFinder(cwd)
   return function()
     require('telescope.builtin').find_files { cwd = cwd }
   end
@@ -29,10 +29,11 @@ return { -- Fuzzy Finder (files, lsp, etc)
     { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
   },
   keys = {
-    { '<C-p>', '<cmd>Telescope git_files<cr>' },
-    { '<leader>gj', buildFinder 'app/frontend' },
-    { '<leader>gc', buildFinder 'app/controllers' },
-    { '<leader>gm', buildFinder 'app/models' },
+    { '<C-p>', '<cmd>Telescope find_files<cr>' },
+    { '<leader>gj', buildTelescopeFinder 'app/frontend' },
+    { '<leader>gc', buildTelescopeFinder 'app/controllers' },
+    { '<leader>gm', buildTelescopeFinder 'app/models' },
+    { '<leader>tl', '<cmd>Telescope<cr>' },
   },
   config = function()
     -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -76,6 +77,11 @@ return { -- Fuzzy Finder (files, lsp, etc)
           require('telescope.themes').get_dropdown(),
         },
       },
+      path_display = {
+        filename_first = {
+          reverse_directories = false,
+        },
+      },
     }
 
     -- Enable Telescope extensions if they are installed
@@ -93,6 +99,7 @@ return { -- Fuzzy Finder (files, lsp, etc)
     vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
     vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
     vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+    vim.keymap.set('n', '<leader>s,', builtin.git_status, { desc = '[S]earch Recent Files ("." for repeat)' })
     vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
     -- Slightly advanced example of overriding default behavior and theme

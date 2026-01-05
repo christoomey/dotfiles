@@ -20,3 +20,4 @@ node_modules
 .notes
 .notes-archive/*
 .vim/
+**/.claude/settings.local.json

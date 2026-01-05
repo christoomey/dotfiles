@@ -2,8 +2,8 @@ return { -- LSP Configuration & Plugins
   'neovim/nvim-lspconfig',
   dependencies = {
     -- Automatically install LSPs and related tools to stdpath for Neovim
-    { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
-    'williamboman/mason-lspconfig.nvim',
+    { 'williamboman/mason.nvim', config = true, tag = 'v1.11.0' }, -- NOTE: Must be loaded before dependants
+    { 'williamboman/mason-lspconfig.nvim', tag = 'v1.32.0' },
     'WhoIsSethDaniel/mason-tool-installer.nvim',
 
     -- Useful status updates for LSP.
@@ -60,9 +60,18 @@ return { -- LSP Configuration & Plugins
         --  This is where a variable was first declared, or where a function is defined, etc.
         --  To jump back, press <C-t>.
         map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+        map('<C-]>', function()
+          require('telescope.builtin').lsp_definitions { show_line = false }
+        end, '[G]oto [D]efinition')
+
+        map('<leader>]', function()
+          require('telescope.builtin').lsp_definitions { show_line = false }
+        end, '[G]oto [D]efinition')
 
         -- Find references for the word under your cursor.
-        map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+        map('<leader>[', function()
+          require('telescope.builtin').lsp_references { include_current_line = false, include_declaration = false, show_line = false }
+        end, '[G]oto [R]eferences')
 
         -- Jump to the implementation of the word under your cursor.
         --  Useful when your language has ways of declaring types without an actual implementation.
@@ -90,10 +99,14 @@ return { -- LSP Configuration & Plugins
         map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
         map('<leader>do', vim.lsp.buf.code_action, '(do) Code Action')
 
+        vim.keymap.set('n', ']r', vim.diagnostic.goto_next, { desc = '[G]oto Next E[r]ror' })
+        vim.keymap.set('n', '[r', vim.diagnostic.goto_prev, { desc = '[G]oto Prev E[r]ror' })
+
         -- Opens a popup that displays documentation about the word under your cursor
         --  See `:help K` for why this keymap.
         map('K', vim.lsp.buf.hover, 'Hover Documentation')
         map('<leader>k', vim.lsp.buf.hover, 'Hover Documentation')
+        vim.keymap.set('n', '<leader>k', vim.lsp.buf.hover)
 
         -- WARN: This is not Goto Definition, this is Goto Declaration.
         --  For example, in C this would take you to the header.
@@ -200,6 +213,15 @@ return { -- LSP Configuration & Plugins
     vim.list_extend(ensure_installed, {
       'stylua', -- Used to format Lua code
     })
+    vim.diagnostic.config {
+      virtual_text = false,
+      update_in_insert = false,
+      float = { border = 'rounded' },
+    }
+
+    vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
+      border = 'rounded',
+    })
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
     require('mason-lspconfig').setup {
@@ -211,6 +233,14 @@ return { -- LSP Configuration & Plugins
           -- certain features of an LSP (for example, turning off formatting for tsserver)
           server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
           require('lspconfig')[server_name].setup(server)
+
+          local lspconfig = require 'lspconfig'
+          lspconfig.ruby_lsp.setup {
+            init_options = {
+              formatter = 'none',
+              linters = { 'none' },
+            },
+          }
         end,
       },
     }

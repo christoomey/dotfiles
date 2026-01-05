@@ -15,4 +15,5 @@
 
 open -a iTerm
 
-tmux display-popup -d "$HOME/code/work/august/july" -xC -yC -w60% -h70% -EE "ls bin; zsh"
+tmux switch-client -t july
+tmux display-popup -d "$HOME/code/work/august/july" -xC -yC -w70% -h80% -EE "ls bin | fzf --reverse --preview 'bat --color=always bin/{}' | xargs -I {} -o zsh -c './bin/{}'"

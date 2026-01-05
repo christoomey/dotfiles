@@ -26,8 +26,11 @@ return { -- Autoformat
     end,
     formatters_by_ft = {
       lua = { 'stylua' },
-      ruby = { { 'prettierd', 'prettier' } },
-      json = { { 'prettierd', 'prettier' } },
+      typescript = { 'prettierd', 'prettier', stop_after_first = true },
+      typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+      ruby = { 'prettierd', 'prettier', stop_after_first = true },
+      json = { 'prettierd', 'prettier', stop_after_first = true },
+      python = { 'black', stop_after_first = true },
     },
   },
 }

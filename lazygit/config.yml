@@ -1,0 +1,7 @@
+customCommands:
+  - key: 'G'
+    context: 'files,localBranches,commits'
+    command: 'git opr'
+  - key: 'D'
+    context: 'localBranches'
+    command: 'git down'

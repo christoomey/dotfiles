@@ -1,0 +1,45 @@
+" Project Notes
+" -------------
+
+" Quick access to a local notes file for keeping track of things in a given
+" project. Add `.project-notes` to global ~/.gitignore
+
+let s:PROJECT_NOTES_FILE = '.project-notes'
+
+command! EditProjectNotes call <sid>SmartSplit(s:PROJECT_NOTES_FILE)
+nnoremap <leader>ep :EditProjectNotes<cr>
+
+autocmd BufEnter .project-notes call <sid>LoadNotes()
+
+function! s:SmartSplit(file)
+  let split_cmd = (winwidth(0) >= 100) ? 'vsplit' : 'split'
+  execute split_cmd . " " . a:file
+endfunction
+
+function! s:LoadNotes()
+  setlocal filetype=markdown
+endfunction
+
+function! s:CurrentBranchName() abort
+  let name = system("git rev-parse --abbrev-ref HEAD")
+  return substitute(substitute(name, "\n", "", "g"), "/", "--", "g")
+endfunction
+
+function! s:NoteForCurrentBranch() abort
+  let branch_name = s:CurrentBranchName()
+  let note_file = ".notes/" . s:CurrentBranchName() . ".md"
+
+  if !filereadable(note_file)
+    call system("echo " . branch_name . " > " . note_file)
+  endif
+
+  execute "vsplit ". note_file
+endfunction
+
+command! NoteForCurrentBranch call <sid>NoteForCurrentBranch()
+nmap <leader>e<space> :NoteForCurrentBranch<cr>
+
+command! SearchProjectNotes :Telescope find_files cwd=.notes
+nnoremap <leader>en <cmd>SearchProjectNotes<cr>
+
+" vim:ft=vim

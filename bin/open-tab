@@ -1,6 +1,7 @@
 #!/usr/bin/env -S ruby --disable-gems -x
 
 require 'optparse'
+require 'open3'
 
 class TabOpener
   TAB_NOT_FOUND = :tab_not_found
@@ -16,8 +17,10 @@ class TabOpener
 
   def open!
     if tab_exists?
+      log("Tab exists!")
       activate app_tab
     else
+      log("Tab not found -- opening anew")
       open_app_in_new_tab
     end
     unless options[:detached]
@@ -42,7 +45,8 @@ class TabOpener
   end
 
   def open_app_in_new_tab
-    system "/opt/homebrew/bin/chrome-cli open #{app_url} > /dev/null 2>&1"
+    # try_system_cmd "/opt/homebrew/bin/chrome-cli open #{app_url} > /dev/null 2>&1"
+    try_system_cmd "/opt/homebrew/bin/chrome-cli open #{app_url}"
   end
 
   def tab_exists?
@@ -50,11 +54,25 @@ class TabOpener
   end
 
   def activate(tab_index)
-    system "osascript -e 'tell application \"Google Chrome\" to set active tab index of first window to #{tab_index}'"
+    try_system_cmd "osascript -e 'tell application \"Google Chrome\" to set active tab index of first window to #{tab_index}'"
   end
 
   def focus_chrome
-    system %{osascript -e 'tell application \"Google Chrome\" to activate'}
+    try_system_cmd %{osascript -e 'tell application \"Google Chrome\" to activate'}
+  end
+
+  def try_system_cmd(cmd)
+    Open3.popen3(cmd) do |_, stdout, stderr, wait_thr|
+      output = stdout.read
+      error = stderr.read
+      exit_status = wait_thr.value
+
+      if exit_status != 0
+        log("Error: system command failed ['#{cmd}']")
+        log("  stdout: #{output}")
+        log("  stderr: #{error}")
+      end
+    end
   end
 end
 
@@ -79,5 +97,15 @@ OptionParser.new do |opts|
     options[:detached] = d
   end
 end.parse!
+
+def logging_enabled?
+  false
+end
+
+def log(message)
+  if logging_enabled?
+    puts message
+  end
+end
 
 TabOpener.open_for(desired_app_url, options)
