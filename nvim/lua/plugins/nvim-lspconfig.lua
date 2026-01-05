@@ -150,6 +150,18 @@ return { -- LSP Configuration & Plugins
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
           end, '[T]oggle Inlay [H]ints')
         end
+
+        -- Workaround for Svelte language server not picking up TS/JS file changes
+        -- See: https://github.com/sveltejs/language-tools/issues/2008
+        if client and client.name == 'svelte' then
+          vim.api.nvim_create_autocmd('BufWritePost', {
+            pattern = { '*.js', '*.ts' },
+            group = vim.api.nvim_create_augroup('svelte-on-ts-change', { clear = true }),
+            callback = function(ctx)
+              client.notify('$/onDidChangeTsOrJsFile', { uri = vim.uri_from_fname(ctx.match) })
+            end,
+          })
+        end
       end,
     })
 
