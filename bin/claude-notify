@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eou pipefail
+
+terminal-notifier \
+  -title "$(basename "$PWD")" \
+  -message "Claud needs input or permission" \
+  -contentImage "https://claude.ai/images/claude_app_icon.png"
