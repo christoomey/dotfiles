@@ -22,6 +22,9 @@ vim.opt.breakindent = true
 -- Save undo history
 vim.opt.undofile = true
 
+-- Automatically reload files changed outside of Neovim
+vim.opt.autoread = true
+
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
@@ -78,6 +81,70 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
+-- Check for external file changes when focusing back on Neovim or navigating windows/tabs
+vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave', 'BufEnter', 'WinEnter' }, {
+  desc = 'Check for external file changes',
+  group = vim.api.nvim_create_augroup('checktime', { clear = true }),
+  callback = function()
+    if vim.o.buftype ~= 'nofile' then
+      vim.cmd 'checktime'
+    end
+  end,
+})
+
+-- Session management: automatically save and restore window/tab layout per directory/branch
+vim.opt.sessionoptions = 'buffers,curdir,tabpages,winsize,winpos'
+
+-- Function to get session file path based on cwd and git branch
+local function get_session_file()
+  local cwd = vim.fn.getcwd()
+  -- Replace path separators with underscores to create a valid filename
+  local cwd_encoded = cwd:gsub('/', '_'):gsub('\\', '_')
+
+  -- Try to get git branch name
+  local branch = vim.fn.system('git -C ' .. vim.fn.shellescape(cwd) .. ' rev-parse --abbrev-ref HEAD 2>/dev/null'):gsub('\n', '')
+
+  -- If in a git repo and got a valid branch, include it in the filename
+  local session_name = cwd_encoded
+  if vim.v.shell_error == 0 and branch ~= '' then
+    session_name = cwd_encoded .. '_' .. branch:gsub('/', '_')
+  end
+
+  -- Ensure sessions directory exists
+  local sessions_dir = vim.fn.stdpath('data') .. '/sessions'
+  vim.fn.mkdir(sessions_dir, 'p')
+
+  return sessions_dir .. '/' .. session_name .. '.vim'
+end
+
+-- Save session on exit
+vim.api.nvim_create_autocmd('VimLeavePre', {
+  desc = 'Save session on exit',
+  group = vim.api.nvim_create_augroup('auto-session', { clear = true }),
+  callback = function()
+    -- Only save if we're in a real directory (not empty buffer or special buffer)
+    if vim.fn.argc() > 0 or vim.fn.bufname() ~= '' then
+      local session_file = get_session_file()
+      vim.cmd('mksession! ' .. vim.fn.fnameescape(session_file))
+    end
+  end,
+})
+
+-- Restore session on startup (only if no files were specified)
+if vim.fn.argc() == 0 then
+  vim.api.nvim_create_autocmd('VimEnter', {
+    desc = 'Restore session on startup',
+    group = vim.api.nvim_create_augroup('auto-session-restore', { clear = true }),
+    nested = true,
+    callback = function()
+      local session_file = get_session_file()
+      if vim.fn.filereadable(session_file) == 1 then
+        vim.cmd('source ' .. vim.fn.fnameescape(session_file))
+      end
+    end,
+  })
+end
 
 vim.keymap.set('n', '0', '^')
 
