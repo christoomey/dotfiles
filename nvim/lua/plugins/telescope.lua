@@ -102,6 +102,13 @@ return { -- Fuzzy Finder (files, lsp, etc)
     vim.keymap.set('n', '<leader>s,', builtin.git_status, { desc = '[S]earch Recent Files ("." for repeat)' })
     vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
+    vim.keymap.set('n', '<leader>gp', function()
+      require('telescope.builtin').find_files {
+        cwd = 'app/frontend/pages',
+        find_command = { 'fd', '--type', 'f', '(Index|Show|Edit|New)\\.svelte$' },
+      }
+    end, { desc = 'Page components' })
+
     -- Slightly advanced example of overriding default behavior and theme
     vim.keymap.set('n', '<leader>/', function()
       -- You can pass additional configuration to Telescope to change the theme, layout, etc.

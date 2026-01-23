@@ -137,6 +137,12 @@
               "label" : "Pull Requests",
               "type" : "url",
               "value" : "https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3Aaugusthealth+label%3Aemar+-is%3Adraft"
+            },
+            {
+              "key" : "n",
+              "label" : "eMAR Weekly Sync (notion)",
+              "type" : "url",
+              "value" : "https://www.notion.so/augusthealth/eMAR-standups-ongoing-24928d6714b48047a2b5fbc2f4644978"
             }
           ],
           "key" : "e",
