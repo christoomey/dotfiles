@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Opens localhost URL based on PORT from .env in the given directory
+# Usage: open-app-tab [directory]
+
+dir="${1:-.}"
+port=$(grep '^PORT=' "$dir/.env" 2>/dev/null | cut -d= -f2 || echo 3000)
+url="http://localhost:$port"
+
+if command -v open-tab >/dev/null; then
+  open-tab "$url"
+else
+  open "$url"
+fi
