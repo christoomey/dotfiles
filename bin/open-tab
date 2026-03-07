@@ -18,7 +18,11 @@ class TabOpener
   def open!
     if tab_exists?
       log("Tab exists!")
-      activate app_tab
+      activate(app_tab)
+      if options[:reload]
+        log("Reloading tab")
+        reload(app_tab)
+      end
     else
       log("Tab not found -- opening anew")
       open_app_in_new_tab
@@ -35,9 +39,10 @@ class TabOpener
   def app_tab
     @app_tab ||=
       begin
-        tab_info = `/opt/homebrew/bin/chrome-cli list links | grep -Fn '#{app_url}' | cut -d ':' -f 1`.chomp.to_i
-        if tab_info != 0
-          tab_info
+        output = `/opt/homebrew/bin/chrome-cli list links`.chomp
+        matching_line = output.lines.find { |line| line.include?(app_url) }
+        if matching_line && (match = matching_line.match(/\[(\d+)\]/))
+          match[1]
         else
           TAB_NOT_FOUND
         end
@@ -53,12 +58,16 @@ class TabOpener
     app_tab != TAB_NOT_FOUND
   end
 
-  def activate(tab_index)
-    try_system_cmd "osascript -e 'tell application \"Google Chrome\" to set active tab index of first window to #{tab_index}'"
+  def activate(tab_id)
+    try_system_cmd "/opt/homebrew/bin/chrome-cli activate -t #{tab_id}"
+  end
+
+  def reload(tab_id)
+    try_system_cmd "/opt/homebrew/bin/chrome-cli reload -t #{tab_id}"
   end
 
   def focus_chrome
-    try_system_cmd %{osascript -e 'tell application \"Google Chrome\" to activate'}
+    try_system_cmd "open -a 'Google Chrome'"
   end
 
   def try_system_cmd(cmd)
