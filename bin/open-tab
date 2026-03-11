@@ -41,7 +41,7 @@ class TabOpener
       begin
         output = `/opt/homebrew/bin/chrome-cli list links`.chomp
         matching_line = output.lines.find { |line| line.include?(app_url) }
-        if matching_line && (match = matching_line.match(/\[(\d+)\]/))
+        if matching_line && (match = matching_line.match(/\[(?:\d+:)?(\d+)\]/))
           match[1]
         else
           TAB_NOT_FOUND
