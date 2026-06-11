@@ -1,0 +1,227 @@
+#!/bin/zsh
+# tmux-feature-status — dashboard for a fullstack feature directory
+#
+# Looks up from the current pane path for a dir containing `config`,
+# `august-backend/`, and `august-frontend/`, then prints a markdown-ish
+# popup summarizing:
+#   - the Linear issue(s) linked via branch names
+#   - frontend & backend PR status (merged, approved, changes, etc.)
+#
+# Intended to be triggered from a tmux popup binding.
+
+setopt null_glob
+
+# --- locate the feature directory -------------------------------------------
+
+current_path="$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || pwd)"
+
+feature_dir=""
+dir="$current_path"
+while [[ "$dir" != "/" && -n "$dir" ]]; do
+  if [[ -f "$dir/config" && -d "$dir/august-backend" && -d "$dir/august-frontend" ]]; then
+    feature_dir="$dir"
+    break
+  fi
+  dir="${dir:h}"
+done
+
+if [[ -z "$feature_dir" ]]; then
+  print -- "tmux-feature-status: not inside a fullstack feature directory"
+  print -- "(need a parent with 'config', 'august-backend/', and 'august-frontend/')"
+  exit 1
+fi
+
+set -a
+source "$feature_dir/config"
+set +a
+
+: "${FEATURE_NAME:=$(basename "$feature_dir")}"
+: "${FRONTEND_BRANCH:=}"
+: "${BACKEND_BRANCH:=}"
+
+# --- rendering helpers ------------------------------------------------------
+
+hlink() {  # hlink <url> <text>   — OSC 8 clickable hyperlink
+  printf '\e]8;;%s\e\\%s\e]8;;\e\\' "$1" "$2"
+}
+bold()   { printf '\e[1m%s\e[0m' "$1"; }
+dim()    { printf '\e[2m%s\e[0m' "$1"; }
+cyan()   { printf '\e[36m%s\e[0m' "$1"; }
+
+extract_meds_id() {  # extract MEDS-NNNN from a branch name
+  print -r -- "$1" | grep -oEi 'meds-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]'
+}
+
+# Classify a gh `pr list` JSON blob into a tab-separated status record:
+#   status \t reviewer \t number \t url \t title \t mergeable
+# Writes nothing if no PR found.
+classify_pr() {
+  local json="$1"
+  [[ -z "$json" || "$json" == "[]" ]] && return 0
+  print -r -- "$json" | jq -r '
+    # prefer an open PR, fall back to most recent
+    ( ([.[] | select(.state == "OPEN")] | first) // .[0] ) as $pr
+    | ( [$pr.reviews[]? | select(.author.login | test("\\[bot\\]") | not)] ) as $reviews
+    | ( $reviews | last ) as $latest_review
+    | ( [$reviews[].author.login] | unique ) as $reviewed_logins
+    | ( [$pr.reviewRequests[]?.login] ) as $requested_logins
+    # Re-review signal: reviewer who already reviewed AND is back in
+    # reviewRequests means the ball moved back to them.
+    | ( [$reviewed_logins[] | select(. as $l | $requested_logins | index($l))] ) as $rerequested
+    | (
+        if   $pr.state == "MERGED"                         then "merged"
+        elif $pr.state == "CLOSED"                         then "closed"
+        elif $pr.isDraft                                   then "draft"
+        elif $pr.reviewDecision == "APPROVED"              then "approved"
+        elif $pr.reviewDecision == "CHANGES_REQUESTED"     then "changes"
+        elif ($rerequested | length) > 0                   then "rerequested"
+        elif ($latest_review.state // "") == "COMMENTED"   then "commented"
+        else "waiting"
+        end
+      ) as $status
+    # Pick the most useful reviewer name(s) for the chosen status.
+    | (
+        if   $status == "rerequested" then ($rerequested | join(", "))
+        elif $status == "approved"    then ([$reviews[] | select(.state == "APPROVED") | .author.login] | unique | join(", "))
+        elif $status == "changes"     then ([$reviews[] | select(.state == "CHANGES_REQUESTED") | .author.login] | unique | join(", "))
+        elif $status == "commented"   then ($latest_review.author.login // "")
+        else ""
+        end
+      ) as $reviewer_names
+    | [
+        $status,
+        $reviewer_names,
+        ($pr.number | tostring),
+        $pr.url,
+        $pr.title,
+        ($pr.mergeStateStatus // "")
+      ] | @tsv
+  '
+}
+
+render_status() {  # render_status <status> <reviewer>
+  local s="$1" r="$2"
+  case "$s" in
+    merged)     print -n "🚢 Merged" ;;
+    closed)     print -n "❌ Closed (not merged)" ;;
+    draft)      print -n "📝 Draft" ;;
+    approved)   print -n "✅ Approved${r:+ by $r}" ;;
+    changes)    print -n "💬 Changes requested${r:+ by $r}" ;;
+    rerequested) print -n "⌛ Re-review requested${r:+ from $r}" ;;
+    commented)  print -n "💬 Comments${r:+ from $r}" ;;
+    waiting)    print -n "⌛ Waiting for review" ;;
+    *)          print -n "$s" ;;
+  esac
+}
+
+# --- fetch everything in parallel -------------------------------------------
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+fetch_pr() {  # fetch_pr <repo_slug> <branch> <outfile>
+  local repo="$1" branch="$2" out="$3"
+  [[ -z "$branch" ]] && return 0
+  local json
+  json="$(gh pr list --repo "$repo" --head "$branch" --state all \
+            --json number,title,url,state,isDraft,reviewDecision,mergeStateStatus,reviews,reviewRequests,mergedAt,author \
+            --limit 5 2>/dev/null)" || return 0
+  classify_pr "$json" > "$out"
+}
+
+fetch_linear() {  # fetch_linear <MEDS-ID> <outfile>
+  local id="$1" out="$2"
+  [[ -z "$id" ]] && return 0
+  linear issue view "$id" --json --no-comments --no-pager 2>/dev/null > "$out" || true
+}
+
+fetch_pr augusthealth/august-frontend "$FRONTEND_BRANCH" "$tmpdir/fe.pr" &
+fetch_pr augusthealth/august-backend  "$BACKEND_BRANCH"  "$tmpdir/be.pr" &
+
+fe_meds="$(extract_meds_id "$FRONTEND_BRANCH")"
+be_meds="$(extract_meds_id "$BACKEND_BRANCH")"
+
+typeset -A seen=()
+for id in $fe_meds $be_meds; do
+  [[ -z "$id" || -n "${seen[$id]-}" ]] && continue
+  seen[$id]=1
+  fetch_linear "$id" "$tmpdir/linear-$id.json" &
+done
+
+wait
+
+# --- render -----------------------------------------------------------------
+
+render() {
+  printf '%s\n\n' "$(bold "# $FEATURE_NAME")"
+
+  # Linear info — rendered inline under the title, one line per issue.
+  local ids=()
+  [[ -n "$fe_meds" ]] && ids+=("$fe_meds")
+  [[ -n "$be_meds" && "$be_meds" != "$fe_meds" ]] && ids+=("$be_meds")
+
+  if (( ${#ids} == 0 )); then
+    printf '%s\n\n' "$(dim '(no MEDS-xxxx id in branch names)')"
+  else
+    for id in $ids; do
+      local file="$tmpdir/linear-$id.json"
+      local url="https://linear.app/august-health/issue/$id"
+      if [[ -s "$file" ]] && jq -e . "$file" >/dev/null 2>&1; then
+        local title state iurl
+        title="$(jq -r '.title // ""' "$file")"
+        state="$(jq -r '.state.name // ""' "$file")"
+        iurl="$(jq -r '.url // ""' "$file")"
+        [[ -n "$iurl" ]] && url="$iurl"
+        printf '%s — %s  %s\n' \
+          "$(cyan "$(hlink "$url" "$id")")" \
+          "$title" \
+          "$(dim "· $state")"
+      else
+        printf '%s %s\n' \
+          "$(cyan "$(hlink "$url" "$id")")" \
+          "$(dim '(details unavailable)')"
+      fi
+    done
+    printf '\n'
+  fi
+
+  # PR sections
+  render_side() {  # render_side <label> <branch> <prfile>
+    local label="$1" branch="$2" file="$3"
+    printf '%s %s\n' "$(bold "## $label")" "$(dim "— $branch")"
+    if [[ -z "$branch" ]]; then
+      printf '  %s\n' "$(dim 'no branch configured')"
+      return
+    fi
+    if [[ ! -s "$file" ]]; then
+      printf '  %s\n' "$(dim 'no PR found for this branch')"
+      return
+    fi
+    local pr_status reviewer number url title mergeable
+    IFS=$'\t' read -r pr_status reviewer number url title mergeable < "$file"
+    local status_str="$(render_status "$pr_status" "$reviewer")"
+    if [[ "$mergeable" == "DIRTY" && "$pr_status" != "merged" && "$pr_status" != "closed" ]]; then
+      status_str="$status_str  $(dim '·') ⚠️  conflict"
+    fi
+    printf '  - %s\n' "$status_str"
+    printf '    %s  %s\n' \
+      "$(cyan "$(hlink "$url" "#$number")")" \
+      "$title"
+  }
+
+  render_side "Frontend" "$FRONTEND_BRANCH" "$tmpdir/fe.pr"
+  printf '\n'
+  render_side "Backend"  "$BACKEND_BRANCH"  "$tmpdir/be.pr"
+  printf '\n'
+
+  printf '%s\n' "$(dim "feature dir: $feature_dir")"
+}
+
+# Print directly (don't pipe through `less`): the system `less` on macOS is
+# v581 which strips OSC 8 hyperlink escapes, breaking the clickable links.
+# Output is short enough to always fit in the popup, so we just block on a
+# keypress to keep the popup open until dismissed.
+render
+printf '\n%s' "$(dim 'press any key to close')"
+read -k 1 -s < /dev/tty 2>/dev/null || true
+printf '\n'

@@ -1,10 +1,50 @@
 #!/usr/bin/env bash
 
-# Opens localhost URL based on PORT from .env in the given directory
+# Opens a localhost URL for the current project.
+#
+# Resolution order:
+#   1. If we're inside an August fullstack feature directory (a parent with
+#      `config`, `august-backend/`, and `august-frontend/`), source its config
+#      and use $MAIN_PORT.
+#   2. Else, if the given directory has a `.env` with `PORT=`, use that.
+#   3. Else, default to port 3000.
+#
 # Usage: open-app-tab [directory]
 
-dir="${1:-.}"
-port=$(grep '^PORT=' "$dir/.env" 2>/dev/null | cut -d= -f2 || echo 3000)
+set -u
+
+dir="${1:-$PWD}"
+dir="$(cd "$dir" 2>/dev/null && pwd)" || dir="${1:-$PWD}"
+
+port=""
+
+# 1. Walk up for a fullstack feature directory.
+probe="$dir"
+while [[ -n "$probe" && "$probe" != "/" ]]; do
+  if [[ -f "$probe/config" && -d "$probe/august-backend" && -d "$probe/august-frontend" ]]; then
+    # shellcheck disable=SC1091
+    main_port="$(
+      set -a
+      source "$probe/config"
+      set +a
+      printf '%s' "${MAIN_PORT:-}"
+    )"
+    if [[ -n "$main_port" ]]; then
+      port="$main_port"
+    fi
+    break
+  fi
+  probe="$(dirname "$probe")"
+done
+
+# 2. Fall back to $dir/.env's PORT.
+if [[ -z "$port" && -f "$dir/.env" ]]; then
+  port="$(grep '^PORT=' "$dir/.env" 2>/dev/null | head -1 | cut -d= -f2)"
+fi
+
+# 3. Final fallback.
+port="${port:-3000}"
+
 url="http://localhost:$port"
 
 if command -v open-tab >/dev/null; then

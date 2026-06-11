@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#/ Usage: my-difit
+#/ Launch a difit code review UI with the right target based on git state.
+#/
+#/ If there are uncommitted changes (including untracked files), reviews the
+#/ working tree. Otherwise reviews the current branch against master.
+#/
+#/ Always runs with --clean (drop stale comments) and --include-untracked.
+
+set -euo pipefail
+
+if [[ -n "$(git status --porcelain)" ]]; then
+  exec npx difit working --clean --include-untracked
+else
+  exec npx difit @ master --merge-base --clean --include-untracked
+fi

@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# tmux-feature-palette — fuzzy action menu for an augie fullstack feature.
+#
+# Invoked from a tmux popup binding. Walks up from $PWD (tmux popup sets CWD
+# to the originating pane's `#{pane_current_path}`) to find a feature dir,
+# then offers an fzf menu of common per-feature actions:
+#   - open Frontend in browser              (MAIN_PORT from config)
+#   - open Swagger in browser               (BACKEND_PORT from config)
+#   - open Postgres in TablePlus            (DB_* from august-backend/.env)
+#   - open backend in IntelliJ              (loquat/ via `idea`)
+#   - edit notes file in vim                (symlink set up by bin/up)
+#
+# Falls back to `open-app-tab` when not in an augie feature directory, so the
+# binding does something sensible from any working directory.
+
+set -euo pipefail
+
+# ── find the feature directory ──────────────────────────────────────────────
+
+feature_dir=""
+dir="$PWD"
+while [[ "$dir" != "/" && -n "$dir" ]]; do
+    if [[ -f "$dir/config" && -d "$dir/august-backend" && -d "$dir/august-frontend" ]]; then
+        feature_dir="$dir"
+        break
+    fi
+    dir="$(dirname "$dir")"
+done
+
+if [[ -z "$feature_dir" ]]; then
+    exec open-app-tab "$PWD"
+fi
+
+# ── load feature config + backend .env ──────────────────────────────────────
+
+# shellcheck disable=SC1091
+set -a
+. "$feature_dir/config"
+set +a
+
+FEATURE_NAME="${FEATURE_NAME:-$(basename "$feature_dir")}"
+
+DB_USERNAME=""; DB_PASSWORD=""; DB_DATABASE=""
+BE_ENV="$feature_dir/august-backend/.env"
+if [[ -f "$BE_ENV" ]]; then
+    DB_USERNAME=$(grep -E '^DB_USERNAME=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
+    DB_PASSWORD=$(grep -E '^DB_PASSWORD=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
+    DB_DATABASE=$(grep -E '^DB_DATABASE=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
+fi
+
+FRONTEND_URL="http://localhost:${MAIN_PORT:-3000}"
+SWAGGER_URL="http://localhost:${BACKEND_PORT:-9000}/docs/swagger-ui/index.html"
+TABLEPLUS_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@localhost:5432/${DB_DATABASE}"
+BACKEND_LOQUAT="$feature_dir/august-backend/loquat"
+
+# Resolve the canonical note file. New layout (bin/up): $feature_dir/notes is
+# a symlink to $AUGIE_ROOT/.notes/, and the per-feature file is named
+# <LINEAR-ID>-<feature>.md (falling back to <feature>.md when no Linear ID
+# is in the branch). Legacy layout: $feature_dir/notes.md as a single-file
+# symlink — used as a fallback for features that predate the rewire.
+LINEAR_ID="$(printf "%s" "${BACKEND_BRANCH:-${FRONTEND_BRANCH:-}}" \
+    | sed -E 's|^[^/]+/||' \
+    | grep -oE '^[a-zA-Z]+-[0-9]+' \
+    | tr '[:lower:]' '[:upper:]' || true)"
+
+if [[ -n "$LINEAR_ID" ]]; then
+    NOTE_NAME="${LINEAR_ID}-${FEATURE_NAME}.md"
+else
+    NOTE_NAME="${FEATURE_NAME}.md"
+fi
+
+# Self-heal features that predate bin/up's notes wiring: read paths.root from
+# the augie config and lay down the notes/ symlink so the rest of the script
+# can treat every feature the same way.
+if [[ ! -d "$feature_dir/notes" && ! -e "$feature_dir/notes.md" ]]; then
+    augie_config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
+    augie_root=$(awk '
+        /^paths:/   { in_p=1; next }
+        in_p && /^[^ ]/ { in_p=0 }
+        in_p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
+    ' "$augie_config" 2>/dev/null)
+    if [[ -n "$augie_root" && -d "$augie_root" ]]; then
+        mkdir -p "$augie_root/.notes"
+        ln -sfn "$augie_root/.notes" "$feature_dir/notes"
+    fi
+fi
+
+if [[ -d "$feature_dir/notes" ]]; then
+    NOTES_FILE="$feature_dir/notes/$NOTE_NAME"
+else
+    # No augie root available — fall back to the legacy single-file location
+    # so the user still gets a working notes editor.
+    NOTES_FILE="$feature_dir/notes.md"
+fi
+NOTES_LABEL="$(basename "$NOTES_FILE")"
+
+# ── build the menu ──────────────────────────────────────────────────────────
+#
+# Each line is <tag>\t<icon+label>\t<detail>. fzf displays columns 2 and 3
+# (--with-nth=2,3) and we dispatch on the hidden column 1 tag after selection.
+#
+# Nerd Font glyphs (UTF-8 hex escapes so the bytes survive any encoding hop):
+#   F0AC globe (frontend) · F1C9 file-code (swagger) · F1C0 database
+#   E7B5 IntelliJ devicon · F249 sticky-note (notes)
+
+ICON_FRONTEND=$(printf '\xef\x82\xac')
+ICON_SWAGGER=$(printf '\xef\x87\x89')
+ICON_DB=$(printf '\xef\x87\x80')
+ICON_IDEA=$(printf '\xee\x9e\xb5')
+ICON_NOTES=$(printf '\xef\x89\x89')
+
+build_line() {
+    local tag="$1" icon="$2" label="$3" detail="$4"
+    printf '%s\t%s  \033[1m%-10s\033[0m\t\033[2m%s\033[0m\n' "$tag" "$icon" "$label" "$detail"
+}
+
+menu=$(
+    build_line frontend "$ICON_FRONTEND" "Frontend"  "$FRONTEND_URL"
+    build_line swagger  "$ICON_SWAGGER"  "Swagger"   "$SWAGGER_URL"
+    build_line db       "$ICON_DB"       "TablePlus" "${DB_DATABASE:-<no DB_DATABASE>}"
+    build_line idea     "$ICON_IDEA"     "IntelliJ"  "august-backend/loquat"
+    build_line notes    "$ICON_NOTES"    "Notes"     "$NOTES_LABEL"
+)
+
+choice=$(printf '%s\n' "$menu" | fzf \
+    --ansi \
+    --delimiter=$'\t' \
+    --with-nth=2,3 \
+    --prompt="$FEATURE_NAME ❯ " \
+    --header="↑↓ pick · enter run · ctrl-c cancel" \
+    --reverse \
+    --no-info \
+    --pointer='▶' \
+    --color='prompt:cyan,pointer:cyan,header:dim'
+) || exit 0
+
+tag="$(printf '%s' "$choice" | cut -f1)"
+
+# ── dispatch ────────────────────────────────────────────────────────────────
+
+case "$tag" in
+    frontend)
+        open "$FRONTEND_URL"
+        ;;
+    swagger)
+        open "$SWAGGER_URL"
+        ;;
+    db)
+        if [[ -z "$DB_DATABASE" ]]; then
+            printf "DB_DATABASE not found in %s\n" "$BE_ENV" >&2
+            sleep 2; exit 1
+        fi
+        open -a TablePlus "$TABLEPLUS_URL"
+        ;;
+    idea)
+        if [[ ! -d "$BACKEND_LOQUAT" ]]; then
+            printf "Backend loquat dir not found: %s\n" "$BACKEND_LOQUAT" >&2
+            sleep 2; exit 1
+        fi
+        (cd "$BACKEND_LOQUAT" && idea .)
+        ;;
+    notes)
+        # bin/up handles symlink + file provisioning at feature creation. If
+        # the file is missing here (e.g. an older feature created before this
+        # rewire), just touch it through whichever layout already resolved —
+        # the parent dir is either the notes/ symlink (which exists in new
+        # features) or the feature dir itself (legacy notes.md path).
+        mkdir -p "$(dirname "$NOTES_FILE")" 2>/dev/null || true
+        [[ -e "$NOTES_FILE" ]] || touch "$NOTES_FILE"
+        # Deferred via run-shell -b: palette popup closes first, then the
+        # editor opens in its own 50w × 80h popup. Nesting display-popup
+        # directly inside another popup dismisses both.
+        editor_cmd="${EDITOR:-vim} $(printf %q "$NOTES_FILE")"
+        tmux run-shell -b "tmux display-popup -d $(printf %q "$feature_dir") -xC -yC -w50% -h80% -E $(printf %q "$editor_cmd")"
+        ;;
+esac

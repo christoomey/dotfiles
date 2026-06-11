@@ -12,7 +12,7 @@
           "key" : "3",
           "label" : "App (:3000)",
           "type" : "url",
-          "value" : "http://localhost:3000"
+          "value" : "http://localhost:3000/orgs/2/facilities/4/residents"
         },
         {
           "key" : "0",
@@ -150,10 +150,22 @@
           "type" : "group"
         },
         {
+          "actions" : [
+            {
+              "iconPath" : "link",
+              "key" : "n",
+              "label" : "DRI Notion",
+              "type" : "url",
+              "value" : "https://www.notion.so/augusthealth/DRI-Meetings-26528d6714b4804c8a7bdba33675e999"
+            }
+          ],
+          "key" : "d",
+          "type" : "group"
+        },
+        {
           "key" : "l",
-          "label" : "Logs (CloudWatch)",
-          "type" : "url",
-          "value" : "https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#logsV2:logs-insights$3FqueryDetail$3D~(end~0~start~-3600~timeType~'RELATIVE~unit~'seconds~editorString~'~isLiveTail~false~queryId~'~source~(~'*2faws*2feks*2fprod*2fapplication))"
+          "type" : "command",
+          "value" : "open -a Linear 'https://linear.app/august-health/team/MEDS/view/emar-team-board-42df158d4057'"
         }
       ],
       "iconPath" : "briefcase",
@@ -223,6 +235,36 @@
       "iconPath" : "uiwindow.split.2x1",
       "key" : "w",
       "label" : "[W]indowing",
+      "type" : "group"
+    },
+    {
+      "actions" : [
+        {
+          "iconPath" : "list.bullet.clipboard",
+          "key" : "f",
+          "label" : "Focus",
+          "type" : "url",
+          "value" : "raycast://extensions/christoomey/moi/focus-start"
+        },
+        {
+          "iconPath" : "stop.circle",
+          "key" : "v",
+          "label" : "Stop focus session",
+          "type" : "url",
+          "value" : "raycast://extensions/christoomey/moi/focus-stop"
+        },
+        {
+          "key" : "l",
+          "type" : "command",
+          "value" : "open -a Linear 'https://linear.app/toomey/team/TOOM/all'"
+        },
+        {
+          "key" : "s",
+          "type" : "url",
+          "value" : "https://chris-toomey.sentry.io/issues"
+        }
+      ],
+      "key" : "m",
       "type" : "group"
     }
   ],

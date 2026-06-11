@@ -1,0 +1,8 @@
+#!/bin/zsh
+
+set -e
+
+tmux list-windows -F '#{window_index}: #{window_name}' | \
+  fzf --reverse | \
+  cut -d ':' -f 1 | \
+  xargs tmux select-window -t

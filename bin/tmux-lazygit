@@ -1,0 +1,110 @@
+#!/bin/zsh
+
+# tmux-lazygit
+#
+# Dispatcher for git side-actions from inside tmux. Supports two modes:
+#   lazygit (default) — open lazygit in a popup
+#   pr                — open the PR/branch on GitHub via git-opr
+#
+# In a feature dir with both backend/ and frontend/ git repos, auto-picks
+# whichever side has work in flight (uncommitted changes or commits ahead of
+# its default remote branch). Falls back to a tmux menu when both or neither
+# are active.
+
+set -e
+setopt null_glob
+
+mode="${1:-lazygit}"
+case "$mode" in
+  lazygit) menu_title="lazygit" ;;
+  pr)      menu_title="open pr" ;;
+  *)       echo "Usage: ${0:t} [lazygit|pr]" >&2; exit 1 ;;
+esac
+
+# Run the configured action against a directory (used for direct invocation,
+# not the menu — the menu wants the raw tmux command string instead).
+run_action() {
+  local d="$1"
+  case "$mode" in
+    lazygit) tmux display-popup -d "$d" -xC -yC -w95% -h95% -E lazygit ;;
+    pr)      cd "$d" && git-opr >/dev/null 2>&1 ;;
+  esac
+}
+
+# tmux command string for use in `display-menu` entries.
+menu_command() {
+  local d="$1"
+  case "$mode" in
+    lazygit) printf "display-popup -d '%s' -xC -yC -w95%% -h95%% -E lazygit" "$d" ;;
+    pr)      printf "run-shell \"cd '%s' && git-opr >/dev/null 2>&1\"" "$d" ;;
+  esac
+}
+
+current_path="$(tmux display-message -p '#{pane_current_path}')"
+
+# Case 1: inside a git repo — act on it directly.
+if git -C "$current_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  run_action "$current_path"
+  exit 0
+fi
+
+# Case 2: sibling backend/frontend git repos under the current dir.
+backend_dir=""
+frontend_dir=""
+for d in "$current_path"/*/; do
+  d="${d%/}"
+  if [[ -e "$d/.git" ]]; then
+    case "${d:t}" in
+      *backend)  backend_dir="$d" ;;
+      *frontend) frontend_dir="$d" ;;
+    esac
+  fi
+done
+
+# A repo is "active" if it has uncommitted changes or is ahead of its default
+# remote branch (origin/master, falling back to origin/main).
+is_active() {
+  local d="$1"
+  [[ -n "$(git -C "$d" status --porcelain 2>/dev/null)" ]] && return 0
+  local base
+  for base in origin/master origin/main; do
+    if git -C "$d" rev-parse --verify --quiet "$base" >/dev/null; then
+      local ahead
+      ahead=$(git -C "$d" rev-list --count "$base..HEAD" 2>/dev/null)
+      [[ -n "$ahead" && "$ahead" -gt 0 ]] && return 0
+      return 1
+    fi
+  done
+  return 1
+}
+
+if [[ -n "$backend_dir" && -n "$frontend_dir" ]]; then
+  backend_active=false
+  frontend_active=false
+  if is_active "$backend_dir"; then backend_active=true; fi
+  if is_active "$frontend_dir"; then frontend_active=true; fi
+
+  # Skip the chooser when exactly one side has work in flight.
+  if $backend_active && ! $frontend_active; then
+    run_action "$backend_dir"
+    exit 0
+  fi
+  if $frontend_active && ! $backend_active; then
+    run_action "$frontend_dir"
+    exit 0
+  fi
+
+  tmux display-menu \
+    -T "#[fg=green,bold] $menu_title " \
+    -x C -y C \
+    -b rounded \
+    -s "bg=colour236,fg=colour250" \
+    -S "fg=green,bg=colour236" \
+    -H "bg=green,fg=colour236,bold" \
+    "backend"  b "$(menu_command "$backend_dir")" \
+    "frontend" f "$(menu_command "$frontend_dir")"
+  exit 0
+fi
+
+tmux display-message "${0:t}: no git repo here and no backend/frontend subdirs"
+exit 1

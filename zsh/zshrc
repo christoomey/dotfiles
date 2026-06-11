@@ -16,11 +16,13 @@ for zsh_source in $HOME/.zsh/configs/*.zsh; do
   source $zsh_source
 done
 
-ensure_tmux_is_running
+# ensure_tmux_is_running
 
 . $HOME/.asdf/asdf.sh
 autoload bashcompinit; bashcompinit
 . $HOME/.asdf/completions/asdf.bash
+
+eval "$(workmux completions zsh)"
 
 [ -f ~/.client-config.zsh ] && source ~/.client-config.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -37,3 +39,4 @@ compdef _flyctl fly
 
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"

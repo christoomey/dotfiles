@@ -3,6 +3,7 @@
 export EDITOR="nvim"
 
 alias vim=nvim
+alias cl=claude
 
 sz() { source ~/.zshrc }
 
@@ -20,3 +21,5 @@ restart-postgres() {
       launchctl load -w homebrew.mxcl.postgresql.plist \
   )
 }
+
+alias pods="KUBECONFIG=~/code/work/august/ops/k8s/kubeconfigs/branch k9s"

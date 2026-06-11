@@ -21,3 +21,4 @@ node_modules
 .notes-archive/*
 .vim/
 **/.claude/settings.local.json
+.wkts/
