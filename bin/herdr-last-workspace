@@ -1,0 +1,52 @@
+#!/bin/zsh
+
+# Jump to the last-used herdr workspace — herdr's analog of tmux
+# `switch-client -l`. Bound to prefix+space, mirroring tmux-conf's
+# `bind-key Space switch-client -l`.
+#
+# herdr has no native last-used-workspace action (only list-order
+# previous/next), so this keeps its own state file. On each press it focuses
+# the previously-recorded workspace and records where we just were, giving a
+# true A<->B toggle. After switching away by other means (click/picker), the
+# first press lands on the last recorded workspace, then alternates from there.
+
+set -e
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/herdr"
+STATE_FILE="$STATE_DIR/last-workspace"
+mkdir -p "$STATE_DIR"
+
+target=$(
+  herdr workspace list |
+    STATE_FILE="$STATE_FILE" python3 -c '
+import json, os, sys
+
+data = json.load(sys.stdin)["result"]["workspaces"]
+ids = [w["workspace_id"] for w in data]
+current = next((w["workspace_id"] for w in data if w.get("focused")), None)
+
+state_file = os.environ["STATE_FILE"]
+try:
+    with open(state_file) as f:
+        last = f.read().strip() or None
+except FileNotFoundError:
+    last = None
+
+if current is None:
+    sys.exit(0)
+
+if last and last != current and last in ids:
+    target = last
+else:
+    # Fallback: list-order previous workspace, wrapping around.
+    i = ids.index(current)
+    target = ids[i - 1] if len(ids) > 1 else None
+
+if target and target != current:
+    with open(state_file, "w") as f:
+        f.write(current)
+    print(target)
+'
+)
+
+[ -n "$target" ] && herdr workspace focus "$target" >/dev/null

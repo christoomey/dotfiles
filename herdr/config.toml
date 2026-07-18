@@ -90,6 +90,10 @@ workspace_picker = "prefix+w"
 # switcher (see [[keys.command]] below). prefix+g remains lazygit.
 goto = ""
 
+# Free prefix+o from herdr's native open_notification_target so it can drive the
+# augie feature palette (see [[keys.command]] below), mirroring tmux `prefix o`.
+open_notification_target = ""
+
 # Prefix-mode actions
 # help = "prefix+?"
 # settings = "prefix+s"
@@ -146,14 +150,16 @@ goto = ""
 # type = "shell" runs detached in the background.
 # type = "pane" opens a temporary pane and closes it when the command exits.
 # On Windows, command strings run through cmd.exe /d /c.
-# lazygit on prefix+g (mirrors your tmux `prefix g`). Floating popup at 90% so it
-# has room; closes when lazygit exits. (needs herdr >= 0.7.4 for type="popup")
+# lazygit on prefix+g (mirrors your tmux `prefix g`). Feature-dir aware: in an
+# augie feature dir it auto-picks the dirty backend/frontend side, or shows an
+# fzf chooser when both/neither are dirty (see herdr-lazygit). Floating popup at
+# 95% so lazygit + the chooser have room. (needs herdr >= 0.7.4 for type="popup")
 [[keys.command]]
 key = "prefix+g"
 type = "popup"
-command = "lazygit"
-width = "90%"
-height = "90%"
+command = "herdr-lazygit"
+width = "95%"
+height = "95%"
 
 # Reclaim clear-screen: bare ctrl+l now focuses the pane to the right, so
 # prefix+ctrl+l sends a literal ctrl+l into the focused pane (readline clear),
@@ -180,6 +186,25 @@ type = "popup"
 command = "herdr-switch-tab"
 width = "50%"
 height = "50%"
+
+# Bounce to the last-used workspace on prefix+space — mirrors tmux-conf's
+# `bind-key Space switch-client -l`. herdr has no native last-used action, so
+# herdr-last-workspace tracks it in a state file for a true A<->B toggle.
+[[keys.command]]
+key = "prefix+space"
+type = "shell"
+command = "herdr-last-workspace"
+
+# augie feature palette on prefix+o (mirrors your tmux `prefix o`). fzf menu of
+# per-feature actions (frontend/swagger/TablePlus/IntelliJ/notes), resolved from
+# the feature dir above the active pane's cwd; falls back to open-app-tab
+# elsewhere. Notes open the editor inline in this same popup.
+[[keys.command]]
+key = "prefix+o"
+type = "popup"
+command = "herdr-feature-palette"
+width = "60%"
+height = "60%"
 
 # [[keys.command]]
 # key = "prefix+alt+g"
