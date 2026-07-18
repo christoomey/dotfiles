@@ -1,3 +1,4 @@
+onboarding = false
 # herdr configuration
 # Place this file at ~/.config/herdr/config.toml
 
@@ -81,13 +82,13 @@ split_horizontal = "prefix+minus"
 # Detach on prefix+d (tmux muscle memory); herdr's native prefix+q still works.
 detach = ["prefix+q", "prefix+d"]
 
-# Fuzzy session/workspace jump — your "fzf jump between workspaces" ask.
-# prefix+w native, prefix+ctrl+j mirrors your tmux switch-session bind.
-workspace_picker = ["prefix+w", "prefix+ctrl+j"]
+# herdr's native workspace picker stays on prefix+w. prefix+ctrl+j is now a
+# custom fzf workspace switcher (see [[keys.command]] below).
+workspace_picker = "prefix+w"
 
-# Fuzzy tab/pane jump. Moved off prefix+g so lazygit can reclaim it (below).
-# prefix+ctrl+w mirrors your tmux switch-window bind.
-goto = "prefix+ctrl+w"
+# herdr's native goto is unbound — prefix+ctrl+w is now a custom fzf tab
+# switcher (see [[keys.command]] below). prefix+g remains lazygit.
+goto = ""
 
 # Prefix-mode actions
 # help = "prefix+?"
@@ -159,6 +160,22 @@ command = "lazygit"
 key = "prefix+ctrl+l"
 type = "shell"
 command = "herdr pane send-keys $HERDR_ACTIVE_PANE_ID ctrl+l"
+
+# fzf fuzzy workspace (session) switcher on prefix+ctrl+j — mirrors your tmux
+# switch-session popup. type="pane" = fullscreen; 0.7.3 has no floating "popup"
+# type (only shell/pane/plugin_action). Flip to type="popup" + width/height once
+# on a herdr version that supports it.
+[[keys.command]]
+key = "prefix+ctrl+j"
+type = "pane"
+command = "herdr-switch-workspace"
+
+# fzf fuzzy tab (window) switcher on prefix+ctrl+w — mirrors your tmux
+# switch-window popup.
+[[keys.command]]
+key = "prefix+ctrl+w"
+type = "pane"
+command = "herdr-switch-tab"
 
 # [[keys.command]]
 # key = "prefix+alt+g"
@@ -243,7 +260,7 @@ sidebar_collapsed_mode = "hidden"
 # accent = "cyan"
 
 # Background notification popup delivery
-agent_panel_sort = "spaces"
+agent_panel_sort = "priority"
 [ui.toast]
 # off = disable pop-up notifications
 # herdr = show in-app toasts
@@ -252,6 +269,7 @@ agent_panel_sort = "spaces"
 # delivery = "off"
 # delay_seconds = 1
 
+delivery = "system"
 [ui.toast.herdr]
 # position = "bottom-right"
 

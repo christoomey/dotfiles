@@ -1,0 +1,9 @@
+# Ghostty configuration
+# Tracked in dotfiles; symlinked to ~/.config/ghostty/config
+
+# Hide the scrollbar entirely (default is "system")
+scrollbar = never
+
+# Fullscreen within the current Space (no separate macOS Space, no animation).
+# padded-notch: hide the menu bar but pad the top so the notch doesn't clip content.
+macos-non-native-fullscreen = padded-notch

@@ -1,0 +1,18 @@
+#!/bin/zsh
+
+# fzf fuzzy switch between herdr workspaces (herdr's analog of tmux sessions).
+# Bound to prefix+ctrl+j — mirrors tmux-switch-session.
+
+set -e
+
+sel=$(
+  herdr workspace list |
+    python3 -c 'import sys, json
+for w in json.load(sys.stdin)["result"]["workspaces"]:
+    mark = "● " if w.get("focused") else "  "
+    print("%s\t%s%s  (%d tabs)" % (w["workspace_id"], mark, w["label"], w["tab_count"]))' |
+    fzf --reverse --with-nth=2.. --delimiter=$'\t' --prompt='workspace ❯ '
+) || exit 0
+
+id=${sel%%$'\t'*}
+[ -n "$id" ] && herdr workspace focus "$id"

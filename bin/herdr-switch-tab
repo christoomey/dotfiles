@@ -1,0 +1,25 @@
+#!/bin/zsh
+
+# fzf fuzzy switch between tabs in the current herdr workspace (herdr's analog of
+# tmux windows). Bound to prefix+ctrl+w — mirrors tmux-switch-window.
+
+set -e
+
+ws=${HERDR_ACTIVE_WORKSPACE_ID:-${HERDR_WORKSPACE_ID:-}}
+if [ -z "$ws" ]; then
+  ws=$(herdr workspace list |
+    python3 -c 'import sys, json
+print(next((w["workspace_id"] for w in json.load(sys.stdin)["result"]["workspaces"] if w.get("focused")), ""))')
+fi
+
+sel=$(
+  herdr tab list --workspace "$ws" |
+    python3 -c 'import sys, json
+for t in json.load(sys.stdin)["result"].get("tabs", []):
+    mark = "● " if t.get("focused") else "  "
+    print("%s\t%s%d: %s  (%d panes)" % (t["tab_id"], mark, t["number"], t["label"], t["pane_count"]))' |
+    fzf --reverse --with-nth=2.. --delimiter=$'\t' --prompt='tab ❯ '
+) || exit 0
+
+id=${sel%%$'\t'*}
+[ -n "$id" ] && herdr tab focus "$id"
