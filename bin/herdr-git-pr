@@ -1,0 +1,4 @@
+#!/bin/zsh
+# herdr-git-pr — open the PR/branch on GitHub for the active pane's repo.
+# Feature-dir aware via herdr-lazygit's `pr` mode (mirrors tmux-git-pr).
+exec herdr-lazygit pr

@@ -1,21 +1,37 @@
 #!/bin/zsh
 
-# herdr-lazygit — feature-dir-aware lazygit launcher. Ported from tmux-lazygit.
-# Bound to prefix+g via type="popup".
+# herdr-lazygit — feature-dir-aware git side-action launcher. Ported from
+# tmux-lazygit. Supports two modes:
+#   lazygit (default) — open lazygit          (bound to prefix+g)
+#   pr                — open the PR on GitHub  (via git-opr; bound to prefix+G
+#                                               through the herdr-git-pr shim)
 #
 # In a feature dir with sibling *backend/ and *frontend/ git repos, auto-picks
 # whichever side has work in flight (uncommitted changes or commits ahead of its
 # default remote branch). Falls back to an fzf chooser when both or neither are
 # active. Because this whole script runs inside a single herdr popup, the fzf
-# chooser and lazygit run sequentially in that same popup — no nested-popup
-# dance (which tmux-lazygit needed) is required.
+# chooser and the action run sequentially in that same popup — no nested-popup
+# dance (which tmux needed) is required.
 
 set -e
 setopt null_glob
 
+mode="${1:-lazygit}"
+case "$mode" in
+  lazygit) prompt="lazygit ❯ " ;;
+  pr)      prompt="open pr ❯ " ;;
+  *)       print -- "Usage: ${0:t} [lazygit|pr]" >&2; exit 1 ;;
+esac
+
 current_path="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
 
-launch() { cd "$1" && exec lazygit; }
+launch() {
+  cd "$1"
+  case "$mode" in
+    lazygit) exec lazygit ;;
+    pr)      exec git-opr ;;
+  esac
+}
 
 # Case 1: inside a git repo — act on it directly.
 if git -C "$current_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -65,7 +81,7 @@ if [[ -n "$backend_dir" && -n "$frontend_dir" ]]; then
   # Both or neither active — fzf chooser, right here in the popup.
   sel=$(
     printf 'backend\t%s\nfrontend\t%s\n' "$backend_dir" "$frontend_dir" |
-      fzf --reverse --with-nth=1 --delimiter=$'\t' --prompt='lazygit ❯ ' \
+      fzf --reverse --with-nth=1 --delimiter=$'\t' --prompt="$prompt" \
           --height=100% --header='both/neither side dirty — pick one'
   ) || exit 0
   dir=${sel##*$'\t'}

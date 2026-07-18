@@ -94,6 +94,10 @@ goto = ""
 # augie feature palette (see [[keys.command]] below), mirroring tmux `prefix o`.
 open_notification_target = ""
 
+# Free prefix+shift+g from herdr's native new_worktree so it can open the PR on
+# GitHub (see herdr-git-pr [[keys.command]] below), mirroring tmux `prefix G`.
+new_worktree = ""
+
 # Prefix-mode actions
 # help = "prefix+?"
 # settings = "prefix+s"
@@ -205,6 +209,24 @@ type = "popup"
 command = "herdr-feature-palette"
 width = "60%"
 height = "60%"
+
+# Open the PR on GitHub on prefix+G (mirrors your tmux `prefix G`). Same
+# feature-dir detection as prefix+g, but runs git-opr instead of lazygit.
+# type="popup" so the fzf backend/frontend chooser has a tty when both/neither
+# side is dirty; auto-picks (brief popup) when exactly one side has work.
+[[keys.command]]
+key = "prefix+shift+g"
+type = "popup"
+command = "herdr-git-pr"
+width = "50%"
+height = "50%"
+
+# Open the active pane's directory in Finder on prefix+f (mirrors tmux
+# `bind f run-shell "open '#{pane_current_path}'"`). type="shell" — no popup.
+[[keys.command]]
+key = "prefix+f"
+type = "shell"
+command = 'open "$HERDR_ACTIVE_PANE_CWD"'
 
 # [[keys.command]]
 # key = "prefix+alt+g"
