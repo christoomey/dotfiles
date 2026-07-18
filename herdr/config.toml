@@ -199,16 +199,18 @@ key = "prefix+space"
 type = "shell"
 command = "herdr-last-workspace"
 
-# augie feature palette on prefix+o (mirrors your tmux `prefix o`). fzf menu of
-# per-feature actions (frontend/swagger/TablePlus/IntelliJ/notes), resolved from
-# the feature dir above the active pane's cwd; falls back to open-app-tab
-# elsewhere. Notes open the editor inline in this same popup.
+# augie feature palette on prefix+o (mirrors your tmux `prefix o`). Modal,
+# mouse-aware OpenTUI picker (herdr/palette-tui/palette.ts via the
+# herdr-feature-palette-tui wrapper): single-key hops f/s/t/i/n, `/` to search,
+# ↑↓/click to move, ⏎ open. Resolved from the feature dir above the active
+# pane's cwd; falls back to open-app-tab elsewhere. Notes open the editor in
+# this same popup. The fzf version (herdr-feature-palette) is kept as a fallback.
 [[keys.command]]
 key = "prefix+o"
 type = "popup"
-command = "herdr-feature-palette"
-width = "60%"
-height = "60%"
+command = "herdr-feature-palette-tui"
+width = "70%"
+height = "55%"
 
 # Open the PR on GitHub on prefix+G (mirrors your tmux `prefix G`). Same
 # feature-dir detection as prefix+g, but runs git-opr instead of lazygit.

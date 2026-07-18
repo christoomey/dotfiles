@@ -1,0 +1,152 @@
+#!/bin/zsh
+# herdr-feature-palette-tui — OpenTUI reimplementation of herdr-feature-palette.
+# Bound to prefix+o via type="popup".
+#
+# Same augie feature resolution + action dispatch as the fzf version, but the
+# menu is a modal, mouse-aware OpenTUI picker (herdr/palette-tui/palette.ts):
+# single-key hops (f/s/t/i/n), `/` for fuzzy search, ↑↓/click to move, ⏎ open.
+# This script resolves the feature, hands the picker a JSON item list, and
+# dispatches on the tag it writes back. The fzf version (herdr-feature-palette)
+# is kept intact as a fallback.
+
+set -euo pipefail
+
+APP="${0:A:h}/../herdr/palette-tui/palette.ts"
+
+# ── find the feature directory ──────────────────────────────────────────────
+
+feature_dir=""
+dir="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
+while [[ "$dir" != "/" && -n "$dir" ]]; do
+    if [[ -f "$dir/config" && -d "$dir/august-backend" && -d "$dir/august-frontend" ]]; then
+        feature_dir="$dir"
+        break
+    fi
+    dir="$(dirname "$dir")"
+done
+
+if [[ -z "$feature_dir" ]]; then
+    exec open-app-tab "${HERDR_ACTIVE_PANE_CWD:-$PWD}"
+fi
+
+# ── load feature config + backend .env ──────────────────────────────────────
+
+set -a
+. "$feature_dir/config"
+set +a
+
+FEATURE_NAME="${FEATURE_NAME:-$(basename "$feature_dir")}"
+
+DB_USERNAME=""; DB_PASSWORD=""; DB_DATABASE=""
+BE_ENV="$feature_dir/august-backend/.env"
+if [[ -f "$BE_ENV" ]]; then
+    DB_USERNAME=$(grep -E '^DB_USERNAME=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
+    DB_PASSWORD=$(grep -E '^DB_PASSWORD=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
+    DB_DATABASE=$(grep -E '^DB_DATABASE=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
+fi
+
+FRONTEND_URL="http://localhost:${MAIN_PORT:-3000}"
+SWAGGER_URL="http://localhost:${BACKEND_PORT:-9000}/docs/swagger-ui/index.html"
+TABLEPLUS_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@localhost:5432/${DB_DATABASE}"
+BACKEND_LOQUAT="$feature_dir/august-backend/loquat"
+
+# Resolve the canonical note file (same logic as the fzf palette).
+LINEAR_ID="$(printf "%s" "${BACKEND_BRANCH:-${FRONTEND_BRANCH:-}}" \
+    | sed -E 's|^[^/]+/||' \
+    | grep -oE '^[a-zA-Z]+-[0-9]+' \
+    | tr '[:lower:]' '[:upper:]' || true)"
+
+if [[ -n "$LINEAR_ID" ]]; then
+    NOTE_NAME="${LINEAR_ID}-${FEATURE_NAME}.md"
+else
+    NOTE_NAME="${FEATURE_NAME}.md"
+fi
+
+if [[ ! -d "$feature_dir/notes" && ! -e "$feature_dir/notes.md" ]]; then
+    augie_config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
+    augie_root=$(awk '
+        /^paths:/   { in_p=1; next }
+        in_p && /^[^ ]/ { in_p=0 }
+        in_p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
+    ' "$augie_config" 2>/dev/null)
+    if [[ -n "$augie_root" && -d "$augie_root" ]]; then
+        mkdir -p "$augie_root/.notes"
+        ln -sfn "$augie_root/.notes" "$feature_dir/notes"
+    fi
+fi
+
+if [[ -d "$feature_dir/notes" ]]; then
+    NOTES_FILE="$feature_dir/notes/$NOTE_NAME"
+else
+    NOTES_FILE="$feature_dir/notes.md"
+fi
+NOTES_LABEL="$(basename "$NOTES_FILE")"
+
+# Nerd Font glyphs: F0AC globe · F1C9 file-code · F1C0 database · E7B5 IntelliJ
+# · F249 sticky-note (UTF-8 hex escapes so the bytes survive any encoding hop).
+ICON_FRONTEND=$(printf '\xef\x82\xac')
+ICON_SWAGGER=$(printf '\xef\x87\x89')
+ICON_DB=$(printf '\xef\x87\x80')
+ICON_IDEA=$(printf '\xee\x9e\xb5')
+ICON_NOTES=$(printf '\xef\x89\x89')
+
+# ── build the picker payload (single-key hops: f/s/t/i/n) ────────────────────
+
+PALETTE_JSON=$(
+  FEATURE_NAME="$FEATURE_NAME" LINEAR_ID="$LINEAR_ID" \
+  FRONTEND_URL="$FRONTEND_URL" SWAGGER_URL="$SWAGGER_URL" \
+  DB_DATABASE="$DB_DATABASE" NOTES_LABEL="$NOTES_LABEL" \
+  I_FRONTEND="$ICON_FRONTEND" I_SWAGGER="$ICON_SWAGGER" I_DB="$ICON_DB" \
+  I_IDEA="$ICON_IDEA" I_NOTES="$ICON_NOTES" \
+  python3 -c '
+import json, os
+e = os.environ
+items = [
+  {"tag":"frontend","key":"f","icon":e["I_FRONTEND"],"label":"Frontend","detail":e["FRONTEND_URL"]},
+  {"tag":"swagger", "key":"s","icon":e["I_SWAGGER"], "label":"Swagger", "detail":e["SWAGGER_URL"]},
+  {"tag":"db",      "key":"t","icon":e["I_DB"],      "label":"TablePlus","detail":e["DB_DATABASE"] or "<no DB_DATABASE>"},
+  {"tag":"idea",    "key":"i","icon":e["I_IDEA"],    "label":"IntelliJ", "detail":"august-backend/loquat"},
+  {"tag":"notes",   "key":"n","icon":e["I_NOTES"],   "label":"Notes",    "detail":e["NOTES_LABEL"]},
+]
+print(json.dumps({"title":e["FEATURE_NAME"], "subtitle":e["LINEAR_ID"], "items":items}))
+'
+)
+
+result_file="$(mktemp)"
+trap 'rm -f "$result_file"' EXIT
+
+PALETTE_JSON="$PALETTE_JSON" bun run "$APP" "$result_file"
+
+tag="$(cat "$result_file" 2>/dev/null || true)"
+
+# ── dispatch (same actions as the fzf palette) ──────────────────────────────
+
+case "$tag" in
+    frontend)
+        open "$FRONTEND_URL"
+        ;;
+    swagger)
+        open "$SWAGGER_URL"
+        ;;
+    db)
+        if [[ -z "$DB_DATABASE" ]]; then
+            printf "DB_DATABASE not found in %s\n" "$BE_ENV" >&2
+            sleep 2; exit 1
+        fi
+        open -a TablePlus "$TABLEPLUS_URL"
+        ;;
+    idea)
+        if [[ ! -d "$BACKEND_LOQUAT" ]]; then
+            printf "Backend loquat dir not found: %s\n" "$BACKEND_LOQUAT" >&2
+            sleep 2; exit 1
+        fi
+        (cd "$BACKEND_LOQUAT" && idea .)
+        ;;
+    notes)
+        mkdir -p "$(dirname "$NOTES_FILE")" 2>/dev/null || true
+        [[ -e "$NOTES_FILE" ]] || touch "$NOTES_FILE"
+        # Terminal is already restored by the picker's renderer.destroy(), so we
+        # can hand the popup straight to the editor.
+        exec "${EDITOR:-vim}" "$NOTES_FILE"
+        ;;
+esac
