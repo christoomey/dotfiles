@@ -146,12 +146,14 @@ goto = ""
 # type = "shell" runs detached in the background.
 # type = "pane" opens a temporary pane and closes it when the command exits.
 # On Windows, command strings run through cmd.exe /d /c.
-# lazygit on prefix+g (mirrors your tmux `prefix g`). type="pane" opens a
-# temporary zoomed pane that closes when lazygit exits.
+# lazygit on prefix+g (mirrors your tmux `prefix g`). Floating popup at 90% so it
+# has room; closes when lazygit exits. (needs herdr >= 0.7.4 for type="popup")
 [[keys.command]]
 key = "prefix+g"
-type = "pane"
+type = "popup"
 command = "lazygit"
+width = "90%"
+height = "90%"
 
 # Reclaim clear-screen: bare ctrl+l now focuses the pane to the right, so
 # prefix+ctrl+l sends a literal ctrl+l into the focused pane (readline clear),
@@ -162,20 +164,22 @@ type = "shell"
 command = "herdr pane send-keys $HERDR_ACTIVE_PANE_ID ctrl+l"
 
 # fzf fuzzy workspace (session) switcher on prefix+ctrl+j — mirrors your tmux
-# switch-session popup. type="pane" = fullscreen; 0.7.3 has no floating "popup"
-# type (only shell/pane/plugin_action). Flip to type="popup" + width/height once
-# on a herdr version that supports it.
+# switch-session popup. type="popup" floats it centered (needs herdr >= 0.7.4).
 [[keys.command]]
 key = "prefix+ctrl+j"
-type = "pane"
+type = "popup"
 command = "herdr-switch-workspace"
+width = "50%"
+height = "50%"
 
 # fzf fuzzy tab (window) switcher on prefix+ctrl+w — mirrors your tmux
 # switch-window popup.
 [[keys.command]]
 key = "prefix+ctrl+w"
-type = "pane"
+type = "popup"
 command = "herdr-switch-tab"
+width = "50%"
+height = "50%"
 
 # [[keys.command]]
 # key = "prefix+alt+g"
