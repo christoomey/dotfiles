@@ -65,6 +65,8 @@ func (m model) updateFeature(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "ctrl+r":
 		m.feature.Blur()
 		return m, m.enterResume()
+	case "ctrl+a":
+		return m, m.enterAgents()
 	case "enter", "ctrl+s":
 		branch := strings.TrimSpace(m.feature.Value())
 		project, _, ok := detectProject(branch)

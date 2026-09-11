@@ -10,10 +10,12 @@
 # attaches the clipboard image (what CleanShot leaves after a capture); the
 # launcher moves attachments into the session's scratch dir and lists their
 # paths in the first prompt. ctrl+f takes a Linear branch and runs the
-# project's worktree bootstrap (af up / moi bin/up) in a new tab.
+# project's worktree bootstrap (af up / moi bin/up) in a new tab. ctrl+a is a
+# fuzzy finder over live herdr agents (blocked/done first); enter focuses the
+# pane. `--agents` (bound to prefix+a) opens straight into that view.
 # The popup closes as soon as you submit; the launch continues detached.
 #
-#   herdr-new-thread                                      # interactive
+#   herdr-new-thread [--agents]                           # interactive
 #   herdr-new-thread --launch NAME open|bg [SESSION_ID]   # detached worker, form JSON on stdin
 #   herdr-new-thread --launch-feature PROJECT BRANCH      # detached worker
 #
@@ -211,13 +213,23 @@ if [ ! -x "$form_bin" ] || [ -n "$(find "$form_src" -name '*.go' -newer "$form_b
   (cd "$form_src" && go build -o "$form_bin" .) || { echo "form build failed" >&2; sleep 3; exit 1; }
 fi
 
+form_args=(--theme minimal)
+[ "${1:-}" = "--agents" ] && form_args+=(--view agents)
+
 log="$HOME/.config/herdr/new-thread.log"
-result=$("$form_bin" --theme minimal) || exit 0
+result=$("$form_bin" "${form_args[@]}") || exit 0
 [ -z "$result" ] && exit 0
 
 mode=$(printf '%s' "$result" | jq -r .mode)
 if [ "$mode" = focus ]; then
   herdr tab focus "$(printf '%s' "$result" | jq -r .tab_id)" >/dev/null
+  exit 0
+fi
+if [ "$mode" = agent ]; then
+  # Tab first, then the pane: agent focus alone does not always raise the tab
+  # in a multi-tab workspace (same two-step herdr-bar used).
+  herdr tab focus "$(printf '%s' "$result" | jq -r .tab_id)" >/dev/null
+  herdr agent focus "$(printf '%s' "$result" | jq -r .pane_id)" >/dev/null
   exit 0
 fi
 

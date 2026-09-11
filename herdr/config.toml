@@ -72,7 +72,7 @@ prefix = "ctrl+s"
 # the screen and vim splits won't be crossed). prefix+hjkl kept as a fallback.
 focus_pane_left  = ["ctrl+h", "prefix+h"]
 focus_pane_down  = ["ctrl+j", "prefix+j"]
-focus_pane_up    = ["ctrl+k", "prefix+k"]
+focus_pane_up    = "ctrl+k"  # prefix+k is the agent finder (see [[keys.command]])
 focus_pane_right = ["ctrl+l", "prefix+l"]
 
 # Splits match tmux: "\" side-by-side (vertical divider), "-" stacked.
@@ -202,14 +202,19 @@ key = "prefix+space"
 type = "shell"
 command = "herdr-last-workspace"
 
-# Fuzzy-jump to any agent / tab / pane on prefix+a via herdr-bar (plugin,
-# pinned to v0.3.0). Blocked and done agents float to the top, so
-# prefix+a, Enter hops to whichever agent just finished.
+# Agent fuzzy finder on prefix+k: the New Session popup (herdr-new-thread)
+# opened straight into its agents view. Blocked/done agents are the list
+# (blocked first, then most recently finished), everything else dimmed below;
+# ctrl+a widens to all agents (most recently visited first), ctrl+j/k move,
+# enter focuses the pane. Replaced herdr-bar on prefix+a (plugin still
+# installed, now unbound).
 [[keys.command]]
-key = "prefix+a"
-type = "plugin_action"
-command = "herdr-bar.open"
-description = "agent / tab bar"
+key = "prefix+k"
+type = "popup"
+command = "herdr-new-thread --agents"
+description = "Agents"
+width = 90
+height = 24
 
 # prefix+o routes through herdr-open-palette (~/bin): in moi checkouts and
 # moi__worktrees/* it shows a small moi palette (open in browser / open notes);
@@ -381,6 +386,11 @@ sidebar_collapsed_mode = "hidden"
 
 # Background notification popup delivery
 agent_panel_sort = "priority"
+
+# Shape + color per agent state (○ idle · ◐ working · × blocked · ✓ done)
+# instead of plain dots — the same glyphs the prefix+k agent finder
+# uses, so the sidebar and the popup read alike.
+status_indicators = "symbols"
 [ui.toast]
 # off = disable pop-up notifications
 # herdr = show in-app toasts
