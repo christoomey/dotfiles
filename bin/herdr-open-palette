@@ -1,0 +1,83 @@
+#!/bin/zsh
+
+# herdr-open-palette — prefix+o dispatcher. In the moi repo (primary checkout
+# or any moi__worktrees/* worktree) it shows a minimal single-keystroke menu
+# (august-panel style — press the letter, action fires immediately):
+#   o — open-tab http://localhost:$PORT from this checkout's .env (activates
+#       the existing Chrome tab if one is on this port, else opens one)
+#   n — nvim on this branch/worktree's note in the shared .notes/ dir (newest
+#       match on the worktree name; created as .notes/<iso-date>-<name>.md if
+#       missing, mirroring the august per-feature note). Falls back to the
+#       .notes dir when there's no feature name to match (e.g. main).
+# Any other key dismisses. Everywhere else it falls through to the augie
+# feature panel (af ui), the previous sole occupant of prefix+o.
+
+set -e
+
+current_path="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
+
+# The git common dir resolves to the primary checkout's .git for linked
+# worktrees too (…/code/moi/.git), so its parent name identifies moi from
+# both the primary checkout and every worktree.
+is_moi() {
+  local common
+  common=$(git -C "$current_path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  [[ "${common:h:t}" == "moi" ]]
+}
+
+if ! is_moi; then
+  exec af ui
+fi
+
+root=$(git -C "$current_path" rev-parse --show-toplevel)
+
+open_browser() {
+  local port
+  port=$(grep -m1 '^PORT=' "$root/.env" 2>/dev/null | cut -d= -f2)
+  open-tab "http://localhost:${port:-3000}"
+}
+
+open_notes() {
+  cd "$root"
+  setopt null_glob
+
+  # Worktree dirs are already the cleaned feature name (bin/up trims the
+  # christoomey/toom-NNN- prefix); in the primary checkout derive the same
+  # from the current branch instead.
+  local name branch
+  if [[ "${root:h:t}" == "moi__worktrees" ]]; then
+    name="${root:t}"
+  else
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    name=$(print -- "$branch" | sed -E 's|^[^/]+/||; s|^toom-[0-9]+-||')
+    if [[ -z "$name" || "$branch" == "main" ]]; then
+      exec nvim .notes
+    fi
+  fi
+
+  local -a matches
+  matches=(.notes/*"$name"*.md(N.om))
+  if (( ${#matches} )); then
+    exec nvim "${matches[1]}"
+  else
+    local note=".notes/$(date +%F)-$name.md"
+    touch "$note"
+    exec nvim "$note"
+  fi
+}
+
+print
+print -P "  %F{cyan}moi%f  %F{8}${root:t}%f"
+print
+print -P "  %F{yellow}o%f  open in browser"
+print -P "  %F{yellow}n%f  open notes"
+print
+print -Pn "  %F{8}press a key (any other dismisses)%f "
+
+read -k1 -s key
+
+case "$key" in
+  o) open_browser ;;
+  n) open_notes ;;
+  *) exit 0 ;;
+esac

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# af — augie feature dispatcher.
+#
+# Thin wrapper over the augie "mux" commands in the fullstack tooling repo so
+# they run from anywhere without cd-ing in, and without shadowing system
+# commands (the bin/ names are generic: open, ls, down, ...). Everything else
+# lives in fullstack/bin; this only routes. Herdr-aware because those scripts
+# are (see fullstack/bin/herdr-mux.sh).
+
+set -euo pipefail
+
+# Resolve the fullstack tooling bin from the augie config (paths.root/bin).
+config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
+root=$(awk '
+    /^paths:/ { p=1; next }
+    p && /^[^ ]/ { p=0 }
+    p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
+' "$config" 2>/dev/null)
+BIN="${root:-$HOME/code/work/current/fullstack}/bin"
+
+usage() {
+    cat <<'EOF'
+af — augie feature commands (herdr-aware)
+
+  af up <linear-branch>   create a feature worktree and open its tab
+  af review <pr-or-branch>...  create a review worktree (BE and/or FE PR) and open its tab
+  af open [feature]       open/switch to a feature's tab
+  af close [feature]      close a feature's tab (keeps dir/branches/db)
+  af down [feature]       tear a feature down (removes dir, branches, db)
+  af ls                   list features (open/closed)
+  af status               feature dashboard
+  af ui                   interactive feature panel (TUI)
+EOF
+}
+
+cmd="${1:-}"
+[[ $# -gt 0 ]] && shift || true
+
+case "$cmd" in
+    up)     exec "$BIN/up" "$@" ;;
+    review) exec "$BIN/review" "$@" ;;
+    open)   exec "$BIN/open" "$@" ;;
+    close)  exec "$BIN/close" "$@" ;;
+    down)   exec "$BIN/down" "$@" ;;
+    ls)     exec "$BIN/ls" "$@" ;;
+    status) exec "$BIN/feature-status" "$@" ;;
+    ui)     exec "$BIN/panel" "$@" ;;
+    ""|-h|--help) usage ;;
+    *) printf "af: unknown command '%s'\n\n" "$cmd" >&2; usage >&2; exit 1 ;;
+esac

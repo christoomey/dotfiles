@@ -14,3 +14,8 @@ export NODE_GYP_FORCE_PYTHON=/opt/homebrew/bin/python3.10
 
 # Use postgres.app versions of pg utilites
 export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH
+
+# asdf shims must be on PATH in ALL shells (not just interactive), so
+# non-interactive contexts (herdr/tmux-spawned jobs) don't fall back to
+# homebrew node. Completions stay in .zshrc.
+. $HOME/.asdf/asdf.sh

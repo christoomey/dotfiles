@@ -1,0 +1,15 @@
+id = "augie-git"
+name = "Augie git popups"
+version = "0.1.0"
+min_herdr_version = "0.7.4"
+description = "Popup lazygit pane for herdr-lazygit (prefix+g); opened via `herdr plugin pane open` with --cwd set to the chosen repo"
+
+[[panes]]
+id = "lazygit"
+title = "lazygit"
+placement = "popup"
+width = "95%"
+height = "95%"
+command = ["lazygit"]
+
+

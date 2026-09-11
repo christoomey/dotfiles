@@ -18,7 +18,7 @@ done
 
 # ensure_tmux_is_running
 
-. $HOME/.asdf/asdf.sh
+# asdf.sh is sourced in zshenv (needed in non-interactive shells too)
 autoload bashcompinit; bashcompinit
 . $HOME/.asdf/completions/asdf.bash
 

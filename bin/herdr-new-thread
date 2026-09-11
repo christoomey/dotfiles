@@ -1,0 +1,244 @@
+#!/bin/zsh
+
+# Start (or resume) a one-off Claude session in a project workspace (august,
+# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). A huh form
+# asks for a name (required), a project, an optional first prompt, and
+# open-vs-background. ctrl+s opens now, ctrl+b runs in the background, from
+# any field; tab reaches the button row. ctrl+r flips to a fuzzy list of past
+# sessions in the august root: enter resumes one in a new tab (ctrl+b in the
+# background); a session that is already live just gets focused. ctrl+v
+# attaches the clipboard image (what CleanShot leaves after a capture); the
+# launcher moves attachments into the session's scratch dir and lists their
+# paths in the first prompt. ctrl+f takes a Linear branch and runs the
+# project's worktree bootstrap (af up / moi bin/up) in a new tab.
+# The popup closes as soon as you submit; the launch continues detached.
+#
+#   herdr-new-thread                                      # interactive
+#   herdr-new-thread --launch NAME open|bg [SESSION_ID]   # detached worker, form JSON on stdin
+#   herdr-new-thread --launch-feature PROJECT BRANCH      # detached worker
+#
+# The new tab's shell gets HERDR_THREAD=1 so zsh/configs/herdr.zsh exits the
+# shell when claude does, which closes the pane and the tab, and AUGIE_SCRATCH
+# pointing at scratch/<slug>/ under the august root for throwaway files.
+# New sessions get `claude --name NAME` so the typed name is the title the
+# resume list shows later (Claude persists it as the session's custom title).
+
+set -e
+
+august_root() {
+  local root
+  root=$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)
+  cd "$root" && pwd -P
+}
+
+project_root() {
+  case "$1" in
+    august)   august_root ;;
+    moi)      echo "$HOME/code/moi" ;;
+    dotfiles) echo "$HOME/code/dotfiles" ;;
+    *) echo "unknown project: $1" >&2; return 1 ;;
+  esac
+}
+
+# Workspace id for a project: the non-linked worktree checked out at its root,
+# or (dotfiles is a plain folder workspace) the workspace labelled with its name.
+find_ws() {
+  herdr workspace list | ROOT="$1" LABEL="$2" python3 -c '
+import json, os, sys
+root, label = os.environ["ROOT"], os.environ["LABEL"]
+ws = json.load(sys.stdin)["result"]["workspaces"]
+for w in ws:
+    wt = w.get("worktree") or {}
+    if wt.get("checkout_path") == root and not wt.get("is_linked_worktree"):
+        print(w["workspace_id"]); sys.exit()
+for w in ws:
+    if w.get("label") == label and not w.get("worktree"):
+        print(w["workspace_id"]); sys.exit()'
+}
+
+ensure_ws() {
+  local project="$1" root="$2" ws
+  ws=$(find_ws "$root" "$project")
+  if [ -z "$ws" ]; then
+    if [ "$project" = dotfiles ]; then
+      herdr workspace create --cwd "$root" --label "$project" --no-focus >/dev/null
+    else
+      herdr worktree open --cwd "$root" --path "$root" --no-focus >/dev/null
+    fi
+    ws=$(find_ws "$root" "$project")
+  fi
+  [ -z "$ws" ] && { echo "could not find/open $project workspace" >&2; return 1; }
+  echo "$ws"
+}
+
+first_pane() {
+  python3 -c '
+import json, sys
+def find(o):
+    if isinstance(o, dict):
+        if "pane_id" in o: return o["pane_id"]
+        for v in o.values():
+            f = find(v)
+            if f: return f
+    if isinstance(o, list):
+        for v in o:
+            f = find(v)
+            if f: return f
+print(find(json.load(sys.stdin).get("result", {})) or "")'
+}
+
+# Open a tab in the project workspace and run its worktree bootstrap there;
+# both `up` scripts prompt (worktree name, prod copy), so this stays
+# interactive. The shell exits with the command on success so the tab closes
+# once bin/open has arranged the feature's own tab; on failure it stays open
+# with the error.
+launch_feature() {
+  local project="$1" branch="$2" root ws pane cmd
+  root=$(project_root "$project")
+  ws=$(ensure_ws "$project" "$root")
+  case "$project" in
+    august) cmd="af up ${(q)branch} && exit" ;;
+    moi)    cmd="bin/up ${(q)branch} && exit" ;;
+    *) echo "$project has no feature flow" >&2; return 1 ;;
+  esac
+  pane=$(herdr tab create --workspace "$ws" --cwd "$root" --label "up: ${branch##*/}" --focus | first_pane)
+  [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
+  for i in {1..40}; do
+    if herdr pane run "$pane" "$cmd" >/dev/null 2>&1; then return 0; fi
+    sleep 0.25
+  done
+  echo "pane $pane never accepted the command" >&2
+  return 1
+}
+
+launch() {
+  local name="$1" mode="$2" session_id="${3:-}" form prompt project
+  form=$(cat)
+  prompt=$(printf '%s' "$form" | jq -r '.prompt // ""')
+  project=$(printf '%s' "$form" | jq -r '.project // "august"')
+
+  local slug
+  slug=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+  [ -z "$slug" ] && slug="session"
+
+  local root ws
+  root=$(project_root "$project")
+  ws=$(ensure_ws "$project" "$root")
+
+  local focus="--focus"
+  [ "$mode" = "bg" ] && focus="--no-focus"
+
+  # Per-session scratch dir; august's CLAUDE.md tells Claude to write throwaway
+  # files here. Other projects keep it out of the repo.
+  local scratch="$root/scratch/$slug"
+  [ "$project" = august ] || scratch="$HOME/.cache/herdr-threads/$project/$slug"
+  mkdir -p "$scratch"
+
+  local -a attached
+  local src dest attach_dir=""
+  while IFS= read -r src; do
+    [ -f "$src" ] || continue
+    attach_dir=$(dirname "$src")
+    dest="$scratch/$(basename "$src")"
+    [ -e "$dest" ] && dest="$scratch/$(date +%H%M%S)-$(basename "$src")"
+    mv "$src" "$dest" && attached+=("$dest")
+  done < <(printf '%s' "$form" | jq -r '.attachments[]?')
+  if [ ${#attached[@]} -gt 0 ]; then
+    rmdir "$attach_dir" 2>/dev/null || true
+    prompt+=$'\n\nAttached screenshots:'
+    for dest in "${attached[@]}"; do prompt+=$'\n- '"$dest"; done
+    prompt="${prompt#$'\n\n'}"
+  fi
+
+  local pane
+  pane=$(
+    herdr tab create --workspace "$ws" --cwd "$root" --label "$name" \
+      --env HERDR_THREAD=1 --env AUGIE_SCRATCH="$scratch" $focus | first_pane
+  )
+  [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
+
+  # herdr prepends the `claude` executable itself; only args go after --
+  # (a repeated `claude` would become the initial prompt).
+  local -a claude_args
+  if [ -n "$session_id" ]; then
+    claude_args=(--resume "$session_id")
+  else
+    claude_args=(--name "$name")
+  fi
+
+  # Agent names must match ^[a-z][a-z0-9_-]*$ and be <= 32 chars; resumed
+  # session titles are usually longer, so cap the base and leave room for the
+  # agent_name_taken suffix. The fresh tab's shell also takes a beat to reach
+  # its prompt (agent_pane_busy).
+  local base
+  base=$(printf '%s' "${slug:0:23}" | sed -E 's/-+$//')
+  case "$base" in
+    [a-z]*) ;;
+    *) base="s-$base" ;;
+  esac
+
+  local agent="$base" out started=""
+  for i in {1..40}; do
+    if out=$(herdr agent start "$agent" --kind claude --pane "$pane" -- "${claude_args[@]}" 2>&1); then
+      started=1; break
+    fi
+    case "$out" in
+      *agent_pane_busy*)  sleep 0.25 ;;
+      *agent_name_taken*) agent="$base-$(date +%H%M%S)" ;;
+      *) echo "$out" >&2; return 1 ;;
+    esac
+  done
+  [ -z "$started" ] && { echo "pane $pane never became available" >&2; return 1; }
+
+  if [ -n "$prompt" ]; then
+    herdr agent prompt "$agent" "$prompt" >/dev/null
+  fi
+}
+
+if [ "${1:-}" = "--launch" ]; then
+  launch "$2" "$3" "${4:-}"
+  exit
+fi
+if [ "${1:-}" = "--launch-feature" ]; then
+  launch_feature "$2" "$3"
+  exit
+fi
+
+# Self-building form binary (herdr/new-session-form, charmbracelet/huh).
+form_src="${0:A:h}/../herdr/new-session-form"
+form_bin="$form_src/herdr-new-session-form"
+if [ ! -x "$form_bin" ] || [ -n "$(find "$form_src" -name '*.go' -newer "$form_bin" -print -quit)" ]; then
+  (cd "$form_src" && go build -o "$form_bin" .) || { echo "form build failed" >&2; sleep 3; exit 1; }
+fi
+
+log="$HOME/.config/herdr/new-thread.log"
+result=$("$form_bin" --theme minimal) || exit 0
+[ -z "$result" ] && exit 0
+
+mode=$(printf '%s' "$result" | jq -r .mode)
+if [ "$mode" = focus ]; then
+  herdr tab focus "$(printf '%s' "$result" | jq -r .tab_id)" >/dev/null
+  exit 0
+fi
+
+name=$(printf '%s' "$result" | jq -r .name)
+[ -z "$name" ] && exit 0
+
+case "$mode" in
+  feature)
+    project=$(printf '%s' "$result" | jq -r .project)
+    branch=$(printf '%s' "$result" | jq -r .branch)
+    nohup "$0" --launch-feature "$project" "$branch" >>"$log" 2>&1 </dev/null &!
+    exit 0
+    ;;
+  resume|resume-bg)
+    session_id=$(printf '%s' "$result" | jq -r .session_id)
+    launch_mode=open
+    [ "$mode" = "resume-bg" ] && launch_mode=bg
+    printf '%s' "$result" | nohup "$0" --launch "$name" "$launch_mode" "$session_id" >>"$log" 2>&1 &!
+    exit 0
+    ;;
+esac
+
+# Detach so the popup closes on submit; claude takes several seconds to boot.
+printf '%s' "$result" | nohup "$0" --launch "$name" "$mode" >>"$log" 2>&1 &!

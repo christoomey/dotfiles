@@ -122,7 +122,7 @@
           "key" : "p",
           "label" : "Pull requests",
           "type" : "url",
-          "value" : "https://github.com/pulls"
+          "value" : "https://github.com/pulls/inbox?filter=repo%3Aaugusthealth%2Faugust-backend+repo%3Aaugusthealth%2Faugust-frontend+repo%3Aaugusthealth%2Fjuly+repo%3Aaugusthealth%2Fts-proto+repo%3Aaugusthealth%2Fops+repo%3Aaugusthealth%2Fpizza&max_pr_age=1m"
         },
         {
           "key" : "s",
@@ -160,12 +160,19 @@
             }
           ],
           "key" : "d",
+          "label" : "DRI",
           "type" : "group"
         },
         {
           "key" : "l",
           "type" : "command",
           "value" : "open -a Linear 'https://linear.app/august-health/team/MEDS/view/emar-team-board-42df158d4057'"
+        },
+        {
+          "key" : "w",
+          "label" : "Cloud[W]atch logs",
+          "type" : "url",
+          "value" : "https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#logsV2:logs-insights$3FqueryDetail$3D~(end~0~start~-3600~timeType~'RELATIVE~unit~'seconds~editorString~'~isLiveTail~false~queryId~'~source~(~'*2faws*2feks*2fprod*2fapplication))"
         }
       ],
       "iconPath" : "briefcase",
@@ -207,7 +214,7 @@
         }
       ],
       "iconPath" : "/Applications/Things3.app",
-      "key" : "t",
+      "key" : "1",
       "label" : "[T]hings",
       "type" : "group"
     },
@@ -256,15 +263,52 @@
         {
           "key" : "l",
           "type" : "command",
-          "value" : "open -a Linear 'https://linear.app/toomey/team/TOOM/all'"
+          "value" : "open -a Linear 'https://linear.app/toomey/project/perspective-057183ffefb7/issues?layout=board&ordering=priority&grouping=workflowState&subGrouping=none&showCompletedIssues=all&showSubIssues=true&showTriageIssues=true'"
         },
         {
           "key" : "s",
           "type" : "url",
           "value" : "https://chris-toomey.sentry.io/issues"
+        },
+        {
+          "key" : "p",
+          "label" : "Pull requests",
+          "type" : "url",
+          "value" : "https://github.com/christoomey/moi/pulls"
+        },
+        {
+          "key" : "c",
+          "label" : "Capture",
+          "type" : "url",
+          "value" : "moimenubar://capture/web"
+        },
+        {
+          "key" : "k",
+          "label" : "Slack Capture",
+          "type" : "url",
+          "value" : "moimenubar://slack"
         }
       ],
       "key" : "m",
+      "type" : "group"
+    },
+    {
+      "actions" : [
+        {
+          "key" : "l",
+          "label" : "Ca[L]l",
+          "type" : "url",
+          "value" : "raycast://extensions/stephendolan/tuple/search-contacts"
+        },
+        {
+          "key" : "h",
+          "label" : "[H]ang up",
+          "type" : "url",
+          "value" : "raycast://extensions/stephendolan/tuple/hang-up"
+        }
+      ],
+      "key" : "t",
+      "label" : "Tuple",
       "type" : "group"
     }
   ],

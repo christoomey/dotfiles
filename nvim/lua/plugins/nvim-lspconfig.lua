@@ -146,6 +146,17 @@ return { -- LSP Configuration & Plugins
       },
     })
 
+    -- Protobuf via the Buf language server (GA as of buf 1.57+; needs
+    -- `buf lsp serve`, not the deprecated `buf beta lsp`). buf.yaml is
+    -- prioritized over .git so the root anchors on the buf module dir,
+    -- giving cross-import definition/references/hover/rename for free.
+    vim.lsp.config('buf_ls', {
+      cmd = { 'buf', 'lsp', 'serve' },
+      filetypes = { 'proto' },
+      root_markers = { 'buf.yaml', 'buf.work.yaml', '.git' },
+    })
+    vim.lsp.enable 'buf_ls'
+
     require('mason-tool-installer').setup {
       ensure_installed = {
         'stylua',

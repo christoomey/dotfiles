@@ -42,13 +42,13 @@ menu_command() {
 
 current_path="$(tmux display-message -p '#{pane_current_path}')"
 
-# Case 1: inside a git repo — act on it directly.
-if git -C "$current_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  run_action "$current_path"
-  exit 0
-fi
-
-# Case 2: sibling backend/frontend git repos under the current dir.
+# Sibling backend/frontend product repos take precedence over the current dir
+# itself. An augie-features feature dir IS a linked worktree of the umbrella
+# repo (git-common-dir → augie-features/.git), so a naive is-inside-work-tree
+# check would match that umbrella and open lazygit on it — a repo that tracks
+# nothing (.gitignore = /*) — instead of descending into the real product repo.
+# Finding the product repos first steps over the umbrella; we only act on the
+# current dir directly when no product repos live beneath it (see fallthrough).
 backend_dir=""
 frontend_dir=""
 for d in "$current_path"/*/; do
@@ -103,6 +103,17 @@ if [[ -n "$backend_dir" && -n "$frontend_dir" ]]; then
     -H "bg=green,fg=colour236,bold" \
     "backend"  b "$(menu_command "$backend_dir")" \
     "frontend" f "$(menu_command "$frontend_dir")"
+  exit 0
+fi
+
+# Only one side present — act on whichever exists.
+if [[ -n "$backend_dir" ]]; then run_action "$backend_dir"; exit 0; fi
+if [[ -n "$frontend_dir" ]]; then run_action "$frontend_dir"; exit 0; fi
+
+# No product repos beneath us — act on the current dir's repo directly (e.g.
+# invoked from inside august-backend itself, or any ordinary repo).
+if git -C "$current_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  run_action "$current_path"
   exit 0
 fi
 

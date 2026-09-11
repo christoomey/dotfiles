@@ -7,38 +7,63 @@
 #                                               through the herdr-git-pr shim)
 #
 # In a feature dir with sibling *backend/ and *frontend/ git repos, auto-picks
-# whichever side has work in flight (uncommitted changes or commits ahead of its
-# default remote branch). Falls back to an fzf chooser when both or neither are
-# active. Because this whole script runs inside a single herdr popup, the fzf
-# chooser and the action run sequentially in that same popup — no nested-popup
-# dance (which tmux needed) is required.
+# the side with uncommitted changes, falling back to the side that is ahead of
+# origin/master when neither is dirty. When both or neither qualify, shows
+# a single-keystroke b/f chooser with per-side dirty flags; the popup that runs
+# this script is sized for that chooser (see config.toml). lazygit opens in its
+# own 95% popup via the augie-git plugin pane (dotfiles/herdr/plugins) —
+# herdr allows only one popup at a time, so a detached retry loop opens it the
+# moment this chooser popup closes.
 
 set -e
 setopt null_glob
 
 mode="${1:-lazygit}"
 case "$mode" in
-  lazygit) prompt="lazygit ❯ " ;;
-  pr)      prompt="open pr ❯ " ;;
+  lazygit) label="lazygit" ;;
+  pr)      label="open pr" ;;
   *)       print -- "Usage: ${0:t} [lazygit|pr]" >&2; exit 1 ;;
 esac
 
 current_path="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
 
 launch() {
-  cd "$1"
-  case "$mode" in
-    lazygit) exec lazygit ;;
-    pr)      exec git-opr ;;
-  esac
+  local dir="$1"
+  if [[ "$mode" == "pr" ]]; then
+    cd "$dir"
+    exec git-opr
+  fi
+  # Outside herdr, run lazygit right here.
+  if [[ -z "${HERDR_SOCKET_PATH:-}${HERDR_ENV:-}" ]]; then
+    cd "$dir"
+    exec lazygit
+  fi
+  # The first open attempt fails with "popup already open" while this chooser
+  # popup is still on screen, so the retry loop must outlive this script — and
+  # herdr kills the popup's whole process group on close, which nohup/disown
+  # can't escape. perl's POSIX::setsid moves the loop into its own session.
+  perl -MPOSIX -e 'exit 0 if fork; POSIX::setsid(); exec @ARGV' -- \
+    /bin/sh -c '
+      i=0
+      while [ $i -lt 40 ]; do
+        if "$0" plugin pane open --plugin augie-git --entrypoint lazygit \
+              --cwd "$1" --focus 2>/dev/null | grep -q "\"type\":\"ok\""; then
+          exit 0
+        fi
+        i=$((i+1))
+        sleep 0.05
+      done
+    ' "${HERDR_BIN_PATH:-herdr}" "$dir" >/dev/null 2>&1
+  exit 0
 }
 
-# Case 1: inside a git repo — act on it directly.
-if git -C "$current_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  launch "$current_path"
-fi
-
-# Case 2: sibling backend/frontend git repos under the current dir.
+# Sibling backend/frontend product repos take precedence over the current dir
+# itself. An augie-features feature dir IS a linked worktree of the umbrella
+# repo (git-common-dir → augie-features/.git), so a naive is-inside-work-tree
+# check would match that umbrella and open lazygit on it — a repo that tracks
+# nothing (.gitignore = /*) — instead of descending into the real product repo.
+# Finding the product repos first steps over the umbrella; we only act on the
+# current dir directly when no product repos live beneath it (Case: fallthrough).
 backend_dir=""
 frontend_dir=""
 for d in "$current_path"/*/; do
@@ -51,47 +76,73 @@ for d in "$current_path"/*/; do
   fi
 done
 
-# A repo is "active" if it has uncommitted changes or is ahead of its default
-# remote branch (origin/master, falling back to origin/main).
-is_active() {
-  local d="$1"
-  [[ -n "$(git -C "$d" status --porcelain 2>/dev/null)" ]] && return 0
-  local base
+is_dirty() {
+  [[ -n "$(git -C "$1" status --porcelain 2>/dev/null)" ]]
+}
+
+# Ahead of the default remote branch (origin/master, falling back to
+# origin/main). A failed lookup counts as not-ahead.
+is_ahead() {
+  local base ahead
   for base in origin/master origin/main; do
-    if git -C "$d" rev-parse --verify --quiet "$base" >/dev/null; then
-      local ahead
-      ahead=$(git -C "$d" rev-list --count "$base..HEAD" 2>/dev/null)
-      [[ -n "$ahead" && "$ahead" -gt 0 ]] && return 0
-      return 1
+    if git -C "$1" rev-parse --verify --quiet "$base" >/dev/null 2>&1; then
+      ahead="$(git -C "$1" rev-list --count "$base..HEAD" 2>/dev/null)"
+      [[ -n "$ahead" && "$ahead" -gt 0 ]]
+      return
     fi
   done
   return 1
 }
 
 if [[ -n "$backend_dir" && -n "$frontend_dir" ]]; then
-  backend_active=false
-  frontend_active=false
-  if is_active "$backend_dir"; then backend_active=true; fi
-  if is_active "$frontend_dir"; then frontend_active=true; fi
+  backend_flag=""
+  frontend_flag=""
+  if is_dirty "$backend_dir";  then backend_flag="  %F{red}●%f"; fi
+  if is_dirty "$frontend_dir"; then frontend_flag="  %F{red}●%f"; fi
 
-  # Skip the chooser when exactly one side has work in flight.
-  if $backend_active && ! $frontend_active; then launch "$backend_dir"; fi
-  if $frontend_active && ! $backend_active; then launch "$frontend_dir"; fi
+  # Auto-pick when exactly one side is dirty. Dirty is the primary signal:
+  # mid-feature both sides are often ahead of origin/master, so commits-ahead
+  # alone would fire the chooser nearly every time.
+  if [[ -n "$backend_flag" && -z "$frontend_flag" ]]; then launch "$backend_dir"; fi
+  if [[ -n "$frontend_flag" && -z "$backend_flag" ]]; then launch "$frontend_dir"; fi
 
-  # Both or neither active — fzf chooser, right here in the popup.
-  sel=$(
-    printf 'backend\t%s\nfrontend\t%s\n' "$backend_dir" "$frontend_dir" |
-      fzf --reverse --with-nth=1 --delimiter=$'\t' --prompt="$prompt" \
-          --height=100% --header='both/neither side dirty — pick one'
-  ) || exit 0
-  dir=${sel##*$'\t'}
-  if [[ -n "$dir" ]]; then launch "$dir"; fi
-  exit 0
+  # Neither dirty (e.g. right after committing) — fall back to commits-ahead
+  # as a tiebreaker, again only when exactly one side qualifies.
+  if [[ -z "$backend_flag" && -z "$frontend_flag" ]]; then
+    backend_ahead=false
+    frontend_ahead=false
+    if is_ahead "$backend_dir";  then backend_ahead=true; fi
+    if is_ahead "$frontend_dir"; then frontend_ahead=true; fi
+    if $backend_ahead && ! $frontend_ahead; then launch "$backend_dir"; fi
+    if $frontend_ahead && ! $backend_ahead; then launch "$frontend_dir"; fi
+  fi
+
+  # Both or neither qualify — single-keystroke chooser (august-panel style).
+  print
+  print -P "  %F{cyan}${label}%f  %F{8}${current_path:t}%f"
+  print
+  print -P "  %F{yellow}b%f  backend${backend_flag}"
+  print -P "  %F{yellow}f%f  frontend${frontend_flag}"
+  print
+  print -Pn "  %F{8}press a key (any other dismisses)%f "
+
+  read -k1 -s key
+  case "$key" in
+    b) launch "$backend_dir" ;;
+    f) launch "$frontend_dir" ;;
+    *) exit 0 ;;
+  esac
 fi
 
 # Only one side present — act on whichever exists.
 if [[ -n "$backend_dir" ]];  then launch "$backend_dir";  fi
 if [[ -n "$frontend_dir" ]]; then launch "$frontend_dir"; fi
+
+# No product repos beneath us — act on the current dir's repo directly (e.g.
+# invoked from inside august-backend itself, or any ordinary repo).
+if git -C "$current_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  launch "$current_path"
+fi
 
 print -- "herdr-lazygit: no git repo here and no backend/frontend subdirs"
 sleep 2

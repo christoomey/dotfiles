@@ -68,18 +68,35 @@ return { -- Fuzzy Finder (files, lsp, etc)
           },
         },
         sorting_strategy = 'ascending',
+        layout_strategy = 'vertical',
         layout_config = {
-          prompt_position = 'top',
+          vertical = {
+            prompt_position = 'top', -- Puts the search bar at the top
+            mirror = true, -- Flips the preview so it displays correctly
+          },
+        },
+        -- layout_config = {
+        --   prompt_position = 'top',
+        --   -- preview_width is only valid for horizontal/vertical strategies.
+        --   -- Nest it under `horizontal` so the center strategy (ui-select
+        --   -- dropdown) doesn't error on an unsupported key.
+        --   horizontal = {
+        --     preview_width = 0.6,
+        --   },
+        -- },
+        -- Deeply-nested paths obscure the filename. `shorten` abbreviates each
+        -- directory to its first letter, keeping the filename (-1) and the
+        -- immediate parent dir (-2) full for context. Bump exclude to
+        -- { -1, -2, -3 } to keep the last two dirs, or len = 2 for two letters.
+        -- (Note: `filename_first` only exists on telescope master, not the
+        -- pinned 0.1.8 tag, so it would be a silent no-op here.)
+        path_display = {
+          shorten = { len = 1, exclude = { -1, -2 } },
         },
       },
       extensions = {
         ['ui-select'] = {
           require('telescope.themes').get_dropdown(),
-        },
-      },
-      path_display = {
-        filename_first = {
-          reverse_directories = false,
         },
       },
     }

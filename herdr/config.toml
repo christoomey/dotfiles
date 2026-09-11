@@ -155,15 +155,18 @@ new_worktree = ""
 # type = "pane" opens a temporary pane and closes it when the command exits.
 # On Windows, command strings run through cmd.exe /d /c.
 # lazygit on prefix+g (mirrors your tmux `prefix g`). Feature-dir aware: in an
-# augie feature dir it auto-picks the dirty backend/frontend side, or shows an
-# fzf chooser when both/neither are dirty (see herdr-lazygit). Floating popup at
-# 95% so lazygit + the chooser have room. (needs herdr >= 0.7.4 for type="popup")
+# augie feature dir it auto-picks the dirty backend/frontend side, or shows a
+# single-key b/f chooser with dirty flags when both/neither are dirty (see
+# herdr-lazygit). This popup only ever hosts the chooser — sized in cells to
+# fit the menu — and lazygit opens in its own 95% popup right after, via the
+# augie-git plugin pane (herdr/plugins/augie-git, `herdr plugin link`ed).
+# (needs herdr >= 0.7.4 for type="popup")
 [[keys.command]]
 key = "prefix+g"
 type = "popup"
 command = "herdr-lazygit"
-width = "95%"
-height = "95%"
+width = 46
+height = 9
 
 # Reclaim clear-screen: bare ctrl+l now focuses the pane to the right, so
 # prefix+ctrl+l sends a literal ctrl+l into the focused pane (readline clear),
@@ -199,29 +202,51 @@ key = "prefix+space"
 type = "shell"
 command = "herdr-last-workspace"
 
-# augie feature palette on prefix+o (mirrors your tmux `prefix o`). Modal,
-# mouse-aware OpenTUI picker (herdr/palette-tui/palette.ts via the
-# herdr-feature-palette-tui wrapper): single-key hops f/s/t/i/n, `/` to search,
-# ↑↓/click to move, ⏎ open. Resolved from the feature dir above the active
-# pane's cwd; falls back to open-app-tab elsewhere. Notes open the editor in
-# this same popup. The fzf version (herdr-feature-palette) is kept as a fallback.
+# Fuzzy-jump to any agent / tab / pane on prefix+a via herdr-bar (plugin,
+# pinned to v0.3.0). Blocked and done agents float to the top, so
+# prefix+a, Enter hops to whichever agent just finished.
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "herdr-bar.open"
+description = "agent / tab bar"
+
+# prefix+o routes through herdr-open-palette (~/bin): in moi checkouts and
+# moi__worktrees/* it shows a small moi palette (open in browser / open notes);
+# everywhere else it execs the augie panel, unchanged.
+# augie panel (mirrors tmux `prefix o`, which routes to the same binary via
+# tmux-feature-palette). Go/Bubble Tea TUI (fullstack/panel/ via `af ui`):
+# Local tab with per-feature quick actions (f/s/t/i/n) when invoked from a
+# feature dir (via HERDR_ACTIVE_PANE_CWD), plus a global Sessions tab —
+# open/closed features, mprocs status, x stop-mprocs, n/d/o/c for
+# new/down/open/close, D for global down. The older OpenTUI picker (herdr-feature-palette-tui) and
+# fzf palette (herdr-feature-palette) are kept as fallbacks.
 [[keys.command]]
 key = "prefix+o"
 type = "popup"
-command = "herdr-feature-palette-tui"
+command = "herdr-open-palette"
+width = "70%"
+height = "55%"
+
+# Supervisor HUD on prefix+O: the same panel, but jump straight to the global
+# Sessions tab even when the active pane is inside a feature dir.
+[[keys.command]]
+key = "prefix+shift+o"
+type = "popup"
+command = "af ui --sessions"
 width = "70%"
 height = "55%"
 
 # Open the PR on GitHub on prefix+G (mirrors your tmux `prefix G`). Same
 # feature-dir detection as prefix+g, but runs git-opr instead of lazygit.
-# type="popup" so the fzf backend/frontend chooser has a tty when both/neither
-# side is dirty; auto-picks (brief popup) when exactly one side has work.
+# type="popup" so the single-key backend/frontend chooser has a tty when
+# both/neither side is dirty; auto-picks (brief popup) when exactly one is.
 [[keys.command]]
 key = "prefix+shift+g"
 type = "popup"
 command = "herdr-git-pr"
-width = "50%"
-height = "50%"
+width = 46
+height = 9
 
 # Open the active pane's directory in Finder on prefix+f (mirrors tmux
 # `bind f run-shell "open '#{pane_current_path}'"`). type="shell" — no popup.
@@ -229,6 +254,48 @@ height = "50%"
 key = "prefix+f"
 type = "shell"
 command = 'open "$HERDR_ACTIVE_PANE_CWD"'
+
+# Split + start a Claude session:
+#   prefix+ctrl+p  → new pane to the RIGHT running claude
+#   prefix+ctrl+n  → new pane BELOW running claude
+# ctrl+letter chords because the host terminal drops ctrl+punctuation in legacy
+# keyboard mode (only ctrl+[ \ ] ^ _ carry a control byte; ctrl+- has none).
+# Inherits the active pane's cwd so the session lands in the workspace's repo.
+# Agent names must be unique per session, so suffix with a timestamp — a bare
+# `claude` fails with agent_name_taken once one Claude session already exists.
+[[keys.command]]
+key = "prefix+ctrl+p"
+type = "shell"
+command = 'herdr agent start "claude-$(date +%H%M%S)" --split right --focus --cwd "$HERDR_ACTIVE_PANE_CWD" -- claude'
+
+[[keys.command]]
+key = "prefix+ctrl+n"
+type = "shell"
+command = 'herdr agent start "claude-$(date +%H%M%S)" --split down --focus --cwd "$HERDR_ACTIVE_PANE_CWD" -- claude'
+
+# Promote the active pane into its own tab on prefix+M — the middle rung of the
+# continuum (quick chat -> own tab -> full worktree). Moves the live pane (Claude
+# session + scrollback intact), no restart. Follows split_* + agent-start above.
+[[keys.command]]
+key = "prefix+shift+m"
+type = "shell"
+command = 'herdr pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'
+
+# One-off Claude session in the august workspace from anywhere on prefix+ctrl+t.
+# Popup asks for a name, an optional first prompt, and open-vs-background;
+# herdr-new-thread then (detached, so the popup closes on submit) focuses or
+# opens the augie-features root workspace, adds a tab with that label, starts
+# claude in it as a same-named agent, and sends the prompt. The tab closes
+# itself when claude exits (HERDR_THREAD hook in zsh/configs/herdr.zsh).
+# ctrl+r inside the popup flips to a fuzzy list of past sessions in that root;
+# enter resumes one in a new tab, or focuses it if it is still running.
+[[keys.command]]
+key = "prefix+ctrl+t"
+type = "popup"
+command = "herdr-new-thread"
+description = "New Session"
+width = 78
+height = 24
 
 # [[keys.command]]
 # key = "prefix+alt+g"
@@ -322,7 +389,9 @@ agent_panel_sort = "priority"
 # delivery = "off"
 # delay_seconds = 1
 
-delivery = "system"
+# Off: herdr-focus-notify (plugin) now owns done/blocked desktop alerts, with a
+# clickable Focus button that jumps to the pane. "system" here would duplicate.
+delivery = "off"
 [ui.toast.herdr]
 # position = "bottom-right"
 
