@@ -16,7 +16,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Agents view (ctrl+a, or straight in via `--view agents` from prefix+a): a
+// Agents view (ctrl+4, or straight in via `--view agents` from prefix+a): a
 // fuzzy finder over herdr's live agents. Blocked and done agents are the list
 // — blocked first, then most recently finished — with everything else dimmed
 // below as a preview; ctrl+a again widens to every agent, most recently
@@ -389,9 +389,6 @@ func (m model) updateAgents(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch k.String() {
 	case "esc", "ctrl+c":
 		return m, tea.Quit
-	case "ctrl+n":
-		m.leaveAgents()
-		return m, m.leaveResume()
 	case "ctrl+r":
 		m.leaveAgents()
 		return m, m.enterResume()
@@ -408,7 +405,7 @@ func (m model) updateAgents(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.agentCursor = max(0, m.agentCursor-1)
 		m.followAgent()
 		return m, nil
-	case "down", "ctrl+j":
+	case "down", "ctrl+j", "ctrl+n":
 		m.agentCursor = min(m.agentCursor+1, max(0, len(m.agentNav)-1))
 		m.followAgent()
 		return m, nil
@@ -454,7 +451,7 @@ func (m model) agentsView() string {
 	if m.agentsAll {
 		scope = "ctrl+a needs-you only"
 	}
-	help := "enter jump · ctrl+j/k move · " + scope + " · ctrl+n new · ctrl+r resume · esc cancel"
+	help := "enter jump · ctrl+j/k move · " + scope + " · ctrl+1..4 switch tab · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }

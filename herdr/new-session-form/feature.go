@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Feature view (ctrl+f): paste a Linear branch, the project is inferred from
+// Feature view (ctrl+3): paste a Linear branch, the project is inferred from
 // the team key, and the launcher runs that project's worktree bootstrap
 // (`af up` for august, `bin/up` for moi) in a new tab. Dotfiles has no
 // feature flow, so only branches with a Linear id are accepted.
@@ -59,9 +59,6 @@ func (m model) updateFeature(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch k.String() {
 	case "esc", "ctrl+c":
 		return m, tea.Quit
-	case "ctrl+n":
-		m.feature.Blur()
-		return m, m.leaveResume()
 	case "ctrl+r":
 		m.feature.Blur()
 		return m, m.enterResume()
@@ -105,7 +102,7 @@ func (m model) featureView() string {
 		b.WriteString(dim.Render("  "+key+" → ") + accent.Render("august") + dim.Render("   runs af up") + "\n")
 	}
 
-	help := "enter start feature · ctrl+n new session · ctrl+r resume · esc cancel"
+	help := "enter start feature · ctrl+1..4 switch tab · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }

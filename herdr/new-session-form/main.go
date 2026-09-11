@@ -1,8 +1,9 @@
-// herdr-new-session-form: the popup behind prefix+ctrl+t. Four views: the
-// new-session form, (ctrl+r) a fuzzy list of past sessions in a project root
-// to resume, (ctrl+f) a Linear-branch input that bootstraps a feature
-// worktree, and (ctrl+a, or prefix+a via --view agents) a fuzzy finder over
-// live herdr agents, needs-you first. Both project pickers default to august
+// herdr-new-session-form: the popup behind prefix+ctrl+t. Four views, on
+// ctrl+1..4: the new-session form, a fuzzy list of past sessions in a
+// project root to resume, a Linear-branch input that bootstraps a feature
+// worktree, and (also prefix+k via --view agents) a fuzzy finder over live
+// herdr agents, needs-you first. Ctrl+digits need the kitty keyboard
+// protocol (see kitty.go); ctrl+r/f/a still work as legacy fallbacks. Both project pickers default to august
 // and sit above the main flow: shift+tab reaches them. Prints one JSON result
 // on stdout; exits 1 on cancel.
 //
@@ -282,8 +283,36 @@ func (m *model) leaveResume() tea.Cmd {
 	return m.form.Init()
 }
 
+// switchView is the ctrl+1..4 tab switch: tidies whichever view is being
+// left, then enters the target.
+func (m *model) switchView(v view) tea.Cmd {
+	if v == m.view {
+		return nil
+	}
+	if m.view == viewAgents {
+		m.leaveAgents()
+	}
+	m.feature.Blur()
+	switch v {
+	case viewResume:
+		return m.enterResume()
+	case viewFeature:
+		return m.enterFeature()
+	case viewAgents:
+		return m.enterAgents()
+	default:
+		return m.leaveResume()
+	}
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	msg = translateKitty(msg)
 	switch msg := msg.(type) {
+	case ctrlDigitMsg:
+		if msg >= 1 && int(msg) <= len(tabs) {
+			return m, m.switchView(tabs[msg-1].v)
+		}
+		return m, nil
 	case tea.WindowSizeMsg:
 		// header(1) + blank + project(2) + blank + filter + blank + list + blank + help, inside the frame.
 		m.listRows = max(3, msg.Height-2-10)
@@ -398,8 +427,6 @@ func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch k.String() {
 	case "esc", "ctrl+c":
 		return m, tea.Quit
-	case "ctrl+n":
-		return m, m.leaveResume()
 	case "ctrl+f":
 		return m, m.enterFeature()
 	case "ctrl+a":
@@ -428,7 +455,7 @@ func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "up", "ctrl+k", "ctrl+p":
 		m.cursor = max(0, m.cursor-1)
 		return m, nil
-	case "down", "ctrl+j":
+	case "down", "ctrl+j", "ctrl+n":
 		m.cursor = min(m.cursor+1, max(0, len(m.matches)-1))
 		return m, nil
 	case "enter", "ctrl+s", "ctrl+b":
@@ -468,7 +495,7 @@ func (m model) View() string {
 	case viewAgents:
 		body = m.agentsView()
 	default:
-		help := "ctrl+s open now · ctrl+b run in background · ctrl+v attach clipboard image · ctrl+r resume · ctrl+f feature · ctrl+a agents · esc cancel"
+		help := "ctrl+s open now · ctrl+b run in background · ctrl+v attach clipboard image · ctrl+1..4 switch tab · esc cancel"
 		body = m.tabsView() + "\n\n" + m.form.View()
 		if a := m.attachmentsView(); a != "" {
 			body += "\n" + a + "\n"
@@ -481,21 +508,24 @@ func (m model) View() string {
 	return m.styles.frame.Render(body)
 }
 
-// tabsView is the view switcher line: the active view in the theme's focused
-// label style, the others blurred.
+// tabs in ctrl+1..4 order.
+var tabs = []struct {
+	v     view
+	label string
+}{{viewNew, "new session"}, {viewResume, "resume"}, {viewFeature, "feature"}, {viewAgents, "agents"}}
+
+// tabsView is the view switcher line, numbered by its ctrl+N key: the active
+// view in the theme's focused label style, the others blurred.
 func (m model) tabsView() string {
 	t := m.styles.theme
 	sep := lipgloss.NewStyle().Foreground(m.styles.dim).Render("  ·  ")
-	tabs := []struct {
-		v     view
-		label string
-	}{{viewNew, "new session"}, {viewResume, "resume"}, {viewFeature, "feature"}, {viewAgents, "agents"}}
 	parts := make([]string, len(tabs))
 	for i, tab := range tabs {
+		label := fmt.Sprintf("%d %s", i+1, tab.label)
 		if tab.v == m.view {
-			parts[i] = t.Focused.Title.Render(tab.label)
+			parts[i] = t.Focused.Title.Render(label)
 		} else {
-			parts[i] = t.Blurred.Title.Render(tab.label)
+			parts[i] = t.Blurred.Title.Render(label)
 		}
 	}
 	return strings.Join(parts, sep)
@@ -531,7 +561,7 @@ func (m model) resumeView() string {
 		b.WriteString(m.listView())
 	}
 
-	help := "enter resume · ctrl+b in background · ↑/↓ move · shift+tab project · ctrl+n new · ctrl+f feature · esc cancel"
+	help := "enter resume · ctrl+b in background · ↑/↓ move · shift+tab project · ctrl+1..4 switch tab · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }
@@ -823,7 +853,9 @@ func main() {
 		os.Exit(2)
 	}
 	p := tea.NewProgram(newModel(themeName, start), tea.WithOutput(os.Stderr))
+	os.Stderr.WriteString(kittyPush)
 	final, err := p.Run()
+	os.Stderr.WriteString(kittyPop)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
