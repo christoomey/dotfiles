@@ -1,23 +1,38 @@
 #!/bin/zsh
 
 # Start (or resume) a one-off Claude session in a project workspace (august,
-# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). A huh form
-# asks for a name (required), a project, an optional first prompt, and
-# open-vs-background. ctrl+s opens now, ctrl+b runs in the background, from
-# any field; tab reaches the button row. ctrl+r flips to a fuzzy list of past
-# sessions in the august root: enter resumes one in a new tab (ctrl+b in the
-# background); a session that is already live just gets focused. ctrl+v
-# attaches the clipboard image (what CleanShot leaves after a capture); the
-# launcher moves attachments into the session's scratch dir and lists their
-# paths in the first prompt. ctrl+f takes a Linear branch and runs the
-# project's worktree bootstrap (af up / moi bin/up) in a new tab. ctrl+a is a
-# fuzzy finder over live herdr agents (blocked/done first); enter focuses the
-# pane. `--agents` (bound to prefix+a) opens straight into that view.
+# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). Three
+# sections on ctrl+1..3 (ctrl+t cycles a section's subtabs):
+#   agents            fuzzy finder over live herdr agents (blocked/done
+#                     first); enter focuses the pane. `--agents` (bound to
+#                     prefix+k) opens straight into it.
+#   chats › new       huh form: name (required), project, optional first
+#                     prompt, open-vs-background. ctrl+s opens now, ctrl+b
+#                     runs in the background, from any field. ctrl+v
+#                     attaches the clipboard image (what CleanShot leaves
+#                     after a capture); the launcher moves attachments into
+#                     the session's scratch dir and lists their paths in the
+#                     first prompt.
+#   chats › resume    fuzzy list of past sessions in a project root: enter
+#                     resumes one in a new tab (ctrl+b in the background); a
+#                     session that is already live just gets focused.
+#   features › new    takes a Linear branch (plus a feature name and a first
+#                     prompt that follow it, default `/linear-review <ID>`)
+#                     and runs the project's worktree bootstrap (af up / moi
+#                     bin/up) in a new tab, non-interactively; claude starts
+#                     on the prompt. ctrl+b does it all without taking focus.
+#   features › sidebar herdr's spaces as the sidebar draws them; J/K or a
+#                     mouse drag reorder them live (a worktree among its
+#                     siblings, a primary with its whole space), which the
+#                     sidebar itself cannot do. enter focuses one.
 # The popup closes as soon as you submit; the launch continues detached.
 #
-#   herdr-new-thread [--agents]                           # interactive
+#   herdr-new-thread [--agents] [--view SECTION] [--project P]   # interactive
+#     SECTION: agents | chats | resume | features | sidebar
+#     P: august | moi | dotfiles (or HERDR_NEW_THREAD_PROJECT, which
+#     `herdr plugin pane open --env` can set; see herdr/plugins/new-thread)
 #   herdr-new-thread --launch NAME open|bg [SESSION_ID]   # detached worker, form JSON on stdin
-#   herdr-new-thread --launch-feature PROJECT BRANCH      # detached worker
+#   herdr-new-thread --launch-feature                     # detached worker, form JSON on stdin
 #
 # The new tab's shell gets HERDR_THREAD=1 so zsh/configs/herdr.zsh exits the
 # shell when claude does, which closes the pane and the tab, and AUGIE_SCRATCH
@@ -89,21 +104,44 @@ def find(o):
 print(find(json.load(sys.stdin).get("result", {})) or "")'
 }
 
-# Open a tab in the project workspace and run its worktree bootstrap there;
-# both `up` scripts prompt (worktree name, prod copy), so this stays
-# interactive. The shell exits with the command on success so the tab closes
-# once bin/open has arranged the feature's own tab; on failure it stays open
-# with the error.
+# Open a tab in the project workspace and run its worktree bootstrap there.
+# The form supplies everything the `up` scripts would otherwise prompt for
+# (--name; moi's prod copy defaults to the snapshot), so the run needs no
+# input. The first prompt goes through a file: it can span lines, and the
+# pane shell expands "$(cat file)" itself, so nothing is quoted twice. The
+# shell exits with the command on success so the tab closes once the
+# feature's own tab is arranged; on failure it stays open with the error.
+# feature-bg keeps focus where it is throughout.
 launch_feature() {
-  local project="$1" branch="$2" root ws pane cmd
+  local form project branch name prompt mode root ws pane cmd focus
+  form=$(cat)
+  project=$(printf '%s' "$form" | jq -r .project)
+  branch=$(printf '%s' "$form" | jq -r .branch)
+  name=$(printf '%s' "$form" | jq -r .name)
+  prompt=$(printf '%s' "$form" | jq -r '.prompt // ""')
+  mode=$(printf '%s' "$form" | jq -r .mode)
   root=$(project_root "$project")
   ws=$(ensure_ws "$project" "$root")
+
+  local -a args=(--name "$name")
+  focus="--focus"
+  if [ "$mode" = feature-bg ]; then
+    focus="--no-focus"
+    args+=(--no-focus)
+  fi
+  if [ -n "$prompt" ]; then
+    local pdir="$HOME/.cache/herdr-threads/feature-prompts" pfile
+    mkdir -p "$pdir"
+    pfile="$pdir/$name-$(date +%Y%m%d-%H%M%S).md"
+    printf '%s\n' "$prompt" > "$pfile"
+    args+=(--prompt-file "$pfile")
+  fi
   case "$project" in
-    august) cmd="af up ${(q)branch} && exit" ;;
-    moi)    cmd="bin/up ${(q)branch} && exit" ;;
+    august) args+=("$branch"); cmd="af up ${(j: :)${(q)args[@]}} && exit" ;;
+    moi)    args+=(--snapshot "$branch"); cmd="bin/up ${(j: :)${(q)args[@]}} && exit" ;;
     *) echo "$project has no feature flow" >&2; return 1 ;;
   esac
-  pane=$(herdr tab create --workspace "$ws" --cwd "$root" --label "up: ${branch##*/}" --focus | first_pane)
+  pane=$(herdr tab create --workspace "$ws" --cwd "$root" --label "up: ${branch##*/}" $focus | first_pane)
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
   for i in {1..40}; do
     if herdr pane run "$pane" "$cmd" >/dev/null 2>&1; then return 0; fi
@@ -202,7 +240,7 @@ if [ "${1:-}" = "--launch" ]; then
   exit
 fi
 if [ "${1:-}" = "--launch-feature" ]; then
-  launch_feature "$2" "$3"
+  launch_feature
   exit
 fi
 
@@ -214,7 +252,14 @@ if [ ! -x "$form_bin" ] || [ -n "$(find "$form_src" -name '*.go' -newer "$form_b
 fi
 
 form_args=(--theme minimal)
-[ "${1:-}" = "--agents" ] && form_args+=(--view agents)
+[ -n "${HERDR_NEW_THREAD_PROJECT:-}" ] && form_args+=(--project "$HERDR_NEW_THREAD_PROJECT")
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --agents) form_args+=(--view agents); shift ;;
+    --view|--project) form_args+=("$1" "$2"); shift 2 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
 
 log="$HOME/.config/herdr/new-thread.log"
 result=$("$form_bin" "${form_args[@]}") || exit 0
@@ -223,6 +268,10 @@ result=$("$form_bin" "${form_args[@]}") || exit 0
 mode=$(printf '%s' "$result" | jq -r .mode)
 if [ "$mode" = focus ]; then
   herdr tab focus "$(printf '%s' "$result" | jq -r .tab_id)" >/dev/null
+  exit 0
+fi
+if [ "$mode" = workspace ]; then
+  herdr workspace focus "$(printf '%s' "$result" | jq -r .workspace_id)" >/dev/null
   exit 0
 fi
 if [ "$mode" = agent ]; then
@@ -237,10 +286,8 @@ name=$(printf '%s' "$result" | jq -r .name)
 [ -z "$name" ] && exit 0
 
 case "$mode" in
-  feature)
-    project=$(printf '%s' "$result" | jq -r .project)
-    branch=$(printf '%s' "$result" | jq -r .branch)
-    nohup "$0" --launch-feature "$project" "$branch" >>"$log" 2>&1 </dev/null &!
+  feature|feature-bg)
+    printf '%s' "$result" | nohup "$0" --launch-feature >>"$log" 2>&1 &!
     exit 0
     ;;
   resume|resume-bg)

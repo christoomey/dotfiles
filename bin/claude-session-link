@@ -1,0 +1,173 @@
+#!/bin/zsh
+# Print a markdown link that reopens a Claude Code session (or the feature
+# worktree it lives in) through the Moi menubar app:
+#
+#   [Chat: TITLE](moimenubar://chats/PROJECT/SLUG-SESSION_ID)
+#   [Feature: DIR](moimenubar://features/PROJECT/DIR)
+#
+# MoiMenubar hands these to herdr-open-chat / herdr-open-feature, which focus
+# the target if it is open and resume/open it otherwise. Defaults come from
+# the running session (CLAUDE_CODE_SESSION_ID and the cwd), which is what the
+# /link command relies on; the chat title is the one the resume popup shows
+# (custom title, else Claude's AI title, else the first prompt's first line).
+#
+#   claude-session-link [OPTIONS] [SESSION_ID] [CWD]
+#     --feature       the feature link for the worktree CWD is in
+#                     (moi__worktrees/<dir>, augie-features/<dir>)
+#     --copy          also put the markdown on the clipboard
+#     --rich          put it on the clipboard as rich text (a real link, for
+#                     Apple Notes and friends) instead of markdown
+#     --title TITLE   use TITLE instead of the transcript's (chat only)
+#     --close         after copying, close the herdr tab this runs in (or the
+#                     whole workspace with --feature), a few seconds later so
+#                     the caller can finish printing. Needs HERDR_TAB_ID /
+#                     HERDR_WORKSPACE_ID, i.e. run from inside herdr.
+set -e
+
+copy="" title="" feature="" rich="" close=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --copy) copy=1; shift ;;
+    --rich) rich=1; copy=1; shift ;;
+    --close) close=1; shift ;;
+    --title) title="$2"; shift 2 ;;
+    --feature) feature=1; shift ;;
+    *) break ;;
+  esac
+done
+
+# Copy "[TEXT](URL)" as markdown, or as an RTF hyperlink with --rich.
+copy_link() {
+  local text="$1" url="$2"
+  if [ -n "$rich" ]; then
+    printf '<a href="%s">%s</a>' "$url" "$text" |
+      textutil -convert rtf -format html -stdin -stdout | pbcopy -Prefer rtf
+  else
+    printf '[%s](%s)' "$text" "$url" | pbcopy
+  fi
+}
+
+# Detached so this process (and whatever Claude turn ran it) returns first.
+close_after_copy() {
+  if [ -n "$feature" ]; then
+    [ -z "${HERDR_WORKSPACE_ID:-}" ] && { echo "--close: not inside a herdr workspace" >&2; return 1; }
+    nohup zsh -c "sleep 5; herdr workspace close ${(q)HERDR_WORKSPACE_ID}" >/dev/null 2>&1 &!
+  else
+    [ -z "${HERDR_TAB_ID:-}" ] && { echo "--close: not inside a herdr tab" >&2; return 1; }
+    nohup zsh -c "sleep 5; herdr tab close ${(q)HERDR_TAB_ID}" >/dev/null 2>&1 &!
+  fi
+}
+
+session_id="${1:-${CLAUDE_CODE_SESSION_ID:-}}"
+cwd=$(cd "${2:-$PWD}" && pwd -P)
+
+project_for() {
+  local dir="$1" august
+  august=$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)
+  [ -n "$august" ] && august=$(cd "$august" 2>/dev/null && pwd -P)
+  case "$dir" in
+    "$HOME/code/moi"|"$HOME/code/moi/"*|"$HOME/code/moi__worktrees/"*) echo moi ;;
+    "$HOME/code/dotfiles"|"$HOME/code/dotfiles/"*) echo dotfiles ;;
+    "$august"|"$august/"*) echo august ;;
+    *) echo "$dir is not inside a known project (moi, august, dotfiles)" >&2; return 1 ;;
+  esac
+}
+
+# ~/.claude/projects/<encoded cwd>/, encoded the way Claude does it.
+project_dir() {
+  printf '%s/.claude/projects/%s' "$HOME" "$(printf '%s' "$1" | sed 's#[/._]#-#g')"
+}
+
+transcript_for() {
+  local id="$1" dir="$2" candidate
+  local -a elsewhere
+  candidate="$(project_dir "$dir")/$id.jsonl"
+  if [ -f "$candidate" ]; then
+    echo "$candidate"
+  else
+    elsewhere=("$HOME"/.claude/projects/*/"$id.jsonl"(N))
+    echo "${elsewhere[1]:-}"
+  fi
+}
+
+# Without an id (run outside Claude), the session most recently written under
+# this cwd is the best guess.
+latest_transcript() {
+  local -a files
+  files=("$(project_dir "$1")"/*.jsonl(Nom))
+  echo "${files[1]:-}"
+}
+
+title_for() {
+  local file="$1" title
+  title=$(grep -F '"type":"custom-title"' "$file" | tail -n1 | jq -r '.customTitle // empty')
+  [ -z "$title" ] && title=$(grep -F '"type":"ai-title"' "$file" | tail -n1 | jq -r '.aiTitle // empty')
+  # A session opened on a slash command has "<command-name>/x</command-name>
+  # <command-args>…" as its first prompt; other "<…>" prompts are tool noise.
+  if [ -z "$title" ]; then
+    title=$(
+      grep -F '"type":"user"' "$file" | jq -r '
+        .message.content
+        | select(type == "string" and . != "")
+        | if startswith("<command-") then
+            ((capture("<command-name>(?<n>[^<]*)</command-name>") // {}).n // "")
+              + " " + ((capture("<command-args>(?<a>[^<\n]*)") // {}).a // "")
+            | gsub("^\\s+|\\s+$"; "")
+          elif startswith("<") then empty
+          else split("\n")[0]
+          end
+        | select(. != "")' | head -n1
+    )
+  fi
+  printf '%s' "$title"
+}
+
+slugify() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-60 | sed -E 's/-+$//'
+}
+
+# The worktree directory name when $1 is inside a feature worktree of $2.
+feature_dir() {
+  local dir="$1" project="$2" wt
+  case "$project" in
+    moi)    wt="$HOME/code/moi__worktrees" ;;
+    august) wt=$(cd "$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)" && pwd -P) ;;
+    *) return 1 ;;
+  esac
+  case "$dir" in
+    "$wt"/*) printf '%s' "${${dir#$wt/}%%/*}" ;;
+    *) echo "$dir is not inside a $project feature worktree" >&2; return 1 ;;
+  esac
+}
+
+if [ -n "$feature" ]; then
+  cwd=$(cd "${1:-$PWD}" && pwd -P)
+  project=$(project_for "$cwd")
+  dir=$(feature_dir "$cwd" "$project")
+  text="Feature: $dir" url="moimenubar://features/$project/$dir"
+  printf '[%s](%s)\n' "$text" "$url"
+  [ -n "$copy" ] && copy_link "$text" "$url"
+  [ -n "$close" ] && close_after_copy
+  exit 0
+fi
+
+project=$(project_for "$cwd")
+if [ -z "$session_id" ]; then
+  transcript=$(latest_transcript "$cwd")
+  [ -z "$transcript" ] && { echo "no session id (CLAUDE_CODE_SESSION_ID) and no transcripts under $cwd" >&2; exit 1; }
+  session_id=$(basename "$transcript" .jsonl)
+else
+  transcript=$(transcript_for "$session_id" "$cwd")
+fi
+
+[ -z "$title" ] && [ -n "$transcript" ] && title=$(title_for "$transcript")
+[ -z "$title" ] && title="$session_id"
+title=$(printf '%s' "$title" | tr -d '[]' | tr -s ' ')
+slug=$(slugify "$title")
+[ -n "$slug" ] && slug="$slug-"
+
+text="Chat: $title" url="moimenubar://chats/$project/$slug$session_id"
+printf '[%s](%s)\n' "$text" "$url"
+[ -n "$copy" ] && copy_link "$text" "$url"
+[ -n "$close" ] && close_after_copy
+exit 0

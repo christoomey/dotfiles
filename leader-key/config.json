@@ -166,7 +166,7 @@
         {
           "key" : "l",
           "type" : "command",
-          "value" : "open -a Linear 'https://linear.app/august-health/team/MEDS/view/emar-team-board-42df158d4057'"
+          "value" : "open -a Linear 'https://linear.app/august-health/view/kanban-by-assignee-99d4c3e7d75b'"
         },
         {
           "key" : "w",
@@ -309,6 +309,101 @@
       ],
       "key" : "t",
       "label" : "Tuple",
+      "type" : "group"
+    },
+    {
+      "actions" : [
+        {
+          "key" : "a",
+          "label" : "[A]gents",
+          "type" : "command",
+          "value" : "herdr-popup agents"
+        },
+        {
+          "key" : "c",
+          "label" : "[C]hats",
+          "type" : "command",
+          "value" : "herdr-popup chats"
+        },
+        {
+          "key" : "f",
+          "label" : "[F]eatures",
+          "type" : "command",
+          "value" : "herdr-popup features"
+        },
+        {
+          "key" : "r",
+          "label" : "[R]esume chat",
+          "type" : "command",
+          "value" : "herdr-popup resume"
+        },
+        {
+          "key" : "s",
+          "label" : "[S]idebar (reorder)",
+          "type" : "command",
+          "value" : "herdr-popup sidebar"
+        },
+        {
+          "actions" : [
+            {
+              "key" : "c",
+              "label" : "Chats (new)",
+              "type" : "command",
+              "value" : "herdr-popup chats moi"
+            },
+            {
+              "key" : "r",
+              "label" : "Resume chat",
+              "type" : "command",
+              "value" : "herdr-popup resume moi"
+            }
+          ],
+          "key" : "m",
+          "label" : "[M]oi",
+          "type" : "group"
+        },
+        {
+          "actions" : [
+            {
+              "key" : "c",
+              "label" : "Chats (new)",
+              "type" : "command",
+              "value" : "herdr-popup chats august"
+            },
+            {
+              "key" : "r",
+              "label" : "Resume chat",
+              "type" : "command",
+              "value" : "herdr-popup resume august"
+            }
+          ],
+          "key" : "w",
+          "label" : "[W]ork (august)",
+          "type" : "group"
+        },
+        {
+          "actions" : [
+            {
+              "key" : "c",
+              "label" : "Chats (new)",
+              "type" : "command",
+              "value" : "herdr-popup chats dotfiles"
+            },
+            {
+              "key" : "r",
+              "label" : "Resume chat",
+              "type" : "command",
+              "value" : "herdr-popup resume dotfiles"
+            }
+          ],
+          "key" : "d",
+          "label" : "[D]otfiles",
+          "type" : "group"
+        }
+      ],
+      "iconPath" : "terminal",
+      "key" : "h",
+      "label" : "[H]erdr",
       "type" : "group"
     }
   ],

@@ -1,0 +1,46 @@
+id = "new-thread"
+name = "New Session popups"
+version = "0.1.0"
+min_herdr_version = "0.7.4"
+platforms = ["macos"]
+description = "The herdr-new-thread popup (prefix+ctrl+t / prefix+k) as plugin panes, so anything outside herdr — Leader Key, Raycast, a script — can open a section with `herdr plugin pane open --plugin new-thread --entrypoint <id>`. Pass --env HERDR_NEW_THREAD_PROJECT=moi to preselect a project."
+
+[[panes]]
+id = "agents"
+title = "Agents"
+placement = "popup"
+width = 99
+height = 33
+command = ["herdr-new-thread", "--view", "agents"]
+
+[[panes]]
+id = "chats"
+title = "New Session"
+placement = "popup"
+width = 86
+height = 33
+command = ["herdr-new-thread", "--view", "chats"]
+
+[[panes]]
+id = "resume"
+title = "Resume Session"
+placement = "popup"
+width = 86
+height = 33
+command = ["herdr-new-thread", "--view", "resume"]
+
+[[panes]]
+id = "features"
+title = "New Feature"
+placement = "popup"
+width = 86
+height = 33
+command = ["herdr-new-thread", "--view", "features"]
+
+[[panes]]
+id = "sidebar"
+title = "Sidebar"
+placement = "popup"
+width = 86
+height = 33
+command = ["herdr-new-thread", "--view", "sidebar"]

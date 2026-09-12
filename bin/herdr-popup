@@ -1,0 +1,14 @@
+#!/bin/zsh
+# Raise Ghostty and open one of the new-thread popups in the running herdr
+# session — the hook for hotkeys that live outside herdr (Leader Key `h ...`).
+#
+#   herdr-popup SECTION [PROJECT]
+#     SECTION: agents | chats | resume | features | sidebar
+#     PROJECT: august | moi | dotfiles — preselects the project picker
+set -e
+section="${1:?usage: herdr-popup SECTION [PROJECT]}"
+project="${2:-}"
+env_args=()
+[ -n "$project" ] && env_args=(--env "HERDR_NEW_THREAD_PROJECT=$project")
+open -a Ghostty
+herdr plugin pane open --plugin new-thread --entrypoint "$section" --placement popup --focus "${env_args[@]}" >/dev/null

@@ -1,0 +1,52 @@
+#!/bin/zsh
+# Focus a feature (a git worktree workspace) from outside herdr — what a
+# moimenubar://features/<project>/<dir> link resolves to (the Moi menubar app
+# runs this). An open workspace is focused, landing on its Claude pane when
+# one is running; a worktree that is only on disk is opened in herdr first.
+# Exits 2 with a message on stderr when the project has no such worktree.
+#
+#   herdr-open-feature PROJECT DIR
+#     PROJECT: august | moi
+#     DIR:     the worktree directory name (moi__worktrees/<dir>,
+#              augie-features/<dir>)
+set -e
+usage="usage: herdr-open-feature PROJECT DIR"
+project="${1:?$usage}"
+dir="${2:?$usage}"
+
+case "$project" in
+  august) root=$(cd "$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)" && pwd -P) ;;
+  moi)    root="$HOME/code/moi" ;;
+  *) echo "$project has no features" >&2; exit 2 ;;
+esac
+
+list=$(herdr worktree list --cwd "$root" </dev/null)
+entry=$(printf '%s' "$list" | jq -c --arg d "$dir" '
+  .result.worktrees[] | select(.is_linked_worktree and (.path | split("/") | last) == $d)' | head -n1)
+if [ -z "$entry" ]; then
+  echo "no $project feature named $dir" >&2
+  exit 2
+fi
+
+open -a Ghostty
+
+ws=$(printf '%s' "$entry" | jq -r '.open_workspace_id // empty')
+if [ -z "$ws" ]; then
+  wt_path=$(printf '%s' "$entry" | jq -r .path)
+  source=$(printf '%s' "$list" | jq -r '.result.source.source_workspace_id // empty')
+  from=(--cwd "$root")
+  [ -n "$source" ] && from=(--workspace "$source")
+  herdr worktree open "${from[@]}" --path "$wt_path" --label "$dir" --focus </dev/null >/dev/null
+  exit 0
+fi
+
+herdr workspace focus "$ws" </dev/null >/dev/null
+agent=$(
+  herdr agent list </dev/null | jq -r --arg ws "$ws" '
+    .result.agents[] | select(.agent == "claude" and .workspace_id == $ws)
+    | "\(.tab_id) \(.pane_id)"' | head -n1
+)
+if [ -n "$agent" ]; then
+  herdr tab focus "${agent%% *}" >/dev/null
+  herdr agent focus "${agent##* }" >/dev/null
+fi

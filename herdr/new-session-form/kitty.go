@@ -20,6 +20,11 @@ const (
 
 type ctrlDigitMsg int
 
+// ctrlMMsg is ctrl+m, which only the kitty protocol can tell apart from
+// enter (both are byte 13 in legacy encoding, and Bubble Tea's KeyCtrlM is
+// KeyEnter).
+type ctrlMMsg struct{}
+
 var csiURe = regexp.MustCompile(`^\x1b\[(\d+)(?::[\d:]*)?(?:;(\d+)(?::\d+)?)?u$`)
 
 func translateKitty(msg tea.Msg) tea.Msg {
@@ -42,6 +47,8 @@ func translateKitty(msg tea.Msg) tea.Msg {
 	switch {
 	case ctrl && code >= '0' && code <= '9':
 		return ctrlDigitMsg(code - '0')
+	case ctrl && !shift && code == 'm':
+		return ctrlMMsg{}
 	case ctrl && code >= 'a' && code <= 'z':
 		return tea.KeyMsg{Type: tea.KeyCtrlA + tea.KeyType(code-'a'), Alt: alt}
 	case ctrl && code >= 'A' && code <= 'Z':

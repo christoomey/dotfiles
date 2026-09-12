@@ -1,0 +1,117 @@
+#!/bin/zsh
+# Open a Claude session by id from outside herdr — what a
+# moimenubar://chats/<project>/<slug>-<session id> link resolves to (the Moi
+# menubar app runs this). In order:
+#   live in herdr        → focus its tab and pane
+#   started in a worktree → resume it in that worktree's workspace (opening
+#                           the workspace if the worktree is not open yet)
+#   otherwise            → resume it in the project's root workspace through
+#                           herdr-new-thread --launch
+# Exits 2 with a message on stderr when no transcript exists for the id, so
+# the caller can surface that instead of a tab that opens and vanishes.
+#
+#   herdr-open-chat PROJECT SESSION_ID [NAME]
+#     PROJECT: august | moi | dotfiles
+#     NAME:    tab label for a resumed session (default: the session id)
+set -e
+usage="usage: herdr-open-chat PROJECT SESSION_ID [NAME]"
+project="${1:?$usage}"
+session_id="${2:?$usage}"
+name="${3:-$session_id}"
+
+project_root() {
+  case "$1" in
+    august) cd "$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)" && pwd -P ;;
+    moi)      echo "$HOME/code/moi" ;;
+    dotfiles) echo "$HOME/code/dotfiles" ;;
+    *) echo "unknown project: $1" >&2; return 2 ;;
+  esac
+}
+
+first_pane() {
+  jq -r '[.. | objects | select(has("pane_id")) | .pane_id][0] // empty'
+}
+
+# Workspace id for the worktree checked out at $1 under the repo at $2,
+# opening it in herdr first if it is only on disk. Empty when no worktree
+# lives there.
+worktree_workspace() {
+  local wt_path="$1" root="$2" list ws source
+  local -a from
+  list=$(herdr worktree list --cwd "$root" </dev/null)
+  ws=$(printf '%s' "$list" | jq -r --arg p "$wt_path" '.result.worktrees[] | select(.path == $p) | .open_workspace_id // "open-me"')
+  case "$ws" in
+    "") ;;
+    open-me)
+      source=$(printf '%s' "$list" | jq -r '.result.source.source_workspace_id // empty')
+      from=(--cwd "$root")
+      [ -n "$source" ] && from=(--workspace "$source")
+      herdr worktree open "${from[@]}" --path "$wt_path" --label "${wt_path:t}" --focus </dev/null >/dev/null
+      ws=$(herdr worktree list --cwd "$root" </dev/null | jq -r --arg p "$wt_path" '.result.worktrees[] | select(.path == $p) | .open_workspace_id // empty')
+      ;;
+  esac
+  printf '%s' "$ws"
+}
+
+# Same dance as herdr-new-thread's launch: the pane's shell takes a beat to
+# reach its prompt (agent_pane_busy) and agent names are capped/unique.
+resume_in() {
+  local ws="$1" cwd="$2" pane base agent out
+  pane=$(herdr tab create --workspace "$ws" --cwd "$cwd" --label "$name" --env HERDR_THREAD=1 --focus </dev/null | first_pane)
+  [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
+  base=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//' | cut -c1-23 | sed -E 's/-+$//')
+  case "$base" in [a-z]*) ;; *) base="s-$base" ;; esac
+  agent="$base"
+  for i in {1..40}; do
+    if out=$(herdr agent start "$agent" --kind claude --pane "$pane" -- --resume "$session_id" 2>&1 </dev/null); then
+      return 0
+    fi
+    case "$out" in
+      *agent_pane_busy*)  sleep 0.25 ;;
+      *agent_name_taken*) agent="$base-$(date +%H%M%S)" ;;
+      *) echo "$out" >&2; return 1 ;;
+    esac
+  done
+  echo "pane $pane never became available" >&2
+  return 1
+}
+
+transcripts=("$HOME"/.claude/projects/*/"$session_id.jsonl"(N))
+transcript="${transcripts[1]:-}"
+if [ -z "$transcript" ]; then
+  echo "no Claude session $session_id on this machine" >&2
+  exit 2
+fi
+
+open -a Ghostty
+
+live=$(
+  herdr agent list </dev/null | jq -r --arg id "$session_id" '
+    .result.agents[]
+    | select(.agent == "claude" and .agent_session.value == $id)
+    | "\(.tab_id) \(.pane_id)"' | head -n1
+)
+if [ -n "$live" ]; then
+  # Tab first, then the pane: agent focus alone does not always raise the tab
+  # in a multi-tab workspace (same two-step herdr-new-thread uses).
+  herdr tab focus "${live%% *}" >/dev/null
+  herdr agent focus "${live##* }" >/dev/null
+  exit 0
+fi
+
+root=$(project_root "$project")
+cwd=$(grep -m1 -o '"cwd":"[^"]*"' "$transcript" | head -n1 | cut -d'"' -f4)
+ws=""
+if [ -n "$cwd" ] && [ "$cwd" != "$root" ] && [ -d "$cwd" ]; then
+  ws=$(worktree_workspace "$cwd" "$root")
+fi
+
+log="$HOME/.config/herdr/new-thread.log"
+if [ -n "$ws" ]; then
+  # Detached like the popup's own submit: claude takes seconds to boot and
+  # the caller (menubar app, Leader Key) should not wait on it.
+  nohup zsh -c "$(typeset -f resume_in first_pane); name=${(q)name}; session_id=${(q)session_id}; resume_in ${(q)ws} ${(q)cwd}" >>"$log" 2>&1 &!
+else
+  printf '{"project":"%s"}' "$project" |
+    nohup herdr-new-thread --launch "$name" open "$session_id" >>"$log" 2>&1 &!
+fi

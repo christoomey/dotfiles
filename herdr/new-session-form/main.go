@@ -1,20 +1,31 @@
-// herdr-new-session-form: the popup behind prefix+ctrl+t. Four views, on
-// ctrl+1..4: the new-session form, a fuzzy list of past sessions in a
-// project root to resume, a Linear-branch input that bootstraps a feature
-// worktree, and (also prefix+k via --view agents) a fuzzy finder over live
-// herdr agents, needs-you first. Ctrl+digits need the kitty keyboard
-// protocol (see kitty.go); ctrl+r/f/a still work as legacy fallbacks. Both project pickers default to august
-// and sit above the main flow: shift+tab reaches them. Prints one JSON result
-// on stdout; exits 1 on cancel.
+// herdr-new-session-form: the popup behind prefix+ctrl+t. Three sections on
+// ctrl+1..3, two of them with subtabs (ctrl+t, or the section's own key
+// again, cycles):
+//
+//	1 agents            (also prefix+k via --view agents) a fuzzy finder over
+//	                    live herdr agents, needs-you first
+//	2 chats › new       the new-session form
+//	        › resume    a fuzzy list of past sessions in a project root
+//	3 features › new    a Linear-branch input that bootstraps a feature worktree
+//	           › sidebar herdr's spaces as the sidebar shows them, reordered
+//	                    with J/K or a mouse drag
+//
+// Ctrl+digits need the kitty keyboard protocol (see kitty.go); ctrl+r/f/a
+// jump straight to resume/feature/agents as legacy fallbacks. Both project
+// pickers default to august and sit above the main flow: shift+tab reaches
+// them, a/m/d pick a project while one has focus, and from anywhere in the
+// view ctrl+m / ctrl+d pick moi / dotfiles (ctrl+m needs kitty: in legacy
+// encoding it is enter). Prints one JSON result on stdout; exits 1 on cancel.
 //
 //	{"mode":"open"|"bg", "project","name","prompt","attachments"}   new session (attachments: png paths)
 //	{"mode":"resume"|"resume-bg", "project","session_id","name"}    resume a past session
 //	{"mode":"focus", "tab_id","name"}                               session is live already
-//	{"mode":"feature", "project","branch"}                          bootstrap a feature worktree
+//	{"mode":"feature"|"feature-bg", "project","branch","name","prompt"}  bootstrap a feature worktree
 //	{"mode":"agent", "tab_id","pane_id","name"}                     jump to a live agent's pane
+//	{"mode":"workspace", "workspace_id","name"}                     focus a workspace from the sidebar tab
 //
 //	herdr-new-session-form [--theme NAME] [--view agents]
-//	herdr-new-session-form --demo NAME fresh|filled|resume|agents   # print one frame (ANSI)
+//	herdr-new-session-form --demo NAME fresh|filled|resume|agents|sidebar   # print one frame (ANSI)
 package main
 
 import (
@@ -22,10 +33,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -43,16 +56,64 @@ type result struct {
 	SessionID string   `json:"session_id,omitempty"`
 	TabID     string   `json:"tab_id,omitempty"`
 	PaneID    string   `json:"pane_id,omitempty"`
+	Workspace string   `json:"workspace_id,omitempty"`
 }
 
 type view int
 
 const (
-	viewNew view = iota
+	viewAgents view = iota
+	viewNew
 	viewResume
 	viewFeature
-	viewAgents
+	viewSidebar
 )
+
+// startViews are the --view names: a section opens on its first subtab.
+var startViews = map[string]view{
+	"agents":   viewAgents,
+	"chats":    viewNew,
+	"new":      viewNew,
+	"resume":   viewResume,
+	"features": viewFeature,
+	"sidebar":  viewSidebar,
+}
+
+// sections are the ctrl+1..3 tabs; a section with several views shows them
+// as subtabs.
+var sections = []struct {
+	label string
+	views []view
+	subs  []string
+}{
+	{"agents", []view{viewAgents}, nil},
+	{"chats", []view{viewNew, viewResume}, []string{"new", "resume"}},
+	{"features", []view{viewFeature, viewSidebar}, []string{"new", "sidebar"}},
+}
+
+const tabsHelp = "ctrl+1..3 section · ctrl+t subtab"
+
+func sectionOf(v view) int {
+	for i, s := range sections {
+		for _, sv := range s.views {
+			if sv == v {
+				return i
+			}
+		}
+	}
+	return 0
+}
+
+// nextSub is the subtab after the current one within its section.
+func (m model) nextSub() view {
+	views := sections[sectionOf(m.view)].views
+	for i, v := range views {
+		if v == m.view {
+			return views[(i+1)%len(views)]
+		}
+	}
+	return m.view
+}
 
 type sessionsMsg struct {
 	project  string
@@ -67,6 +128,7 @@ type liveMsg struct{ live map[string]session }
 // stale copy.
 type model struct {
 	form    *huh.Form
+	projSel *huh.Select[string] // the form's project field, for a/m/d jumps
 	project *string
 	name    *string
 	prompt  *string
@@ -78,11 +140,17 @@ type model struct {
 	attachDir   string
 	attachments []string
 
-	feature        textinput.Model
+	feature        textinput.Model // Linear branch
+	featureName    textinput.Model
+	featurePrompt  textarea.Model
+	featureFocus   int
+	nameEdited     bool // the user took the name over from the branch
+	promptEdited   bool
 	branch         string
 	featureProject string
 
 	view     view
+	sub      []view // last-used view per section, so ctrl+N returns where you were
 	filter   textinput.Model
 	sessions []session // current project, newest first
 	matches  []session // after fuzzy filter
@@ -95,26 +163,40 @@ type model struct {
 	listRows int
 
 	resumeProject  int                  // index into projects
+	initCmd        tea.Cmd              // enters a non-default start view once
 	projectFocused bool                 // resume view: picker has focus instead of the filter
 	loaded         map[string][]session // per-project scan cache
 	width          int
 
 	// Agents view; see agents.go.
-	agentFilter   textinput.Model
-	agents        []agentRow
-	agentNav      []agentRow // navigable rows after scope + filter
-	agentNavIdx   [][]int    // fuzzy hit positions per nav row; nil without a pattern
-	agentNavLabel string     // section header over the nav rows; "" in the all scope
-	agentDim      []agentRow // dimmed preview under the nav rows (needs-you scope)
-	agentCursor   int
-	agentFollow   string // key of the row the cursor should stick to across polls
-	agentsAll     bool   // every agent is navigable, not just blocked/done
-	agentsScoped  bool   // scope has been decided (by the user, or auto on first load)
-	agentsLoading bool
-	agentErr      string
-	agentGen      int // poll generation; a tick from an older one is dropped
-	agentPicked   agentRow
-	mru           *agentMRU
+	agentFilter         textinput.Model
+	agents              []agentRow
+	agentNav            []agentRow // navigable rows after scope + filter
+	agentNavIdx         [][]int    // fuzzy hit positions per nav row; nil without a pattern
+	agentNavLabel       string     // section header over the nav rows; "" in the all scope
+	agentDim            []agentRow // dimmed preview under the nav rows (needs-you scope)
+	agentCursor         int
+	agentFollow         string // key of the row the cursor should stick to across polls
+	agentsAll           bool   // every agent is navigable, not just blocked/done
+	agentsScoped        bool   // scope has been decided (by the user, or auto on first load)
+	agentsLoading       bool
+	agentErr            string
+	agentGen            int // poll generation; a tick from an older one is dropped
+	agentPicked         agentRow
+	mru                 *agentMRU
+	agentProject        int // index into agentProjects; 0 = all
+	agentProjectFocused bool
+
+	// Sidebar view; see sidebar.go.
+	ws        []wsRow
+	wsCursor  int
+	wsFollow  string // id of the row the cursor sticks to across reloads
+	wsLoading bool
+	wsErr     string
+	wsGen     int // reply/poll generation; older ones are dropped
+	wsPicked  wsRow
+	wsBranch  map[string]string // primary branch by workspace id, read once
+	wsDrag    bool              // mouse button held on a row
 }
 
 type styles struct {
@@ -128,17 +210,23 @@ type styles struct {
 	theme  *huh.Theme
 }
 
-func newModel(themeName string, start view) model {
+func newModel(themeName string, start view, project string) model {
 	m := model{project: new(string), name: new(string), prompt: new(string), openNow: new(bool), view: start}
 	*m.openNow = true
-	*m.project = projects[0]
+	*m.project = project
+	m.resumeProject = slices.Index(projects, project)
 	m.styles = themes[themeName]
+	m.sub = make([]view, len(sections))
+	for i, s := range sections {
+		m.sub[i] = s.views[0]
+	}
+	m.sub[sectionOf(start)] = start
 
 	keys := huh.NewDefaultKeyMap()
 	keys.Input.Next = key.NewBinding(key.WithKeys("tab", "enter"))
 	keys.Text.Next = key.NewBinding(key.WithKeys("tab"))
 	keys.Text.NewLine = key.NewBinding(key.WithKeys("enter", "ctrl+j"))
-	keys.Text.Submit = key.NewBinding(key.WithKeys("ctrl+d"))
+	keys.Text.Submit = key.NewBinding(key.WithKeys("ctrl+s"))
 	keys.Confirm.Next = key.NewBinding(key.WithKeys("enter"))
 	keys.Confirm.Toggle = key.NewBinding(key.WithKeys("tab", "left", "right", "h", "l", " "))
 
@@ -169,12 +257,13 @@ func newModel(themeName string, start view) model {
 		Affirmative("Open now").
 		Negative("Run in background").
 		Value(m.openNow)
+	m.projSel = projectField
 	m.form = huh.NewForm(huh.NewGroup(projectField, nameField, promptField, confirmField)).
-		WithKeyMap(keys).WithShowHelp(false).WithTheme(m.styles.theme).WithWidth(70)
+		WithKeyMap(keys).WithShowHelp(false).WithTheme(m.styles.theme).WithWidth(77)
 	// huh sizes a focused text input one cell past the form width, which
 	// clips a bordered field's right edge; size the fields themselves narrower.
 	for _, f := range []huh.Field{nameField, projectField, promptField, confirmField} {
-		f.WithWidth(66)
+		f.WithWidth(73)
 	}
 
 	m.filter = textinput.New()
@@ -183,16 +272,21 @@ func newModel(themeName string, start view) model {
 	m.filter.Width = 60
 	m.filter.PromptStyle = lipgloss.NewStyle().Foreground(m.styles.accent)
 	m.filter.PlaceholderStyle = lipgloss.NewStyle().Foreground(m.styles.dim)
-	m.feature = newFeatureInput(m.styles)
+	m.initFeature(m.styles)
 	m.agentFilter = newAgentFilter(m.styles)
 	m.mru = loadAgentMRU()
 	m.loading = true
 	m.listRows = 12
-	m.width = 78
+	m.width = 86
 	m.loaded = map[string][]session{}
-	if start == viewAgents {
+	switch start {
+	case viewAgents:
 		m.agentFilter.Focus()
 		m.agentsLoading = true
+	case viewNew:
+	default:
+		m.view = viewNew
+		m.initCmd = m.switchView(start)
 	}
 	return m
 }
@@ -202,6 +296,9 @@ func (m model) Init() tea.Cmd {
 	cmds := []tea.Cmd{m.form.Init(), huh.NextField, loadSessionsCmd(projects[m.resumeProject]), loadLiveCmd}
 	if m.view == viewAgents {
 		cmds = append(cmds, loadAgentsCmd(m.mru), textinput.Blink)
+	}
+	if m.initCmd != nil {
+		cmds = append(cmds, m.initCmd, textinput.Blink)
 	}
 	return tea.Batch(cmds...)
 }
@@ -268,58 +365,73 @@ func (m *model) decorateLive() {
 	m.applyFilter()
 }
 
-func (m *model) enterResume() tea.Cmd {
-	m.view = viewResume
-	m.err = ""
-	m.projectFocused = false
-	m.form.WithShowHelp(false)
-	return m.filter.Focus()
-}
-
-func (m *model) leaveResume() tea.Cmd {
-	m.view = viewNew
-	m.err = ""
-	m.filter.Blur()
-	return m.form.Init()
-}
-
-// switchView is the ctrl+1..4 tab switch: tidies whichever view is being
-// left, then enters the target.
+// switchView is every tab change: tidies whichever view is being left, then
+// enters the target and remembers it as its section's subtab.
 func (m *model) switchView(v view) tea.Cmd {
 	if v == m.view {
 		return nil
 	}
-	if m.view == viewAgents {
+	switch m.view {
+	case viewAgents:
 		m.leaveAgents()
+	case viewSidebar:
+		m.leaveSidebar()
+	case viewResume:
+		m.filter.Blur()
+	case viewFeature:
+		m.blurFeature()
 	}
-	m.feature.Blur()
+	m.err = ""
+	m.view = v
+	m.sub[sectionOf(v)] = v
 	switch v {
 	case viewResume:
-		return m.enterResume()
+		m.projectFocused = false
+		return m.filter.Focus()
 	case viewFeature:
-		return m.enterFeature()
+		return m.focusFeature(featBranch)
 	case viewAgents:
 		return m.enterAgents()
+	case viewSidebar:
+		return m.enterSidebar()
 	default:
-		return m.leaveResume()
+		return m.form.Init()
 	}
+}
+
+// switchSection is ctrl+N: the section's last subtab, or the next subtab
+// when its section is already showing.
+func (m *model) switchSection(n int) tea.Cmd {
+	if n < 0 || n >= len(sections) {
+		return nil
+	}
+	if n == sectionOf(m.view) {
+		return m.switchView(m.nextSub())
+	}
+	return m.switchView(m.sub[n])
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	msg = translateKitty(msg)
 	switch msg := msg.(type) {
 	case ctrlDigitMsg:
-		if msg >= 1 && int(msg) <= len(tabs) {
-			return m, m.switchView(tabs[msg-1].v)
-		}
-		return m, nil
+		return m, m.switchSection(int(msg) - 1)
+	case ctrlMMsg:
+		return m.pickProject(projectMoi)
 	case tea.WindowSizeMsg:
-		// header(1) + blank + project(2) + blank + filter + blank + list + blank + help, inside the frame.
-		m.listRows = max(3, msg.Height-2-10)
+		// sections(1) + subtabs(1) + blank + project(2) + blank + filter + blank + list + blank + help, inside the frame.
+		m.listRows = max(3, msg.Height-2-11)
 		m.width = msg.Width
 		return m, nil
 	case agentsMsg:
 		return m.onAgentsMsg(msg)
+	case wsMsg:
+		return m.onWsMsg(msg)
+	case wsPollMsg:
+		if msg.gen != m.wsGen || m.view != viewSidebar {
+			return m, nil
+		}
+		return m, loadWorkspacesCmd(m.wsGen, m.branchCache())
 	case agentsPollMsg:
 		if msg.gen != m.agentGen || m.view != viewAgents {
 			return m, nil
@@ -356,23 +468,45 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	}
-	if m.view == viewResume {
-		return m.updateResume(msg)
-	}
-	if m.view == viewFeature {
-		return m.updateFeature(msg)
-	}
-	if m.view == viewAgents {
-		return m.updateAgents(msg)
+	if mm, ok := msg.(tea.MouseMsg); ok && mm.Action == tea.MouseActionPress && mm.Button == tea.MouseButtonLeft {
+		if v, ok := m.tabAt(mm.X, mm.Y); ok {
+			return m, m.switchView(v)
+		}
 	}
 	if k, ok := msg.(tea.KeyMsg); ok {
 		switch k.String() {
+		case "esc", "ctrl+c":
+			return m, tea.Quit
+		case "ctrl+d":
+			return m.pickProject(projectDotfiles)
+		case "ctrl+t":
+			return m, m.switchView(m.nextSub())
 		case "ctrl+r":
-			return m, m.enterResume()
+			return m, m.switchView(viewResume)
 		case "ctrl+f":
-			return m, m.enterFeature()
+			return m, m.switchView(viewFeature)
 		case "ctrl+a":
-			return m, m.enterAgents()
+			// In the agents view ctrl+a is the scope toggle instead.
+			if m.view != viewAgents {
+				return m, m.switchView(viewAgents)
+			}
+		}
+	}
+	switch m.view {
+	case viewResume:
+		return m.updateResume(msg)
+	case viewFeature:
+		return m.updateFeature(msg)
+	case viewAgents:
+		return m.updateAgents(msg)
+	case viewSidebar:
+		return m.updateSidebar(msg)
+	}
+	if k, ok := msg.(tea.KeyMsg); ok {
+		if i, ok := projectByInitial(k.String()); ok && m.form.GetFocusedField() == m.projSel {
+			return m.jumpProject(i)
+		}
+		switch k.String() {
 		case "ctrl+v":
 			m.err = ""
 			return m, m.attachClipboardCmd()
@@ -389,12 +523,52 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.mode = "bg"
 			}
 			return m, tea.Quit
-		case "esc", "ctrl+c":
-			return m, tea.Quit
 		}
 	}
 	return m.forwardToForm(msg)
 }
+
+// pickProject sets the active view's project without moving focus. Views
+// without a picker ignore it.
+func (m model) pickProject(i int) (tea.Model, tea.Cmd) {
+	switch m.view {
+	case viewNew:
+		return m.jumpProject(i)
+	case viewResume:
+		return m, m.setResumeProject(i)
+	case viewAgents:
+		m.setAgentProject(i + 1)
+	}
+	return m, nil
+}
+
+// jumpProject moves the form's inline project select to projects[i] by
+// stepping the field itself with arrow keys, whichever field has focus.
+// huh's select only re-reads its bound value on binding, so writing the
+// pointer would leave its cursor (and what it draws) behind.
+func (m model) jumpProject(i int) (tea.Model, tea.Cmd) {
+	cur := 0
+	for j, p := range projects {
+		if p == *m.project {
+			cur = j
+		}
+	}
+	step := tea.KeyMsg{Type: tea.KeyRight}
+	if i < cur {
+		step = tea.KeyMsg{Type: tea.KeyLeft}
+	}
+	var cmds []tea.Cmd
+	for n := 0; n < max(i-cur, cur-i); n++ {
+		_, cmd := m.projSel.Update(step)
+		cmds = append(cmds, cmd)
+	}
+	// The form draws a cached render of its fields that only its own Update
+	// rebuilds; any message will do.
+	out, cmd := m.forwardToForm(formRefreshMsg{})
+	return out, tea.Batch(append(cmds, cmd)...)
+}
+
+type formRefreshMsg struct{}
 
 func (m model) forwardToForm(msg tea.Msg) (tea.Model, tea.Cmd) {
 	f, cmd := m.form.Update(msg)
@@ -425,12 +599,6 @@ func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 	switch k.String() {
-	case "esc", "ctrl+c":
-		return m, tea.Quit
-	case "ctrl+f":
-		return m, m.enterFeature()
-	case "ctrl+a":
-		return m, m.enterAgents()
 	case "shift+tab":
 		m.projectFocused = !m.projectFocused
 		if m.projectFocused {
@@ -448,6 +616,9 @@ func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab", "enter":
 			m.projectFocused = false
 			return m, m.filter.Focus()
+		}
+		if i, ok := projectByInitial(k.String()); ok {
+			return m, m.setResumeProject(i)
 		}
 		return m, nil
 	}
@@ -494,8 +665,10 @@ func (m model) View() string {
 		body = m.featureView()
 	case viewAgents:
 		body = m.agentsView()
+	case viewSidebar:
+		body = m.sidebarView()
 	default:
-		help := "ctrl+s open now · ctrl+b run in background · ctrl+v attach clipboard image · ctrl+1..4 switch tab · esc cancel"
+		help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
 		body = m.tabsView() + "\n\n" + m.form.View()
 		if a := m.attachmentsView(); a != "" {
 			body += "\n" + a + "\n"
@@ -508,35 +681,97 @@ func (m model) View() string {
 	return m.styles.frame.Render(body)
 }
 
-// tabs in ctrl+1..4 order.
-var tabs = []struct {
-	v     view
-	label string
-}{{viewNew, "new session"}, {viewResume, "resume"}, {viewFeature, "feature"}, {viewAgents, "agents"}}
+// tabHit is the column span of one clickable label on the tabs lines.
+type tabHit struct {
+	x0, x1 int
+	v      view
+}
 
-// tabsView is the view switcher line, numbered by its ctrl+N key: the active
-// view in the theme's focused label style, the others blurred.
+// Rows and left edge of the tabs lines inside the popup: the frame pads one
+// row above and two columns left.
+const (
+	tabsRow    = 1
+	subtabsRow = 2
+	tabsLeft   = 2
+)
+
+// tabsView is two lines: the sections, numbered by ctrl+N key, with the
+// active one in the theme's focused label style; then that section's
+// subtabs indented to sit under it. Always two lines so the views below
+// don't jump when switching to a section without subtabs.
 func (m model) tabsView() string {
+	text, _, _ := m.tabsLayout()
+	return text
+}
+
+// tabsLayout renders the tabs lines and reports where each label sits, so
+// a click can be mapped back to a view.
+func (m model) tabsLayout() (text string, secHits, subHits []tabHit) {
 	t := m.styles.theme
-	sep := lipgloss.NewStyle().Foreground(m.styles.dim).Render("  ·  ")
-	parts := make([]string, len(tabs))
-	for i, tab := range tabs {
-		label := fmt.Sprintf("%d %s", i+1, tab.label)
-		if tab.v == m.view {
+	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
+	sep := dim.Render("  ·  ")
+	sepW := lipgloss.Width(sep)
+	active := sectionOf(m.view)
+
+	parts := make([]string, len(sections))
+	x := tabsLeft
+	indent := 0
+	for i, s := range sections {
+		label := fmt.Sprintf("%d %s", i+1, s.label)
+		if i == active {
 			parts[i] = t.Focused.Title.Render(label)
+			indent = x - tabsLeft
 		} else {
 			parts[i] = t.Blurred.Title.Render(label)
 		}
+		w := lipgloss.Width(parts[i])
+		secHits = append(secHits, tabHit{x0: x, x1: x + w, v: m.sub[i]})
+		x += w + sepW
 	}
-	return strings.Join(parts, sep)
+	text = strings.Join(parts, sep) + "\n"
+
+	s := sections[active]
+	if len(s.views) < 2 {
+		return text, secHits, nil
+	}
+	subs := make([]string, len(s.views))
+	x = tabsLeft + indent + 2
+	for j, v := range s.views {
+		if v == m.view {
+			subs[j] = t.Focused.Title.Render(s.subs[j])
+		} else {
+			subs[j] = dim.Render(s.subs[j])
+		}
+		w := lipgloss.Width(subs[j])
+		subHits = append(subHits, tabHit{x0: x, x1: x + w, v: v})
+		x += w + sepW
+	}
+	return text + strings.Repeat(" ", indent+2) + strings.Join(subs, sep), secHits, subHits
 }
 
-// projectPicker renders the resume view's project line in the same shape as
-// the form's inline select: a label, then ← project → when focused.
-func (m model) projectPicker() string {
+// tabAt is the view a click at (x, y) selects, if it landed on a label.
+func (m model) tabAt(x, y int) (view, bool) {
+	_, secHits, subHits := m.tabsLayout()
+	var hits []tabHit
+	switch y {
+	case tabsRow:
+		hits = secHits
+	case subtabsRow:
+		hits = subHits
+	}
+	for _, h := range hits {
+		if x >= h.x0 && x < h.x1 {
+			return h.v, true
+		}
+	}
+	return 0, false
+}
+
+// projectPicker renders a view's project line in the same shape as the
+// form's inline select: a label, then ← project → when focused.
+func (m model) projectPicker(name string, focused bool) string {
 	t := m.styles.theme
-	name := projects[m.resumeProject]
-	if m.projectFocused {
+	if focused {
 		return t.Focused.Base.Render(t.Focused.Title.Render("Project") + "\n" +
 			t.Focused.PrevIndicator.String() + name + t.Focused.NextIndicator.String())
 	}
@@ -546,7 +781,7 @@ func (m model) projectPicker() string {
 func (m model) resumeView() string {
 	var b strings.Builder
 	b.WriteString(m.tabsView() + "\n\n")
-	b.WriteString(m.projectPicker() + "\n\n")
+	b.WriteString(m.projectPicker(projects[m.resumeProject], m.projectFocused) + "\n\n")
 	b.WriteString(m.filter.View() + "\n\n")
 
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
@@ -561,7 +796,7 @@ func (m model) resumeView() string {
 		b.WriteString(m.listView())
 	}
 
-	help := "enter resume · ctrl+b in background · ↑/↓ move · shift+tab project · ctrl+1..4 switch tab · esc cancel"
+	help := "enter resume · ctrl+b in background · ↑/↓ move · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }
@@ -741,7 +976,7 @@ func drive(m tea.Model, cmd tea.Cmd) tea.Model {
 }
 
 func demo(themeName, state string) {
-	mm := newModel(themeName, viewNew)
+	mm := newModel(themeName, viewNew, projects[0])
 	mm.form = mm.form.WithHeight(40)
 	var m tea.Model = mm
 	m = drive(m, m.Init())
@@ -792,6 +1027,20 @@ func demo(themeName, state string) {
 			m = drive(next, c)
 		}
 	}
+	if state == "sidebar" {
+		next, c := m.Update(ctrlDigitMsg(3))
+		m = drive(next, c)
+		next, c = m.Update(tea.KeyMsg{Type: tea.KeyCtrlT})
+		m = drive(next, c)
+		// The socket round trip is slower than drive's budget; fetch inline.
+		mm2 := m.(model)
+		var list wsList
+		err := herdrCall("workspace.list", map[string]any{}, &list)
+		rows := list.rows()
+		fillBranches(rows, map[string]string{})
+		next, c = mm2.Update(wsMsg{gen: mm2.wsGen, rows: rows, err: err})
+		m = drive(next, c)
+	}
 	if state == "project" {
 		next, c := m.Update(tea.KeyMsg{Type: tea.KeyShiftTab})
 		m = drive(next, c)
@@ -836,23 +1085,31 @@ func main() {
 		return
 	}
 	start := viewNew
+	project := projects[0]
 	for i := 0; i+1 < len(args); i += 2 {
 		switch args[i] {
 		case "--theme":
 			themeName = args[i+1]
 		case "--view":
-			if args[i+1] != "agents" {
+			v, ok := startViews[args[i+1]]
+			if !ok {
 				fmt.Fprintln(os.Stderr, "unknown view:", args[i+1])
 				os.Exit(2)
 			}
-			start = viewAgents
+			start = v
+		case "--project":
+			if !slices.Contains(projects, args[i+1]) {
+				fmt.Fprintln(os.Stderr, "unknown project:", args[i+1])
+				os.Exit(2)
+			}
+			project = args[i+1]
 		}
 	}
 	if _, ok := themes[themeName]; !ok {
 		fmt.Fprintln(os.Stderr, "unknown theme:", themeName)
 		os.Exit(2)
 	}
-	p := tea.NewProgram(newModel(themeName, start), tea.WithOutput(os.Stderr))
+	p := tea.NewProgram(newModel(themeName, start, project), tea.WithOutput(os.Stderr), tea.WithMouseCellMotion())
 	os.Stderr.WriteString(kittyPush)
 	final, err := p.Run()
 	os.Stderr.WriteString(kittyPop)
@@ -869,9 +1126,9 @@ func main() {
 	switch m.mode {
 	case "open", "bg":
 		res = result{Mode: m.mode, Project: *m.project, Name: strings.TrimSpace(*m.name), Prompt: strings.TrimSpace(*m.prompt), Attach: m.attachments}
-	case "feature":
+	case "feature", "feature-bg":
 		m.cleanupAttachments()
-		res = result{Mode: m.mode, Project: m.featureProject, Branch: m.branch}
+		res = result{Mode: m.mode, Project: m.featureProject, Branch: m.branch, Name: m.picked.Title, Prompt: strings.TrimSpace(m.featurePrompt.Value())}
 	case "focus":
 		m.cleanupAttachments()
 		// herdr only reports a name for agents it started itself.
@@ -883,6 +1140,9 @@ func main() {
 	case "agent":
 		m.cleanupAttachments()
 		res = result{Mode: m.mode, Name: m.agentPicked.Name, TabID: m.agentPicked.TabID, PaneID: m.agentPicked.PaneID}
+	case "workspace":
+		m.cleanupAttachments()
+		res = result{Mode: m.mode, Name: m.wsPicked.Label, Workspace: m.wsPicked.ID}
 	default:
 		m.cleanupAttachments()
 		res = result{Mode: m.mode, Project: projects[m.resumeProject], Name: m.picked.Title, SessionID: m.picked.ID}

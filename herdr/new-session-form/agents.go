@@ -16,11 +16,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Agents view (ctrl+4, or straight in via `--view agents` from prefix+a): a
+// Agents view (ctrl+1, or straight in via `--view agents` from prefix+k): a
 // fuzzy finder over herdr's live agents. Blocked and done agents are the list
 // — blocked first, then most recently finished — with everything else dimmed
 // below as a preview; ctrl+a again widens to every agent, most recently
-// visited first. Enter hands the pane to the launcher, which focuses it.
+// visited first. Rows read project · kind · title, the kind being a feature
+// worktree or a chat in the project root, and a project picker above the
+// filter (all by default) narrows the list. Enter hands the pane to the
+// launcher, which focuses it.
 
 type agentRow struct {
 	Key       string // MRU identity: Claude session id, else pane id
@@ -32,9 +35,38 @@ type agentRow struct {
 	Status    string // blocked / done / working / idle / unknown
 	Workspace string
 	Tab       string // "" when the tab label is just its number
+	Project   string // august / moi / dotfiles, "" when outside all three
+	Feature   bool   // lives in a feature worktree, not the project root
 	Seq       int    // state_change_seq: higher = changed more recently
 	Current   bool   // the pane the popup was opened from
 	mruRank   int    // 0 = visited most recently; agentMRUMax when never
+}
+
+// Nerd Font glyphs: a git branch for a feature worktree, a comment bubble
+// for a chat in the project root.
+const (
+	glyphFeature = "\ue0a0"
+	glyphChat    = "\uf075"
+)
+
+func (r agentRow) kindGlyph() string {
+	if r.Feature {
+		return glyphFeature
+	}
+	return glyphChat
+}
+
+// label is what the row is called: the feature name for a worktree agent
+// (its workspace label), the session name for a chat. The tab label carries
+// the full session name where herdr's agent name is capped at 32 characters.
+func (r agentRow) label() string {
+	switch {
+	case r.Feature && r.Workspace != "":
+		return r.Workspace
+	case r.Tab != "":
+		return r.Tab
+	}
+	return r.Name
 }
 
 // Blocked agents want you now; finished ones want you next.
@@ -56,28 +88,48 @@ func (r agentRow) statusRank() int {
 	return 4
 }
 
-// searchText is the one string the fuzzy matcher sees and the row displays,
-// so highlights land where they matched.
+// projectColumn pads the project to the column width the rows share.
+const projectWidth = 9
+
+// searchText is the one string the fuzzy matcher sees and the row displays
+// (project column, then the label), so highlights land where they matched.
 func (r agentRow) searchText() string {
-	parts := []string{r.Name}
-	loc := r.Workspace
-	if r.Tab != "" {
-		loc += " › " + r.Tab
+	project := r.Project
+	if project == "" {
+		project = "·"
 	}
-	if loc != "" && loc != r.Name {
-		parts = append(parts, loc)
-	}
-	if r.Title != "" {
-		parts = append(parts, r.Title)
-	}
-	return strings.Join(parts, " · ")
+	return fmt.Sprintf("%-*s %s", projectWidth, project, r.label())
 }
 
-var statusWords = map[string]string{
-	"blocked": "needs you",
-	"done":    "done",
-	"working": "working",
-	"idle":    "idle",
+// projectRoots are the checkout paths each project's workspaces live under.
+// moi worktrees sit beside the repo as moi__worktrees/<name>.
+func projectRoots() map[string]string {
+	roots := map[string]string{}
+	for _, p := range projects {
+		if root, err := projectRoot(p); err == nil {
+			roots[p] = root
+		}
+	}
+	return roots
+}
+
+func projectOf(roots map[string]string, path string) string {
+	if path == "" {
+		return ""
+	}
+	if real, err := filepath.EvalSymlinks(path); err == nil {
+		path = real
+	}
+	for _, p := range projects {
+		root := roots[p]
+		if root == "" {
+			continue
+		}
+		if path == root || strings.HasPrefix(path, root+"/") || strings.HasPrefix(path, root+"__worktrees/") {
+			return p
+		}
+	}
+	return ""
 }
 
 type agentsMsg struct {
@@ -123,8 +175,12 @@ func fetchAgents(mru *agentMRU) ([]agentRow, error) {
 	var workspaces struct {
 		Result struct {
 			Workspaces []struct {
-				ID    string `json:"workspace_id"`
-				Label string `json:"label"`
+				ID       string `json:"workspace_id"`
+				Label    string `json:"label"`
+				Worktree *struct {
+					Checkout string `json:"checkout_path"`
+					Linked   bool   `json:"is_linked_worktree"`
+				} `json:"worktree"`
 			} `json:"workspaces"`
 		} `json:"result"`
 	}
@@ -150,9 +206,16 @@ func fetchAgents(mru *agentMRU) ([]agentRow, error) {
 	}
 
 	wsLabel := map[string]string{}
+	wsPath := map[string]string{}
+	wsLinked := map[string]bool{}
 	for _, ws := range workspaces.Result.Workspaces {
 		wsLabel[ws.ID] = ws.Label
+		if ws.Worktree != nil {
+			wsPath[ws.ID] = ws.Worktree.Checkout
+			wsLinked[ws.ID] = ws.Worktree.Linked
+		}
 	}
+	roots := projectRoots()
 	tabLabel := map[string]string{}
 	for _, t := range tabs.Result.Tabs {
 		if t.Label != "" && t.Label != fmt.Sprint(t.Number) {
@@ -182,6 +245,12 @@ func fetchAgents(mru *agentMRU) ([]agentRow, error) {
 		if title == name {
 			title = ""
 		}
+		// The workspace checkout says which project and whether this is a
+		// feature worktree; a plain folder workspace falls back to the cwd.
+		where := wsPath[a.WorkspaceID]
+		if where == "" {
+			where = a.Cwd
+		}
 		row := agentRow{
 			Key:       key,
 			PaneID:    a.PaneID,
@@ -192,6 +261,8 @@ func fetchAgents(mru *agentMRU) ([]agentRow, error) {
 			Status:    a.Status,
 			Workspace: wsLabel[a.WorkspaceID],
 			Tab:       tabLabel[a.TabID],
+			Project:   projectOf(roots, where),
+			Feature:   wsLinked[a.WorkspaceID],
 			Seq:       a.Seq,
 			Current:   a.PaneID == activePane || (activePane == "" && a.Focused),
 		}
@@ -298,9 +369,6 @@ func newAgentFilter(s styles) textinput.Model {
 
 func (m *model) enterAgents() tea.Cmd {
 	m.view = viewAgents
-	m.err = ""
-	m.filter.Blur()
-	m.feature.Blur()
 	m.agentGen++
 	cmds := []tea.Cmd{m.agentFilter.Focus()}
 	if !m.agentsLoading {
@@ -321,7 +389,7 @@ func (m *model) leaveAgents() {
 // the needs-you scope a pattern that matches nothing actionable falls through
 // to the others, so a typed name always lands somewhere.
 func (m *model) applyAgentFilter() {
-	actionable, rest := orderAgents(m.agents)
+	actionable, rest := orderAgents(m.scopedAgents())
 	pattern := m.agentFilter.Value()
 	actionable, actIdx := rankAgents(pattern, actionable)
 	rest, restIdx := rankAgents(pattern, rest)
@@ -349,6 +417,30 @@ func (m *model) applyAgentFilter() {
 			m.agentCursor = i
 		}
 	}
+}
+
+// agentProjects is the picker's choices: every project, or all of them.
+var agentProjects = append([]string{"all"}, projects...)
+
+// scopedAgents is the agent list narrowed to the picked project.
+func (m model) scopedAgents() []agentRow {
+	if m.agentProject == 0 {
+		return m.agents
+	}
+	want := agentProjects[m.agentProject]
+	var out []agentRow
+	for _, r := range m.agents {
+		if r.Project == want {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+func (m *model) setAgentProject(i int) {
+	m.agentProject = (i + len(agentProjects)) % len(agentProjects)
+	m.followAgent()
+	m.applyAgentFilter()
 }
 
 func (m *model) followAgent() {
@@ -386,15 +478,31 @@ func (m model) updateAgents(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.agentFilter, cmd = m.agentFilter.Update(msg)
 		return m, cmd
 	}
+	if k.String() == "shift+tab" {
+		m.agentProjectFocused = !m.agentProjectFocused
+		if m.agentProjectFocused {
+			m.agentFilter.Blur()
+			return m, nil
+		}
+		return m, m.agentFilter.Focus()
+	}
+	if m.agentProjectFocused {
+		switch k.String() {
+		case "left", "h", "up", "k":
+			m.setAgentProject(m.agentProject - 1)
+		case "right", "l", "down", "j", " ":
+			m.setAgentProject(m.agentProject + 1)
+		case "tab", "enter":
+			m.agentProjectFocused = false
+			return m, m.agentFilter.Focus()
+		default:
+			if i, ok := projectByInitial(k.String()); ok {
+				m.setAgentProject(i + 1)
+			}
+		}
+		return m, nil
+	}
 	switch k.String() {
-	case "esc", "ctrl+c":
-		return m, tea.Quit
-	case "ctrl+r":
-		m.leaveAgents()
-		return m, m.enterResume()
-	case "ctrl+f":
-		m.leaveAgents()
-		return m, m.enterFeature()
 	case "ctrl+a", "tab":
 		m.agentsAll = !m.agentsAll
 		m.agentsScoped = true
@@ -431,6 +539,7 @@ func (m model) updateAgents(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) agentsView() string {
 	var b strings.Builder
 	b.WriteString(m.tabsView() + "\n\n")
+	b.WriteString(m.projectPicker(agentProjects[m.agentProject], m.agentProjectFocused) + "\n\n")
 	b.WriteString(m.agentFilter.View() + "\n\n")
 
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
@@ -451,7 +560,7 @@ func (m model) agentsView() string {
 	if m.agentsAll {
 		scope = "ctrl+a needs-you only"
 	}
-	help := "enter jump · ctrl+j/k move · " + scope + " · ctrl+1..4 switch tab · esc cancel"
+	help := "enter jump · ctrl+j/k move · " + scope + " · shift+tab project · " + tabsHelp + " · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }
@@ -473,7 +582,7 @@ func (m model) agentGlyph(status string) string {
 
 // agentListView: the navigable rows in a window around the cursor, then as
 // many dimmed preview rows as still fit. Rows are the search text with fuzzy
-// hits underlined, plus a status word at the right.
+// hits underlined; the status glyph on the left is the only status shown.
 func (m model) agentListView() string {
 	var b strings.Builder
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
@@ -483,9 +592,9 @@ func (m model) agentListView() string {
 	plain := lipgloss.NewStyle().Foreground(m.styles.text)
 	matched := lipgloss.NewStyle().Foreground(m.styles.accent).Bold(true).Underline(true)
 
-	// frame padding (4) + cursor/glyph (5) + status column (11)
-	textWidth := max(24, m.width-20)
-	rows := m.listRows + 2 // no project line on this view
+	// frame padding (4) + cursor/status (5) + kind glyph (2)
+	textWidth := max(24, m.width-11)
+	rows := m.listRows
 	if m.agentNavLabel != "" {
 		rows--
 	}
@@ -506,8 +615,23 @@ func (m model) agentListView() string {
 		if r.Current {
 			text += " (here)"
 		}
-		status := statusWords[r.Status]
-		return fmt.Sprintf("%s%s  %s %s\n", mark, m.agentGlyph(r.Status), renderTitle(text, textWidth, style, hit, hits), dim.Render(status))
+		// The kind glyph sits between the project column and the label, so
+		// the two halves of the search text are rendered around it.
+		kind := dim.Render(r.kindGlyph())
+		if cursor {
+			kind = accent.Render(r.kindGlyph())
+		}
+		split := projectWidth + 1
+		runes := []rune(text)
+		project := renderTitle(string(runes[:split]), split, style, hit, hits)
+		rest := map[int]bool{}
+		for i := range hits {
+			if i >= split {
+				rest[i-split] = true
+			}
+		}
+		label := renderTitle(string(runes[split:]), textWidth-split-2, style, hit, rest)
+		return fmt.Sprintf("%s%s  %s%s %s\n", mark, m.agentGlyph(r.Status), project, kind, label)
 	}
 	hitsFor := func(idx [][]int, i int) map[int]bool {
 		if idx == nil || i >= len(idx) {
@@ -536,7 +660,7 @@ func (m model) agentListView() string {
 	for i := start; i < end; i++ {
 		b.WriteString(row(m.agentNav[i], hitsFor(m.agentNavIdx, i), i == m.agentCursor, false))
 	}
-	if start > 0 || end < len(m.agentNav) {
+	if navRows > 0 && (start > 0 || end < len(m.agentNav)) {
 		b.WriteString(dim.Render(fmt.Sprintf("  %d–%d of %d", start+1, end, len(m.agentNav))) + "\n")
 	}
 
@@ -613,11 +737,11 @@ func (m *agentMRU) save() {
 // sampleAgents is the --demo fixture: one of every status plus the current pane.
 func sampleAgents() []agentRow {
 	return []agentRow{
-		{Key: "a", PaneID: "w1:p1", Name: "omnicare-timeout", Status: "blocked", Workspace: "august", Tab: "omnicare-timeout", Seq: 5},
-		{Key: "b", PaneID: "w2:p1", Name: "emar-sync", Status: "done", Workspace: "emar-sync-tab-race", Title: "Mutex and bulkUpdate timeout considerations", Seq: 9},
-		{Key: "c", PaneID: "w3:p1", Name: "Representative test data generation", Status: "done", Workspace: "emar-perf-investigation", Seq: 3},
-		{Key: "d", PaneID: "w4:p1", Name: "dictation-app", Status: "working", Workspace: "dotfiles", mruRank: 1},
-		{Key: "e", PaneID: "w5:p1", Name: "start-end-time-data-model", Status: "idle", Workspace: "start-end-time-data-model", mruRank: agentMRUMax},
-		{Key: "f", PaneID: "w6:p1", Name: "new-session-thing", Status: "working", Workspace: "dotfiles", Current: true},
+		{Key: "a", PaneID: "w1:p1", Name: "omnicare-timeout", Status: "blocked", Workspace: "august", Project: "august", Seq: 5},
+		{Key: "b", PaneID: "w2:p1", Name: "emar-sync", Status: "done", Workspace: "emar-sync-tab-race", Project: "august", Feature: true, Seq: 9},
+		{Key: "c", PaneID: "w3:p1", Name: "Representative test data generation", Status: "done", Workspace: "emar-perf-investigation", Project: "august", Feature: true, Seq: 3},
+		{Key: "d", PaneID: "w4:p1", Name: "dictation-app", Status: "working", Workspace: "dotfiles", Project: "dotfiles", mruRank: 1},
+		{Key: "e", PaneID: "w5:p1", Name: "deadlines-agent", Status: "idle", Workspace: "deadlines", Project: "moi", Feature: true, mruRank: agentMRUMax},
+		{Key: "f", PaneID: "w6:p1", Name: "new-session-thing", Status: "working", Workspace: "dotfiles", Project: "dotfiles", Current: true},
 	}
 }

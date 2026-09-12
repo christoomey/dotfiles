@@ -202,6 +202,23 @@ key = "prefix+space"
 type = "shell"
 command = "herdr-last-workspace"
 
+# Copy a moimenubar:// deep link to the session you are sitting in, on
+# prefix+y (tmux muscle memory: y = yank). herdr passes the pane the key was
+# pressed from as HERDR_ACTIVE_PANE_ID, so herdr-link-popup can ask
+# `herdr pane get` for that pane's Claude session id, cwd, tab and workspace
+# and offer both the chat link and its feature-worktree link. enter copies
+# markdown, ctrl-r copies rich text (ctrl-m *is* enter outside the kitty
+# protocol, so markdown is the enter/default rather than a mode to toggle);
+# tab switches chat/feature, x also closes the source tab (workspace, for a
+# feature) after copying. The links themselves come from claude-session-link.
+[[keys.command]]
+key = "prefix+y"
+type = "popup"
+command = "herdr-link-popup"
+description = "Copy session link"
+width = 96
+height = 14
+
 # Agent fuzzy finder on prefix+k: the New Session popup (herdr-new-thread)
 # opened straight into its agents view. Blocked/done agents are the list
 # (blocked first, then most recently finished), everything else dimmed below;
@@ -213,8 +230,8 @@ key = "prefix+k"
 type = "popup"
 command = "herdr-new-thread --agents"
 description = "Agents"
-width = 90
-height = 24
+width = 99
+height = 33
 
 # prefix+o routes through herdr-open-palette (~/bin): in moi checkouts and
 # moi__worktrees/* it shows a small moi palette (open in browser / open notes);
@@ -292,15 +309,18 @@ command = 'herdr pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'
 # opens the augie-features root workspace, adds a tab with that label, starts
 # claude in it as a same-named agent, and sends the prompt. The tab closes
 # itself when claude exits (HERDR_THREAD hook in zsh/configs/herdr.zsh).
-# ctrl+r inside the popup flips to a fuzzy list of past sessions in that root;
-# enter resumes one in a new tab, or focuses it if it is still running.
+# ctrl+1..3 switch the popup's sections (agents / chats / features), ctrl+t
+# its subtabs: chats › resume is a fuzzy list of past sessions in that root
+# (enter resumes one in a new tab, or focuses it if it is still running);
+# features › sidebar mirrors the sidebar's spaces; J/K or a mouse drag
+# reorders them live.
 [[keys.command]]
 key = "prefix+ctrl+t"
 type = "popup"
 command = "herdr-new-thread"
 description = "New Session"
-width = 78
-height = 24
+width = 86
+height = 33
 
 # [[keys.command]]
 # key = "prefix+alt+g"
