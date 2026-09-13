@@ -1,0 +1,36 @@
+#!/bin/zsh
+# Start `claude --resume <session id>` in an existing pane as a herdr agent,
+# so herdr tracks the conversation (and the resume popup can find it later).
+# Shared by herdr-open-chat and herdr-open-feature.
+#
+# The retries are the two races herdr reports: a freshly created pane's shell
+# needs a moment before it accepts an agent (agent_pane_busy), and agent names
+# must be unique and match ^[a-z][a-z0-9_-]{0,31}$ (agent_name_taken).
+#
+#   herdr-agent-resume PANE SESSION_ID [NAME]
+set -e
+usage="usage: herdr-agent-resume PANE SESSION_ID [NAME]"
+pane="${1:?$usage}"
+session_id="${2:?$usage}"
+name="${3:-$session_id}"
+
+base=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' \
+  | sed -E 's/[^a-z0-9]+/-/g; s/^-+//' | cut -c1-23 | sed -E 's/-+$//')
+case "$base" in
+  [a-z]*) ;;
+  *) base="s-$base" ;;
+esac
+
+agent="$base" out=""
+for i in {1..40}; do
+  if out=$(herdr agent start "$agent" --kind claude --pane "$pane" -- --resume "$session_id" 2>&1 </dev/null); then
+    exit 0
+  fi
+  case "$out" in
+    *agent_pane_busy*)  sleep 0.25 ;;
+    *agent_name_taken*) agent="$base-$(date +%H%M%S)" ;;
+    *) print -u2 "$out"; exit 1 ;;
+  esac
+done
+print -u2 "pane $pane never became available"
+exit 1

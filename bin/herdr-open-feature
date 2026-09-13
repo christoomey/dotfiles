@@ -1,18 +1,47 @@
 #!/bin/zsh
 # Focus a feature (a git worktree workspace) from outside herdr — what a
-# moimenubar://features/<project>/<dir> link resolves to (the Moi menubar app
-# runs this). An open workspace is focused, landing on its Claude pane when
-# one is running; a worktree that is only on disk is opened in herdr first.
+# moimenubar://features/<project>/<dir>?chat=<session id> link resolves to
+# (the Moi menubar app runs this). A worktree that is only on disk is opened
+# in herdr first. Then, in order:
+#   a Claude pane already running there  -> focus it
+#   the session id the link carried      -> resume it
+#   no id (or its transcript is gone)    -> resume the newest session recorded
+#                                          for that worktree
+#   no sessions at all                   -> leave the workspace open
+#
+# A worktree that was not open in herdr comes back in the shape both
+# bootstraps build (moi bin/up, august fullstack/bin/herdr-mux.sh):
+#   tab 1  shell (left, 40%) | Claude (right, 60%), conversation resumed
+#   tab 2  "server", sitting at a prompt
+# so a restored feature looks like a freshly opened one. The left and server
+# panes are left as shells on purpose: starting a dev server or seizing a pane
+# with an editor is a side effect a link click should not have.
 # Exits 2 with a message on stderr when the project has no such worktree.
 #
-#   herdr-open-feature PROJECT DIR
+#   herdr-open-feature PROJECT DIR [SESSION_ID]
 #     PROJECT: august | moi
 #     DIR:     the worktree directory name (moi__worktrees/<dir>,
 #              augie-features/<dir>)
 set -e
-usage="usage: herdr-open-feature PROJECT DIR"
+usage="usage: herdr-open-feature PROJECT DIR [SESSION_ID]"
 project="${1:?$usage}"
 dir="${2:?$usage}"
+session_id="${3:-}"
+
+has_transcript() {
+  local -a found
+  found=("$HOME"/.claude/projects/*/"$1.jsonl"(N))
+  [ -n "${found[1]:-}" ]
+}
+
+# The newest session recorded for a directory. claude-session-link owns the
+# rule for turning a cwd into its transcript directory, so ask it rather than
+# re-deriving that here; the id is the uuid its chat link ends with.
+latest_session_for() {
+  local link
+  link=$(claude-session-link --chat "" "$1" 2>/dev/null) || return 1
+  printf '%s' "$link" | sed -E 's/.*-([0-9a-f]{8}-[0-9a-f-]{27})\)$/\1/'
+}
 
 case "$project" in
   august) root=$(cd "$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)" && pwd -P) ;;
@@ -30,23 +59,50 @@ fi
 
 open -a Ghostty
 
+pane_id() { jq -r '[.. | objects | select(has("pane_id")) | .pane_id][0] // empty'; }
+
+wt_path=$(printf '%s' "$entry" | jq -r .path)
 ws=$(printf '%s' "$entry" | jq -r '.open_workspace_id // empty')
+fresh=""
 if [ -z "$ws" ]; then
-  wt_path=$(printf '%s' "$entry" | jq -r .path)
   source=$(printf '%s' "$list" | jq -r '.result.source.source_workspace_id // empty')
   from=(--cwd "$root")
   [ -n "$source" ] && from=(--workspace "$source")
-  herdr worktree open "${from[@]}" --path "$wt_path" --label "$dir" --focus </dev/null >/dev/null
+  opened=$(herdr worktree open "${from[@]}" --path "$wt_path" --label "$dir" --focus </dev/null)
+  root_pane=$(printf '%s' "$opened" | pane_id)
+  ws=$(printf '%s' "$opened" | jq -r '.result.workspace.workspace_id // empty')
+  fresh=1
+else
+  herdr workspace focus "$ws" </dev/null >/dev/null
+  agent=$(
+    herdr agent list </dev/null | jq -r --arg ws "$ws" '
+      .result.agents[] | select(.agent == "claude" and .workspace_id == $ws)
+      | "\(.tab_id) \(.pane_id)"' | head -n1
+  )
+  if [ -n "$agent" ]; then
+    # Already running — that pane is the conversation, nothing to resume.
+    herdr tab focus "${agent%% *}" >/dev/null
+    herdr agent focus "${agent##* }" >/dev/null
+    exit 0
+  fi
+fi
+
+if [ -z "$session_id" ] || ! has_transcript "$session_id"; then
+  session_id=$(latest_session_for "$wt_path" 2>/dev/null) || session_id=""
+fi
+[ -n "$session_id" ] && ! has_transcript "$session_id" && session_id=""
+
+if [ -n "$fresh" ] && [ -n "$root_pane" ]; then
+  # --ratio is the share kept by the pane being split: the left pane keeps 40%
+  # and Claude takes the remaining 60%.
+  agent_pane=$(herdr pane split "$root_pane" --direction right --ratio 0.4 --cwd "$wt_path" --no-focus </dev/null | pane_id)
+  herdr tab create --workspace "$ws" --cwd "$wt_path" --label server --no-focus </dev/null >/dev/null
+  if [ -n "$session_id" ] && [ -n "${agent_pane:-}" ]; then
+    herdr-agent-resume "$agent_pane" "$session_id" "$dir"
+  fi
   exit 0
 fi
 
-herdr workspace focus "$ws" </dev/null >/dev/null
-agent=$(
-  herdr agent list </dev/null | jq -r --arg ws "$ws" '
-    .result.agents[] | select(.agent == "claude" and .workspace_id == $ws)
-    | "\(.tab_id) \(.pane_id)"' | head -n1
-)
-if [ -n "$agent" ]; then
-  herdr tab focus "${agent%% *}" >/dev/null
-  herdr agent focus "${agent##* }" >/dev/null
+if [ -n "$session_id" ]; then
+  exec herdr-open-chat "$project" "$session_id" "$dir"
 fi

@@ -1,18 +1,22 @@
 #!/bin/zsh
-# Confirm-and-copy a moimenubar:// link for the pane you fired the hotkey
-# from — bound to prefix+y, so it works while you are sitting in a Claude
-# session. herdr hands popups the source pane in HERDR_ACTIVE_PANE_ID, and
+# Confirm-and-copy a moimenubar:// deep link for the pane you fired the hotkey
+# from — bound to prefix+y, so it works while you are sitting in a session.
+# herdr passes popups the source pane in HERDR_ACTIVE_PANE_ID, and
 # `herdr pane get` turns that into the Claude session id, cwd, tab and
-# workspace; the links themselves come from claude-session-link.
+# workspace.
+#
+# Chat or feature is not a choice: claude-session-link decides it the way
+# herdr already splits the two — a feature worktree is a feature, anywhere
+# else is a chat. The popup only shows what you are about to copy.
 #
 #   enter (ctrl+m) copy markdown   ctrl+r copy rich text
-#   tab            chat <-> feature
-#   x              also close the source tab (workspace, for a feature)
+#   x              arm/disarm closing the source tab (workspace, for a
+#                  feature) after the copy — the banner says so loudly while
+#                  it is armed, since it is the one irreversible bit here
 #   esc / q        cancel
 #
 # ctrl+m and enter are the same byte outside the kitty protocol, which is why
-# markdown is bound to enter rather than being a mode you toggle first: the
-# two keys the user reaches for both do the default thing.
+# markdown is bound to enter rather than being a mode you toggle first.
 set -e
 
 pane="${HERDR_ACTIVE_PANE_ID:-${HERDR_PANE_ID:-}}"
@@ -23,107 +27,72 @@ sid=$(printf '%s' "$info" | jq -r '.result.pane.agent_session.value // empty')
 cwd=$(printf '%s' "$info" | jq -r '.result.pane.cwd // empty')
 src_tab=$(printf '%s' "$info" | jq -r '.result.pane.tab_id // empty')
 src_ws=$(printf '%s' "$info" | jq -r '.result.pane.workspace_id // empty')
-
-# claude-session-link prints "[TEXT](URL)"; keep the halves for display.
-chat_text="" chat_url="" feature_text="" feature_url=""
-split() { printf '%s' "$1" | sed -E 's/^\[(.*)\]\((.*)\)$/\1\n\2/'; }
-if [ -n "$sid" ]; then
-  if md=$(claude-session-link "$sid" "$cwd" 2>/dev/null); then
-    # The link text is "Chat: <title>"; the row already says Chat.
-    chat_text=$(split "$md" | head -n1 | sed 's/^Chat: //')
-    chat_url=$(split "$md" | tail -n1)
-  fi
-fi
-if md=$(claude-session-link --feature "$cwd" 2>/dev/null); then
-  feature_text=$(split "$md" | head -n1 | sed 's/^Feature: //')
-  feature_url=$(split "$md" | tail -n1)
-fi
-
-if [ -z "$chat_url" ] && [ -z "$feature_url" ]; then
-  print "\n  No link for this pane.\n"
-  print "  \e[2m$cwd\e[0m"
-  print "  \e[2mNot a Claude session, and not inside a feature worktree.\e[0m\n"
-  print "  \e[2many key to close\e[0m"
-  read -s -k 1
-  exit 0
-fi
-
-target=chat
-[ -z "$chat_url" ] && target=feature
-close=""
+[ -z "$cwd" ] && { print -u2 "no cwd for pane $pane"; exit 1; }
 
 bold=$'\e[1m' dim=$'\e[2m' off=$'\e[0m' accent=$'\e[36m' ok=$'\e[32m'
+warn=$'\e[1;7;33m'
 
-row() {  # name, text, selected, available
-  local marker="  " label="$1" text="$2"
-  if [ "$3" = 1 ]; then
-    marker="${accent}▸ ${off}"
-    label="${bold}${label}${off}"
-  fi
-  if [ "$4" != 1 ]; then
-    print "  ${marker}${dim}${1}   (none for this pane)${off}"
-  else
-    print "  ${marker}${label}   ${text}"
-  fi
+fail() {
+  printf '\e[H\e[2J'
+  print "\n  $1\n"
+  print "  ${dim}${cwd}${off}\n"
+  print "  ${dim}any key to close${off}"
+  read -s -k 1
+  exit "${2:-0}"
 }
+
+# One call decides chat vs feature and builds the link; the "[Chat: …]" /
+# "[Feature: …]" prefix is what it decided, so the popup never re-derives it.
+# With no session on this pane the only honest answer is the feature: asking
+# for a chat link would fall back to whatever session ran in this directory
+# last, which is not the one you are looking at.
+local_args=("$sid" "$cwd")
+[ -z "$sid" ] && local_args=(--feature "" "$cwd")
+link=$(claude-session-link "${local_args[@]}" 2>/dev/null) \
+  || fail "Nothing to link here — no Claude session, and not a feature worktree."
+text=$(printf '%s' "$link" | sed -E 's/^\[(.*)\]\(.*\)$/\1/')
+url=$(printf '%s' "$link" | sed -E 's/^\[.*\]\((.*)\)$/\1/')
+kind="${text%%:*}"
+name="${text#*: }"
+
+close=""
 
 draw() {
   printf '\e[H\e[2J'
-  local url after
-  if [ "$target" = chat ]; then url="$chat_url"; else url="$feature_url"; fi
+  local after xhint what
+  if [ -n "$close" ]; then
+    if [ "$kind" = Feature ]; then what="THIS WORKSPACE"; else what="THIS TAB"; fi
+    after="${warn}  ⚠  CLOSES ${what} AFTER COPYING  ${off}"
+    xhint="${dim}x${off} keep open"
+  else
+    after="${dim}after copy   leave everything open${off}"
+    xhint="${dim}x${off} close after"
+  fi
   print ""
   print "  ${bold}Copy link${off}"
   print ""
-  row "Chat   " "$chat_text" "$([ $target = chat ] && echo 1)" "$([ -n "$chat_url" ] && echo 1)"
-  row "Feature" "$feature_text" "$([ $target = feature ] && echo 1)" "$([ -n "$feature_url" ] && echo 1)"
-  print ""
+  print "  ${accent}${kind}${off}   ${bold}${name}${off}"
   print "  ${dim}${url}${off}"
   print ""
-  if [ -n "$close" ]; then
-    if [ "$target" = feature ]; then
-      after="${accent}close this workspace after copying${off}"
-    else
-      after="${accent}close this tab after copying${off}"
-    fi
-  else
-    after="${dim}leave everything open${off}"
-  fi
-  print "  after copy   ${after}"
+  print "  ${after}"
   print ""
-  print "  ${dim}enter${off} markdown   ${dim}ctrl-r${off} rich text   ${dim}tab${off} switch   ${dim}x${off} close after   ${dim}esc${off} cancel"
+  print "  ${dim}enter${off} markdown   ${dim}ctrl-r${off} rich text   ${xhint}   ${dim}esc${off} cancel"
 }
 
-copy() {  # $1: extra flag for the format
+copy() {  # $1: format flag, $2: label
   local -a args=("$1")
-  local label="$2"
-  [ "$target" = feature ] && args+=(--feature)
   [ -n "$close" ] && args+=(--close)
+  args+=("${local_args[@]}")
   # --close must act on the pane we were fired from, not this popup's own tab.
-  if [ "$target" = feature ]; then
-    args+=("$cwd")
-  else
-    args+=("$sid" "$cwd")
-  fi
   if HERDR_TAB_ID="$src_tab" HERDR_WORKSPACE_ID="$src_ws" \
        claude-session-link "${args[@]}" >/dev/null 2>&1; then
     printf '\e[H\e[2J'
-    print "\n  ${ok}✓${off} Copied as ${label}."
+    print "\n  ${ok}✓${off} Copied as $2."
     [ -n "$close" ] && print "  ${dim}closing…${off}"
     sleep 0.7
     exit 0
   else
-    printf '\e[H\e[2J'
-    print "\n  Could not copy that link.\n\n  ${dim}any key to close${off}"
-    read -s -k 1
-    exit 1
-  fi
-}
-
-toggle_target() {
-  if [ "$target" = chat ] && [ -n "$feature_url" ]; then
-    target=feature
-  elif [ "$target" = feature ] && [ -n "$chat_url" ]; then
-    target=chat
+    fail "Could not copy that link." 1
   fi
 }
 
@@ -133,7 +102,6 @@ while true; do
   case "$key" in
     $'\r'|$'\n') copy --copy markdown ;;
     $'\C-r')     copy --rich "rich text" ;;
-    $'\t'|f|F)   toggle_target ;;
     x|X)         [ -n "$close" ] && close="" || close=1 ;;
     q|Q|$'\e'|$'\C-c') exit 0 ;;
   esac

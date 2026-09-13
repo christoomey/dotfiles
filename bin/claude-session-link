@@ -3,7 +3,7 @@
 # worktree it lives in) through the Moi menubar app:
 #
 #   [Chat: TITLE](moimenubar://chats/PROJECT/SLUG-SESSION_ID)
-#   [Feature: DIR](moimenubar://features/PROJECT/DIR)
+#   [Feature: DIR](moimenubar://features/PROJECT/DIR?chat=SESSION_ID)
 #
 # MoiMenubar hands these to herdr-open-chat / herdr-open-feature, which focus
 # the target if it is open and resume/open it otherwise. Defaults come from
@@ -11,9 +11,19 @@
 # /link command relies on; the chat title is the one the resume popup shows
 # (custom title, else Claude's AI title, else the first prompt's first line).
 #
+# Which of the two you get is implicit, the way herdr already splits chats
+# from features: inside a feature worktree (moi__worktrees/<dir>,
+# augie-features/<dir>) you are in a feature, anywhere else you are in a chat.
+# --feature / --chat force one.
+#
+# A feature link carries the session it was minted from as ?chat=, so clicking
+# it restores that conversation and not just the workspace — herdr forgets
+# which session a pane held as soon as the pane closes, but we know it here,
+# while it is still running.
+#
 #   claude-session-link [OPTIONS] [SESSION_ID] [CWD]
-#     --feature       the feature link for the worktree CWD is in
-#                     (moi__worktrees/<dir>, augie-features/<dir>)
+#     --feature       force the feature link for the worktree CWD is in
+#     --chat          force the chat link for this session
 #     --copy          also put the markdown on the clipboard
 #     --rich          put it on the clipboard as rich text (a real link, for
 #                     Apple Notes and friends) instead of markdown
@@ -24,14 +34,15 @@
 #                     HERDR_WORKSPACE_ID, i.e. run from inside herdr.
 set -e
 
-copy="" title="" feature="" rich="" close=""
+copy="" title="" kind="" rich="" close=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --copy) copy=1; shift ;;
     --rich) rich=1; copy=1; shift ;;
     --close) close=1; shift ;;
     --title) title="$2"; shift 2 ;;
-    --feature) feature=1; shift ;;
+    --feature) kind=feature; shift ;;
+    --chat) kind=chat; shift ;;
     *) break ;;
   esac
 done
@@ -49,7 +60,7 @@ copy_link() {
 
 # Detached so this process (and whatever Claude turn ran it) returns first.
 close_after_copy() {
-  if [ -n "$feature" ]; then
+  if [ "$kind" = feature ]; then
     [ -z "${HERDR_WORKSPACE_ID:-}" ] && { echo "--close: not inside a herdr workspace" >&2; return 1; }
     nohup zsh -c "sleep 5; herdr workspace close ${(q)HERDR_WORKSPACE_ID}" >/dev/null 2>&1 &!
   else
@@ -58,7 +69,21 @@ close_after_copy() {
   fi
 }
 
-session_id="${1:-${CLAUDE_CODE_SESSION_ID:-}}"
+# `claude-session-link --feature <dir>` reads naturally, so accept a directory
+# in the session-id slot instead of silently falling back to $PWD and linking
+# whatever directory the caller happened to be standing in.
+if [ -d "${1:-}" ]; then
+  set -- "" "$1"
+fi
+# The running session is the default when no positionals are given at all —
+# not a fallback for an explicitly empty one. Callers pass "" to mean "no
+# session, work it out from the directory", and must not silently get the
+# conversation that happens to be asking.
+if [ $# -ge 1 ]; then
+  session_id="$1"
+else
+  session_id="${CLAUDE_CODE_SESSION_ID:-}"
+fi
 cwd=$(cd "${2:-$PWD}" && pwd -P)
 
 project_for() {
@@ -140,11 +165,26 @@ feature_dir() {
   esac
 }
 
-if [ -n "$feature" ]; then
-  cwd=$(cd "${1:-$PWD}" && pwd -P)
+# Implicit kind: a feature worktree means a feature, anything else a chat.
+if [ -z "$kind" ]; then
+  if feature_dir "$cwd" "$(project_for "$cwd")" >/dev/null 2>&1; then
+    kind=feature
+  else
+    kind=chat
+  fi
+fi
+
+if [ "$kind" = feature ]; then
   project=$(project_for "$cwd")
   dir=$(feature_dir "$cwd" "$project")
-  text="Feature: $dir" url="moimenubar://features/$project/$dir"
+  # Only carry a session that really belongs to this worktree: running this
+  # from one session against another directory must not staple this
+  # conversation onto that feature's link.
+  chat_q=""
+  if [ -n "$session_id" ] && [ -f "$(project_dir "$cwd")/$session_id.jsonl" ]; then
+    chat_q="?chat=$session_id"
+  fi
+  text="Feature: $dir" url="moimenubar://features/$project/$dir$chat_q"
   printf '[%s](%s)\n' "$text" "$url"
   [ -n "$copy" ] && copy_link "$text" "$url"
   [ -n "$close" ] && close_after_copy
