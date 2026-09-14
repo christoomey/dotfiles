@@ -1,22 +1,28 @@
 #!/bin/zsh
-# Confirm-and-copy a moimenubar:// deep link for the pane you fired the hotkey
-# from — bound to prefix+y, so it works while you are sitting in a session.
+# Close this session, with the chance to copy a moimenubar:// deep link to it
+# first — bound to prefix+X, taking over herdr's native close_tab, so one
+# hotkey covers both "I'm done here" and "I'm done here, keep the thread".
 # herdr passes popups the source pane in HERDR_ACTIVE_PANE_ID, and
 # `herdr pane get` turns that into the Claude session id, cwd, tab and
 # workspace.
 #
 # Chat or feature is not a choice: claude-session-link decides it the way
 # herdr already splits the two — a feature worktree is a feature, anywhere
-# else is a chat. The popup only shows what you are about to copy.
+# else is a chat — and that also decides what closing means here, a tab for a
+# chat and the whole workspace for a feature.
 #
-#   enter (ctrl+m) copy markdown   ctrl+r copy rich text
-#   x              arm/disarm closing the source tab (workspace, for a
-#                  feature) after the copy — the banner says so loudly while
-#                  it is armed, since it is the one irreversible bit here
+#   enter (ctrl+m) copy the link, then close
+#   ctrl+r         copy it as rich text, then close
+#   y              copy the link, leave everything open (the old prefix+y)
+#   x              close without copying anything
 #   esc / q        cancel
 #
 # ctrl+m and enter are the same byte outside the kitty protocol, which is why
 # markdown is bound to enter rather than being a mode you toggle first.
+#
+# Two degraded shapes, both of which must still close: a pane with no link at
+# all (not a Claude session and not in a known project), and a root project
+# tab, where herdr-close-guard blocks the close and only the copy is offered.
 set -e
 
 pane="${HERDR_ACTIVE_PANE_ID:-${HERDR_PANE_ID:-}}"
@@ -30,16 +36,7 @@ src_ws=$(printf '%s' "$info" | jq -r '.result.pane.workspace_id // empty')
 [ -z "$cwd" ] && { print -u2 "no cwd for pane $pane"; exit 1; }
 
 bold=$'\e[1m' dim=$'\e[2m' off=$'\e[0m' accent=$'\e[36m' ok=$'\e[32m'
-warn=$'\e[1;7;33m'
-
-fail() {
-  printf '\e[H\e[2J'
-  print "\n  $1\n"
-  print "  ${dim}${cwd}${off}\n"
-  print "  ${dim}any key to close${off}"
-  read -s -k 1
-  exit "${2:-0}"
-}
+warn=$'\e[1;7;33m' red=$'\e[31m'
 
 # One call decides chat vs feature and builds the link; the "[Chat: …]" /
 # "[Feature: …]" prefix is what it decided, so the popup never re-derives it.
@@ -48,49 +45,102 @@ fail() {
 # last, which is not the one you are looking at.
 local_args=("$sid" "$cwd")
 [ -z "$sid" ] && local_args=(--feature "" "$cwd")
-link=$(claude-session-link "${local_args[@]}" 2>/dev/null) \
-  || fail "Nothing to link here — no Claude session, and not a feature worktree."
-text=$(printf '%s' "$link" | sed -E 's/^\[(.*)\]\(.*\)$/\1/')
-url=$(printf '%s' "$link" | sed -E 's/^\[.*\]\((.*)\)$/\1/')
-kind="${text%%:*}"
-name="${text#*: }"
+link=$(claude-session-link "${local_args[@]}" 2>/dev/null) || link=""
 
-close=""
+kind=Chat name="" url=""
+if [ -n "$link" ]; then
+  text=$(printf '%s' "$link" | sed -E 's/^\[(.*)\]\(.*\)$/\1/')
+  url=$(printf '%s' "$link" | sed -E 's/^\[.*\]\((.*)\)$/\1/')
+  kind="${text%%:*}"
+  name="${text#*: }"
+fi
+
+# A feature closes its whole workspace; a chat closes just its tab. The guard
+# only ever fires on the chat side — feature workspaces are meant to be
+# closed — so it is asked about the tab.
+if [ "$kind" = Feature ] && [ -n "$src_ws" ]; then
+  target="this workspace" blocked=""
+else
+  target="this tab"
+  blocked=$(herdr-close-guard "$src_tab" "$cwd") || blocked=""
+fi
+# What enter/ctrl-r do after copying: close, unless the guard said no.
+if [ -n "$blocked" ]; then close_after=""; else close_after=1; fi
+
+# One action per line, key column padded to a fixed width: two-up rows read as
+# prose and hide which words are the key.
+row() { printf '  %s%-7s%s %s\n' "$bold$accent" "$1" "$off" "$2" }
 
 draw() {
   printf '\e[H\e[2J'
-  local after xhint what
-  if [ -n "$close" ]; then
-    if [ "$kind" = Feature ]; then what="THIS WORKSPACE"; else what="THIS TAB"; fi
-    after="${warn}  ⚠  CLOSES ${what} AFTER COPYING  ${off}"
-    xhint="${dim}x${off} keep open"
+  print ""
+  if [ -n "$blocked" ]; then
+    print "  ${warn} PROTECTED ${off}  ${bold}${blocked}${off}"
   else
-    after="${dim}after copy   leave everything open${off}"
-    xhint="${dim}x${off} close after"
+    print "  ${bold}Close ${target}${off}"
   fi
   print ""
-  print "  ${bold}Copy link${off}"
+  if [ -n "$link" ]; then
+    print "  ${accent}${kind}${off}   ${bold}${name}${off}"
+    print "  ${dim}${url}${off}"
+  else
+    print "  ${red}No link here${off}   ${dim}no Claude session, and not a feature worktree${off}"
+    print "  ${dim}${cwd}${off}"
+  fi
   print ""
-  print "  ${accent}${kind}${off}   ${bold}${name}${off}"
-  print "  ${dim}${url}${off}"
-  print ""
-  print "  ${after}"
-  print ""
-  print "  ${dim}enter${off} markdown   ${dim}ctrl-r${off} rich text   ${xhint}   ${dim}esc${off} cancel"
+  if [ -n "$blocked" ]; then
+    print "  ${dim}prefix+X leaves this one alone: reopening it means asking a session"
+    print "  to restore itself. Close it deliberately with ${off}herdr tab close ${src_tab}${dim}.${off}"
+    print ""
+    if [ -n "$link" ]; then
+      row enter  "copy link"
+      row ctrl-r "copy link as rich text"
+    fi
+    row esc "cancel"
+  elif [ -n "$link" ]; then
+    row enter  "copy link, then close"
+    row ctrl-r "copy link as rich text, then close"
+    print ""
+    row y   "copy link, keep it open"
+    row x   "close, no copy"
+    row esc "cancel"
+  else
+    row x   "close ${target}"
+    row esc "cancel"
+  fi
 }
 
-copy() {  # $1: format flag, $2: label
-  local -a args=("$1")
-  [ -n "$close" ] && args+=(--close)
-  args+=("${local_args[@]}")
-  # --close must act on the pane we were fired from, not this popup's own tab.
-  if HERDR_TAB_ID="$src_tab" HERDR_WORKSPACE_ID="$src_ws" \
-       claude-session-link "${args[@]}" >/dev/null 2>&1; then
-    printf '\e[H\e[2J'
-    print "\n  ${ok}✓${off} Copied as $2."
-    [ -n "$close" ] && print "  ${dim}closing…${off}"
-    sleep 0.7
-    exit 0
+fail() {
+  printf '\e[H\e[2J'
+  print "\n  $1\n"
+  print "  ${dim}any key to close${off}"
+  read -s -k 1
+  exit "${2:-0}"
+}
+
+# Detached and delayed a beat so this popup is gone before its source tab is,
+# rather than racing the teardown of the thing it is drawn over.
+close_source() {
+  local cmd="herdr tab close ${(q)src_tab}"
+  [ "$target" = "this workspace" ] && cmd="herdr workspace close ${(q)src_ws}"
+  nohup zsh -c "sleep 0.5; $cmd" >/dev/null 2>&1 &!
+}
+
+done_with() {  # $1: message
+  printf '\e[H\e[2J'
+  print "\n  ${ok}✓${off} $1"
+  sleep 0.6
+  exit 0
+}
+
+copy() {  # $1: format flag, $2: label, $3: close after
+  if claude-session-link "$1" "${local_args[@]}" >/dev/null 2>&1; then
+    if [ -n "$3" ]; then
+      close_source
+      done_with "Copied as $2. ${dim}closing ${target}…${off}"
+    else
+      done_with "Copied as $2."
+    fi
   else
     fail "Could not copy that link." 1
   fi
@@ -100,9 +150,13 @@ while true; do
   draw
   read -s -k 1 key || exit 0
   case "$key" in
-    $'\r'|$'\n') copy --copy markdown ;;
-    $'\C-r')     copy --rich "rich text" ;;
-    x|X)         [ -n "$close" ] && close="" || close=1 ;;
+    $'\r'|$'\n') [ -n "$link" ] && copy --copy markdown "$close_after" ;;
+    $'\C-r')     [ -n "$link" ] && copy --rich "rich text" "$close_after" ;;
+    y|Y)         [ -n "$link" ] && copy --copy markdown "" ;;
+    x|X)         if [ -z "$blocked" ]; then
+                   close_source
+                   done_with "Closing ${target}…"
+                 fi ;;
     q|Q|$'\e'|$'\C-c') exit 0 ;;
   esac
 done

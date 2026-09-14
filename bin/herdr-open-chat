@@ -21,7 +21,7 @@ name="${3:-$session_id}"
 
 project_root() {
   case "$1" in
-    august) cd "$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)" && pwd -P ;;
+    august)   augie-path root ;;
     moi)      echo "$HOME/code/moi" ;;
     dotfiles) echo "$HOME/code/dotfiles" ;;
     *) echo "unknown project: $1" >&2; return 2 ;;

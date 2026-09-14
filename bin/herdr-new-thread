@@ -42,11 +42,7 @@
 
 set -e
 
-august_root() {
-  local root
-  root=$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)
-  cd "$root" && pwd -P
-}
+august_root() { augie-path root; }
 
 project_root() {
   case "$1" in

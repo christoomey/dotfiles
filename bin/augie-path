@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# augie-path <key> — print a resolved paths.<key> from the augie config.
+#
+#   root       the august workspace checkout (tooling, notes, skills)
+#   worktrees  where feature dirs live
+#   repos      where august-backend / august-frontend are cloned
+#
+# `worktrees` falls back to the older `features` key, so callers work on either
+# side of the workspace split (where root and worktrees stopped being the same
+# directory). Exits non-zero with no output when the key is absent or the path
+# does not exist, so callers can test it.
+#
+set -euo pipefail
+
+key="${1:?usage: augie-path <root|worktrees|repos|features>}"
+config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
+
+read_key() {
+    awk -v key="$1" '
+        /^paths:/ { p = 1; next }
+        p && /^[^ ]/ { p = 0 }
+        p && $0 ~ "^ *" key " *:" { sub(/^ *[^ :]+ *: */, ""); print; exit }
+    ' "$config" 2>/dev/null
+}
+
+value="$(read_key "$key")"
+if [[ -z "$value" && "$key" == "worktrees" ]]; then
+    value="$(read_key features)"
+fi
+[[ -n "$value" ]] || exit 1
+
+value="${value/#\~/$HOME}"
+(cd "$value" 2>/dev/null && pwd -P) || exit 1

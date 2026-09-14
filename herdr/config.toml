@@ -98,6 +98,12 @@ open_notification_target = ""
 # GitHub (see herdr-git-pr [[keys.command]] below), mirroring tmux `prefix G`.
 new_worktree = ""
 
+# Free prefix+shift+x from herdr's native close_tab so it drives the close/copy
+# popup instead (see herdr-link-popup [[keys.command]] below) — closing a chat
+# and copying a link back to it are the same moment. prefix+x (close_pane) is
+# untouched, so a single pane still closes without ceremony.
+close_tab = ""
+
 # Prefix-mode actions
 # help = "prefix+?"
 # settings = "prefix+s"
@@ -202,22 +208,24 @@ key = "prefix+space"
 type = "shell"
 command = "herdr-last-workspace"
 
-# Copy a moimenubar:// deep link to the session you are sitting in, on
-# prefix+y (tmux muscle memory: y = yank). herdr passes the pane the key was
-# pressed from as HERDR_ACTIVE_PANE_ID, so herdr-link-popup can ask
-# `herdr pane get` for that pane's Claude session id, cwd, tab and workspace
-# and offer both the chat link and its feature-worktree link. enter copies
-# markdown, ctrl-r copies rich text (ctrl-m *is* enter outside the kitty
-# protocol, so markdown is the enter/default rather than a mode to toggle);
-# tab switches chat/feature, x also closes the source tab (workspace, for a
-# feature) after copying. The links themselves come from claude-session-link.
+# Closing a session is the same gesture as linking it, so prefix+X is both:
+# herdr-link-popup replaces herdr's native close_tab (unbound above) and was
+# previously on prefix+y. herdr passes the pane the key was pressed from as
+# HERDR_ACTIVE_PANE_ID, so the popup can ask `herdr pane get` for that pane's
+# Claude session id, cwd, tab and workspace. enter copies markdown and closes,
+# ctrl-r copies rich text and closes (ctrl-m *is* enter outside the kitty
+# protocol, so markdown is the enter/default rather than a mode to toggle),
+# y copies and leaves everything open, x closes without copying. Closing means
+# the tab for a chat and the whole workspace for a feature, and herdr-close-guard
+# refuses the root tab of the moi/august/dotfiles workspaces outright.
+# The links themselves come from claude-session-link.
 [[keys.command]]
-key = "prefix+y"
+key = "prefix+shift+x"
 type = "popup"
 command = "herdr-link-popup"
-description = "Copy session link"
+description = "Close / copy session link"
 width = 96
-height = 14
+height = 16
 
 # Agent fuzzy finder on prefix+k: the New Session popup (herdr-new-thread)
 # opened straight into its agents view. Blocked/done agents are the list

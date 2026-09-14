@@ -63,12 +63,7 @@ else
 fi
 
 if [[ ! -d "$feature_dir/notes" && ! -e "$feature_dir/notes.md" ]]; then
-    augie_config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
-    augie_root=$(awk '
-        /^paths:/   { in_p=1; next }
-        in_p && /^[^ ]/ { in_p=0 }
-        in_p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
-    ' "$augie_config" 2>/dev/null)
+    augie_root=$(augie-path root 2>/dev/null) || augie_root=""
     if [[ -n "$augie_root" && -d "$augie_root" ]]; then
         mkdir -p "$augie_root/.notes"
         ln -sfn "$augie_root/.notes" "$feature_dir/notes"

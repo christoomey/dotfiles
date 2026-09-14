@@ -31,7 +31,8 @@
 #     --close         after copying, close the herdr tab this runs in (or the
 #                     whole workspace with --feature), a few seconds later so
 #                     the caller can finish printing. Needs HERDR_TAB_ID /
-#                     HERDR_WORKSPACE_ID, i.e. run from inside herdr.
+#                     HERDR_WORKSPACE_ID, i.e. run from inside herdr. Refused
+#                     on a project's root tab (see herdr-close-guard).
 set -e
 
 copy="" title="" kind="" rich="" close=""
@@ -59,12 +60,18 @@ copy_link() {
 }
 
 # Detached so this process (and whatever Claude turn ran it) returns first.
+# A project's root tab is refused here as well as in the prefix+X popup: the
+# link is already on the clipboard by then, so the caller only loses the close.
 close_after_copy() {
   if [ "$kind" = feature ]; then
     [ -z "${HERDR_WORKSPACE_ID:-}" ] && { echo "--close: not inside a herdr workspace" >&2; return 1; }
     nohup zsh -c "sleep 5; herdr workspace close ${(q)HERDR_WORKSPACE_ID}" >/dev/null 2>&1 &!
   else
     [ -z "${HERDR_TAB_ID:-}" ] && { echo "--close: not inside a herdr tab" >&2; return 1; }
+    if reason=$(herdr-close-guard "$HERDR_TAB_ID" "$cwd" 2>/dev/null); then
+      echo "--close refused: $reason. Close it deliberately with \`herdr tab close $HERDR_TAB_ID\`." >&2
+      return 1
+    fi
     nohup zsh -c "sleep 5; herdr tab close ${(q)HERDR_TAB_ID}" >/dev/null 2>&1 &!
   fi
 }
@@ -87,13 +94,16 @@ fi
 cwd=$(cd "${2:-$PWD}" && pwd -P)
 
 project_for() {
-  local dir="$1" august
-  august=$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)
-  [ -n "$august" ] && august=$(cd "$august" 2>/dev/null && pwd -P)
+  local dir="$1" august august_wt
+  # Root and worktrees are separate dirs since the workspace split; a session
+  # can sit in either and still be "august".
+  august=$(augie-path root 2>/dev/null) || august=""
+  august_wt=$(augie-path worktrees 2>/dev/null) || august_wt="$august"
   case "$dir" in
     "$HOME/code/moi"|"$HOME/code/moi/"*|"$HOME/code/moi__worktrees/"*) echo moi ;;
     "$HOME/code/dotfiles"|"$HOME/code/dotfiles/"*) echo dotfiles ;;
     "$august"|"$august/"*) echo august ;;
+    "$august_wt"|"$august_wt/"*) echo august ;;
     *) echo "$dir is not inside a known project (moi, august, dotfiles)" >&2; return 1 ;;
   esac
 }
@@ -156,7 +166,7 @@ feature_dir() {
   local dir="$1" project="$2" wt
   case "$project" in
     moi)    wt="$HOME/code/moi__worktrees" ;;
-    august) wt=$(cd "$(sed -nE 's/^ *features: *//p' ~/.config/augie/config.yaml | head -n1)" && pwd -P) ;;
+    august) wt=$(augie-path worktrees) ;;
     *) return 1 ;;
   esac
   case "$dir" in

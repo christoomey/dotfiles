@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 # af — augie feature dispatcher.
 #
-# Thin wrapper over the augie "mux" commands in the fullstack tooling repo so
+# Thin wrapper over the augie "mux" commands in the workspace tooling repo so
 # they run from anywhere without cd-ing in, and without shadowing system
 # commands (the bin/ names are generic: open, ls, down, ...). Everything else
-# lives in fullstack/bin; this only routes. Herdr-aware because those scripts
-# are (see fullstack/bin/herdr-mux.sh).
+# lives in <workspace>/tools/bin; this only routes. Herdr-aware because those
+# scripts are (see tools/bin/herdr-mux.sh).
 
 set -euo pipefail
 
-# Resolve the fullstack tooling bin from the augie config (paths.root/bin).
+# Resolve the tooling bin from the augie config (paths.root/tools/bin).
 config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
 root=$(awk '
     /^paths:/ { p=1; next }
     p && /^[^ ]/ { p=0 }
     p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
 ' "$config" 2>/dev/null)
-BIN="${root:-$HOME/code/work/current/fullstack}/bin"
+BIN="${root:-$HOME/code/work/august/augie-features}/tools/bin"
 
 usage() {
     cat <<'EOF'

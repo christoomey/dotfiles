@@ -10,11 +10,6 @@
 
 set -euo pipefail
 
-config="${XDG_CONFIG_HOME:-$HOME/.config}/augie/config.yaml"
-root=$(awk '
-    /^paths:/ { p=1; next }
-    p && /^[^ ]/ { p=0 }
-    p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
-' "$config" 2>/dev/null)
+root=$(augie-path root 2>/dev/null) || root="$HOME/code/work/august/august-workspace"
 
-exec "${root:-$HOME/code/work/current/fullstack}/bin/panel" "$@"
+exec "$root/tools/bin/panel" "$@"

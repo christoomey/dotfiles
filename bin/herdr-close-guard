@@ -1,0 +1,64 @@
+#!/bin/zsh
+# Refuse to close the root tab of a project workspace (moi, august, dotfiles).
+#
+#   herdr-close-guard [TAB_ID [CWD]]
+#
+# Exit 0 with a one-line reason on stdout when the close must be blocked,
+# exit 1 (silent) when it is fine — so callers read as
+# `if reason=$(herdr-close-guard ...); then refuse; fi`.
+#
+# "Root tab" is the lowest-numbered tab of the workspace the tab lives in
+# (herdr's tab `number` is its id, so the lowest is the first one created),
+# and only when that tab sits in a project's main checkout rather than a
+# feature worktree. That pair is what makes it irreplaceable: it is the tab
+# the project workspace was opened with, and closing the last tab takes the
+# workspace with it. Feature workspaces are meant to be closed, so they never
+# trip this.
+#
+# The main checkout is found by git toplevel, not by string prefix: a feature
+# worktree's toplevel is the feature dir itself, never the workspace root, so
+# this holds whether features sit inside the root or beside it.
+set -e
+
+tab="${1:-${HERDR_TAB_ID:-}}"
+cwd="${2:-$PWD}"
+[ -z "$tab" ] && exit 1
+
+cwd=$(cd "$cwd" 2>/dev/null && pwd -P) || exit 1
+top=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || top="$cwd"
+top=$(cd "$top" 2>/dev/null && pwd -P) || exit 1
+
+resolve() { cd "${1/#\~/$HOME}" 2>/dev/null && pwd -P; }
+
+august=$(augie-path root 2>/dev/null) || august=""
+
+project=""
+if [ "$top" = "$(resolve ~/code/moi)" ]; then
+  project=moi
+elif [ "$top" = "$(resolve ~/code/dotfiles)" ]; then
+  project=dotfiles
+elif [ -n "$august" ] && [ "$top" = "$august" ]; then
+  project=august
+else
+  exit 1
+fi
+
+tabs=$(herdr tab list </dev/null 2>/dev/null) || exit 1
+ws=$(printf '%s' "$tabs" | jq -r --arg t "$tab" '.result.tabs[]? | select(.tab_id == $t) | .workspace_id')
+[ -z "$ws" ] && exit 1
+root_tab=$(printf '%s' "$tabs" | jq -r --arg ws "$ws" '
+  [.result.tabs[]? | select(.workspace_id == $ws)] | sort_by(.number) | .[0].tab_id // empty')
+[ "$tab" = "$root_tab" ] || exit 1
+
+# The workspace has to be the project's own, not a feature workspace holding a
+# pane that happens to be cd'd up into the main checkout. Workspaces opened
+# outside a repo (dotfiles) carry no worktree at all, so absent is a pass.
+checkout=$(herdr workspace list </dev/null 2>/dev/null |
+  jq -r --arg ws "$ws" '.result.workspaces[]? | select(.workspace_id == $ws) | .worktree.checkout_path // empty')
+if [ -n "$checkout" ]; then
+  checkout=$(resolve "$checkout") || exit 1
+  [ "$checkout" = "$top" ] || exit 1
+fi
+
+print "root tab of the $project workspace"
+exit 0
