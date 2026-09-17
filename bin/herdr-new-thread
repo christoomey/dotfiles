@@ -39,6 +39,11 @@
 # pointing at scratch/<slug>/ under the august root for throwaway files.
 # New sessions get `claude --name NAME` so the typed name is the title the
 # resume list shows later (Claude persists it as the session's custom title).
+# Both the new-session and resume launches go through claude-launch, which
+# starts claude, delivers the first prompt from a file, and confirms it landed
+# in claude's transcript before reporting success. The prompt is always written
+# to ~/.cache/herdr-threads/chat-prompts/ first, so it survives a failed
+# launch; claude-launch logs to ~/.cache/herdr-threads/launch.log.
 
 set -e
 
@@ -186,6 +191,16 @@ launch() {
     prompt="${prompt#$'\n\n'}"
   fi
 
+  # The prompt only exists in the form JSON piped over stdin; claude-launch
+  # starts claude on this file and names it in any failure notice.
+  local pfile=""
+  if [ -n "$prompt" ]; then
+    local pdir="$HOME/.cache/herdr-threads/chat-prompts"
+    mkdir -p "$pdir"
+    pfile="$pdir/$slug-$(date +%Y%m%d-%H%M%S).md"
+    printf '%s\n' "$prompt" > "$pfile"
+  fi
+
   local pane
   pane=$(
     herdr tab create --workspace "$ws" --cwd "$root" --label "$name" \
@@ -193,19 +208,9 @@ launch() {
   )
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
 
-  # herdr prepends the `claude` executable itself; only args go after --
-  # (a repeated `claude` would become the initial prompt).
-  local -a claude_args
-  if [ -n "$session_id" ]; then
-    claude_args=(--resume "$session_id")
-  else
-    claude_args=(--name "$name")
-  fi
-
   # Agent names must match ^[a-z][a-z0-9_-]*$ and be <= 32 chars; resumed
-  # session titles are usually longer, so cap the base and leave room for the
-  # agent_name_taken suffix. The fresh tab's shell also takes a beat to reach
-  # its prompt (agent_pane_busy).
+  # session titles are usually longer, so cap the base and leave room for a
+  # collision suffix.
   local base
   base=$(printf '%s' "${slug:0:23}" | sed -E 's/-+$//')
   case "$base" in
@@ -213,22 +218,17 @@ launch() {
     *) base="s-$base" ;;
   esac
 
-  local agent="$base" out started=""
-  for i in {1..40}; do
-    if out=$(herdr agent start "$agent" --kind claude --pane "$pane" -- "${claude_args[@]}" 2>&1); then
-      started=1; break
-    fi
-    case "$out" in
-      *agent_pane_busy*)  sleep 0.25 ;;
-      *agent_name_taken*) agent="$base-$(date +%H%M%S)" ;;
-      *) echo "$out" >&2; return 1 ;;
-    esac
-  done
-  [ -z "$started" ] && { echo "pane $pane never became available" >&2; return 1; }
-
-  if [ -n "$prompt" ]; then
-    herdr agent prompt "$agent" "$prompt" >/dev/null
+  # claude-launch starts claude through the pane's shell (so the prompt can
+  # span lines, which `herdr agent start` refuses) and waits for the prompt to
+  # show up in claude's transcript, notifying on anything less.
+  local -a launch_args=(--pane "$pane" --agent-name "$base")
+  if [ -n "$session_id" ]; then
+    launch_args+=(--resume "$session_id")
+  else
+    launch_args+=(--name "$name")
   fi
+  [ -n "$pfile" ] && launch_args+=(--prompt-file "$pfile")
+  claude-launch "${launch_args[@]}"
 }
 
 if [ "${1:-}" = "--launch" ]; then

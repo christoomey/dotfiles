@@ -1,0 +1,244 @@
+#!/usr/bin/env bash
+#
+# claude-launch: start claude in a herdr pane and confirm its first prompt
+# actually arrived.
+#
+# Launchers used to throw the prompt over the wall: `herdr agent start` refuses
+# any argument containing a newline, tab or CR (invalid_agent_argument), a
+# relative prompt path resolved against the wrong cwd, and failures went to
+# /dev/null or an untimestamped log, leaving an empty tab. This owns the whole
+# handshake instead:
+#
+#   1. the prompt file is resolved to an absolute path and checked up front
+#   2. claude is started via the pane's own shell, which expands
+#      "$(cat /abs/file)", so the prompt can span lines
+#   3. the ack is claude's transcript: a new session is started with a known
+#      --session-id and we wait for a user message in its jsonl; a resume waits
+#      for the transcript's user-message count to grow
+#   4. anything short of that is loud: a timestamped log line, a herdr
+#      notification naming the prompt file, a note in the pane when claude
+#      never started, and a nonzero exit
+#
+# Usage:
+#   claude-launch --pane P [--name N] [--agent-name A] [--prompt-file F] [--timeout S]
+#   claude-launch --pane P --resume SESSION_ID [--agent-name A] [--prompt-file F] [--timeout S]
+#   claude-launch --check-prompt-file F    # print F's absolute path, or fail
+#
+# --name is claude's session title; --agent-name renames the herdr agent (herdr
+# caps names at 32 chars of ^[a-z][a-z0-9_-]*$, so the caller slugs it).
+
+set -uo pipefail
+
+LOG="${CLAUDE_LAUNCH_LOG:-$HOME/.cache/herdr-threads/launch.log}"
+PROJECTS="$HOME/.claude/projects"
+
+log() {
+  mkdir -p "$(dirname "$LOG")"
+  printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${pane:-?}" "$*" >>"$LOG"
+}
+
+check_prompt_file() {
+  local file="$1" abs
+  if [[ ! -f "$file" || ! -r "$file" ]]; then
+    echo "claude-launch: prompt file not readable: $file" >&2
+    return 1
+  fi
+  if [[ ! -s "$file" ]]; then
+    echo "claude-launch: prompt file is empty: $file" >&2
+    return 1
+  fi
+  abs="$(cd "$(dirname "$file")" && pwd -P)/$(basename "$file")"
+  printf '%s\n' "$abs"
+}
+
+if [[ "${1:-}" == "--check-prompt-file" ]]; then
+  check_prompt_file "${2:-}"
+  exit
+fi
+
+pane="" name="" agent_name="" prompt_file="" resume="" timeout=90
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --pane) pane="$2"; shift 2 ;;
+    --name) name="$2"; shift 2 ;;
+    --agent-name) agent_name="$2"; shift 2 ;;
+    --prompt-file) prompt_file="$2"; shift 2 ;;
+    --resume) resume="$2"; shift 2 ;;
+    --timeout) timeout="$2"; shift 2 ;;
+    *) echo "claude-launch: unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+[[ -z "$pane" ]] && { echo "claude-launch: --pane is required" >&2; exit 2; }
+
+if [[ -n "$prompt_file" ]]; then
+  prompt_file="$(check_prompt_file "$prompt_file")" || { log "bad prompt file"; exit 2; }
+fi
+
+fail() {
+  local reason="$1"
+  log "FAILED: $reason${prompt_file:+ (prompt: $prompt_file)}"
+  echo "claude-launch: $reason${prompt_file:+ (prompt saved at $prompt_file)}" >&2
+  herdr notification show "Claude launch failed" \
+    --body "$reason${prompt_file:+ · prompt: $prompt_file}" --sound request >/dev/null 2>&1 || true
+  if ! claude_process_running; then
+    local note="claude-launch failed: $reason"
+    [[ -n "$prompt_file" ]] && note+=$'\n'"prompt: $prompt_file"
+    herdr pane run "$pane" "$(printf 'printf "%%s\\n" %q' "$note")" >/dev/null 2>&1 || true
+  fi
+  exit 1
+}
+
+# The claude session id herdr has detected in the pane, if any.
+claude_session_in_pane() {
+  herdr agent get "$pane" 2>/dev/null |
+    jq -er '.result.agent | select(.agent == "claude") | .agent_session.value // ""'
+}
+
+transcript_for() {
+  find "$PROJECTS" -maxdepth 2 -name "$1.jsonl" -print -quit 2>/dev/null
+}
+
+user_message_count() {
+  local transcript
+  transcript="$(transcript_for "$1")"
+  if [[ -z "$transcript" ]]; then
+    echo 0
+  else
+    jq -c 'select(.type == "user")' "$transcript" 2>/dev/null | wc -l | tr -d ' '
+  fi
+}
+
+# `herdr pane run` fails while a fresh pane's shell is still starting.
+run_in_pane() {
+  local i
+  for i in $(seq 1 40); do
+    if herdr pane run "$pane" "$1" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 0.25
+  done
+  return 1
+}
+
+# The launch command carries a unique session id, so its process is an exact
+# match; herdr's agent detection can lag it.
+claude_process_running() {
+  pgrep -f -- "$launch_marker" >/dev/null 2>&1
+}
+
+wait_for_claude() {
+  local deadline=$((SECONDS + (timeout < 30 ? timeout : 30)))
+  while ((SECONDS < deadline)); do
+    claude_process_running && return 0
+    sleep 0.5
+  done
+  return 1
+}
+
+wait_for_agent_detection() {
+  local deadline=$((SECONDS + 15)) sid
+  while ((SECONDS < deadline)); do
+    sid="$(claude_session_in_pane)" && [[ -n "$sid" ]] && return 0
+    sleep 0.5
+  done
+  return 1
+}
+
+rename_agent() {
+  [[ -z "$agent_name" ]] && return 0
+  wait_for_agent_detection || { log "herdr never detected claude; not renaming"; return 0; }
+  herdr agent rename "$pane" "$agent_name" >/dev/null 2>&1 ||
+    herdr agent rename "$pane" "${agent_name:0:25}-$(date +%H%M%S)" >/dev/null 2>&1 ||
+    log "could not rename agent to $agent_name"
+}
+
+launch_cmd=""
+launch_marker=""
+session_id=""
+if [[ -n "$resume" ]]; then
+  session_id="$resume"
+  launch_marker="claude --resume $resume"
+  launch_cmd="$(printf 'claude --resume %q' "$resume")"
+else
+  session_id="$(uuidgen | tr '[:upper:]' '[:lower:]')"
+  launch_marker="claude --session-id $session_id"
+  launch_cmd="$(printf 'claude --session-id %q' "$session_id")"
+  [[ -n "$name" ]] && launch_cmd+="$(printf ' --name %q' "$name")"
+  [[ -n "$prompt_file" ]] && launch_cmd+="$(printf ' "$(cat %q)"' "$prompt_file")"
+fi
+baseline="$(user_message_count "$session_id")"
+log "launching session $session_id${prompt_file:+ with $prompt_file}"
+
+# A resume carries no multi-line argument, so it can go through `herdr agent
+# start`, whose success means claude is at its interactive prompt.
+start_resume_via_herdr() {
+  local agent="${agent_name:-resume-${resume:0:8}}" out i
+  for i in $(seq 1 40); do
+    if out=$(herdr agent start "$agent" --kind claude --pane "$pane" --timeout $((timeout * 1000)) -- --resume "$resume" 2>&1); then
+      return 0
+    fi
+    case "$out" in
+      *agent_pane_busy*) sleep 0.25 ;;
+      *agent_name_taken*) agent="${agent:0:25}-$(date +%H%M%S)" ;;
+      *) log "agent start: $out"; return 1 ;;
+    esac
+  done
+  return 1
+}
+
+if [[ -n "$resume" ]]; then
+  start_resume_via_herdr || fail "could not resume session $resume in pane $pane"
+  agent_name=""
+fi
+
+attempt=1
+while [[ -z "$resume" ]]; do
+  run_in_pane "$launch_cmd" || fail "pane $pane never accepted the claude command"
+  if wait_for_claude >/dev/null; then
+    break
+  fi
+  # A command typed before the shell was really listening can vanish; retry
+  # once. wait_for_claude only returns false when no such process exists, so
+  # the retry cannot land inside a slow-booting claude.
+  if ((attempt >= 2)); then
+    fail "claude never started in pane $pane"
+  fi
+  attempt=$((attempt + 1))
+  log "claude not detected, retrying"
+done
+rename_agent
+
+if [[ -z "$prompt_file" ]]; then
+  log "started session $session_id (no prompt)"
+  exit 0
+fi
+
+acked() {
+  (($(user_message_count "$session_id") > baseline))
+}
+
+wait_for_ack() {
+  local deadline=$((SECONDS + $1))
+  while ((SECONDS < deadline)); do
+    acked && return 0
+    sleep 1
+  done
+  return 1
+}
+
+if [[ -n "$resume" ]]; then
+  for attempt in 1 2 3; do
+    herdr agent prompt "$pane" "$(cat "$prompt_file")" >/dev/null 2>&1 ||
+      log "agent prompt reported an error"
+    # Retype only when nothing landed; a submitted prompt shows up in the
+    # transcript within a second or two.
+    wait_for_ack 10 && break
+    log "prompt not in transcript yet (attempt $attempt)"
+  done
+fi
+
+if wait_for_ack "$([[ -n "$resume" ]] && echo 5 || echo "$timeout")"; then
+  log "ack: session $session_id received its prompt"
+  exit 0
+fi
+fail "session $session_id started but its prompt never reached the transcript"
