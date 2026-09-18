@@ -1,10 +1,8 @@
-# icon.png
+# icon
 
-`icon.png` is the Claude icon from `@lobehub/icons-static-png`, vendored here as
-the notification icon for the Herdr Agents sender bundle.
+`icon.svg` is the source for the Herdr Agents notification icon (a shell caret
+and cursor). `icon.png` is rendered from it:
 
-- Project: https://github.com/lobehub/lobe-icons
-- License: MIT
-- Copyright: Copyright (c) 2023 LobeHub
+    rsvg-convert -w 1024 -h 1024 icon.svg -o icon.png
 
-Swap the file and re-run `herdr-notify install` to change the icon.
+then `herdr-notify install` rebuilds the sender bundle's AppIcon.icns.
