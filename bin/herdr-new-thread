@@ -44,8 +44,35 @@
 # in claude's transcript before reporting success. The prompt is always written
 # to ~/.cache/herdr-threads/chat-prompts/ first, so it survives a failed
 # launch; claude-launch logs to ~/.cache/herdr-threads/launch.log.
+#
+# Before that, the form autosaves the chat fields to
+# ~/.cache/herdr-threads/draft.json (restored by the next popup), and the
+# launcher only deletes it once the prompt file is written. Every step from
+# the form closing to claude-launch taking over leaves a line in launch.log
+# too, and a launcher that dies on the way logs where and raises a
+# notification naming the saved prompt.
 
 set -e
+
+threads="$HOME/.cache/herdr-threads"
+tlog() {
+  mkdir -p "$threads"
+  print -r -- "$(date '+%Y-%m-%d %H:%M:%S') [new-thread:$$] $*" >>"$threads/launch.log"
+}
+
+# set -e exits through here; the EXIT trap does not fire for an errexit
+# inside a function. A $(...) inherits the trap, so a failure inside one
+# logs its own line first and the worker reports once it unwinds.
+worker_failed() {
+  local rc=$1 where=$2 saved=${pfile:-$threads/draft.json}
+  if (( ZSH_SUBSHELL )); then
+    tlog "failed (rc=$rc) at $where"
+    return
+  fi
+  tlog "FAILED (rc=$rc) at $where; prompt: $saved"
+  herdr notification show "New session failed" \
+    --body "launcher died at $where · prompt: $saved" --sound request >/dev/null 2>&1 || true
+}
 
 august_root() { augie-path root; }
 
@@ -121,8 +148,10 @@ launch_feature() {
   name=$(printf '%s' "$form" | jq -r .name)
   prompt=$(printf '%s' "$form" | jq -r '.prompt // ""')
   mode=$(printf '%s' "$form" | jq -r .mode)
+  tlog "feature $project $branch ($mode)"
   root=$(project_root "$project")
   ws=$(ensure_ws "$project" "$root")
+  tlog "feature: workspace $ws"
 
   local -a args=(--name "$name")
   focus="--focus"
@@ -131,10 +160,11 @@ launch_feature() {
     args+=(--no-focus)
   fi
   if [ -n "$prompt" ]; then
-    local pdir="$HOME/.cache/herdr-threads/feature-prompts" pfile
+    local pdir="$threads/feature-prompts"
     mkdir -p "$pdir"
     pfile="$pdir/$name-$(date +%Y%m%d-%H%M%S).md"
     printf '%s\n' "$prompt" > "$pfile"
+    tlog "feature prompt saved to $pfile"
     args+=(--prompt-file "$pfile")
   fi
   case "$project" in
@@ -145,7 +175,10 @@ launch_feature() {
   pane=$(herdr tab create --workspace "$ws" --cwd "$root" --label "up: ${branch##*/}" $focus | first_pane)
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
   for i in {1..40}; do
-    if herdr pane run "$pane" "$cmd" >/dev/null 2>&1; then return 0; fi
+    if herdr pane run "$pane" "$cmd" >/dev/null 2>&1; then
+      tlog "feature: bootstrap running in $pane"
+      return 0
+    fi
     sleep 0.25
   done
   echo "pane $pane never accepted the command" >&2
@@ -157,14 +190,29 @@ launch() {
   form=$(cat)
   prompt=$(printf '%s' "$form" | jq -r '.prompt // ""')
   project=$(printf '%s' "$form" | jq -r '.project // "august"')
+  tlog "launch \"$name\" $project ($mode${session_id:+, resume $session_id}, prompt ${#prompt} chars)"
 
   local slug
   slug=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
   [ -z "$slug" ] && slug="session"
 
+  # The prompt only exists in the form JSON piped over stdin (and the form's
+  # draft), so it goes to disk before anything that can fail. claude-launch
+  # starts claude on this file and names it in any failure notice.
+  pfile=""
+  if [ -n "$prompt" ]; then
+    local pdir="$threads/chat-prompts"
+    mkdir -p "$pdir"
+    pfile="$pdir/$slug-$(date +%Y%m%d-%H%M%S).md"
+    printf '%s\n' "$prompt" > "$pfile"
+    tlog "prompt saved to $pfile"
+  fi
+  [ -z "$session_id" ] && rm -f "$threads/draft.json"
+
   local root ws
   root=$(project_root "$project")
   ws=$(ensure_ws "$project" "$root")
+  tlog "workspace $ws ($root)"
 
   local focus="--focus"
   [ "$mode" = "bg" ] && focus="--no-focus"
@@ -189,16 +237,12 @@ launch() {
     prompt+=$'\n\nAttached screenshots:'
     for dest in "${attached[@]}"; do prompt+=$'\n- '"$dest"; done
     prompt="${prompt#$'\n\n'}"
-  fi
-
-  # The prompt only exists in the form JSON piped over stdin; claude-launch
-  # starts claude on this file and names it in any failure notice.
-  local pfile=""
-  if [ -n "$prompt" ]; then
-    local pdir="$HOME/.cache/herdr-threads/chat-prompts"
-    mkdir -p "$pdir"
-    pfile="$pdir/$slug-$(date +%Y%m%d-%H%M%S).md"
+    if [ -z "$pfile" ]; then
+      pfile="$threads/chat-prompts/$slug-$(date +%Y%m%d-%H%M%S).md"
+      mkdir -p "${pfile:h}"
+    fi
     printf '%s\n' "$prompt" > "$pfile"
+    tlog "attached ${#attached[@]} screenshot(s) to $pfile"
   fi
 
   local pane
@@ -207,6 +251,7 @@ launch() {
       --env HERDR_THREAD=1 --env AUGIE_SCRATCH="$scratch" $focus | first_pane
   )
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
+  tlog "tab created, pane $pane"
 
   # Agent names must match ^[a-z][a-z0-9_-]*$ and be <= 32 chars; resumed
   # session titles are usually longer, so cap the base and leave room for a
@@ -228,15 +273,19 @@ launch() {
     launch_args+=(--name "$name")
   fi
   [ -n "$pfile" ] && launch_args+=(--prompt-file "$pfile")
+  tlog "handing pane $pane to claude-launch"
   claude-launch "${launch_args[@]}"
 }
 
-if [ "${1:-}" = "--launch" ]; then
-  launch "$2" "$3" "${4:-}"
-  exit
-fi
-if [ "${1:-}" = "--launch-feature" ]; then
-  launch_feature
+if [ "${1:-}" = "--launch" ] || [ "${1:-}" = "--launch-feature" ]; then
+  tlog "worker started ($1)"
+  pfile=""
+  trap 'worker_failed $? "${funcfiletrace[1]:-?}"' ZERR
+  if [ "$1" = "--launch" ]; then
+    launch "$2" "$3" "${4:-}"
+  else
+    launch_feature
+  fi
   exit
 fi
 
@@ -258,10 +307,15 @@ while [ $# -gt 0 ]; do
 done
 
 log="$HOME/.config/herdr/new-thread.log"
-result=$("$form_bin" "${form_args[@]}") || exit 0
-[ -z "$result" ] && exit 0
+rc=0
+result=$("$form_bin" "${form_args[@]}") || rc=$?
+if [ $rc -ne 0 ] || [ -z "$result" ]; then
+  tlog "form closed without a result (rc=$rc)"
+  exit 0
+fi
 
 mode=$(printf '%s' "$result" | jq -r .mode)
+tlog "form result: $mode \"$(printf '%s' "$result" | jq -r '.name // ""')\""
 if [ "$mode" = focus ]; then
   herdr tab focus "$(printf '%s' "$result" | jq -r .tab_id)" >/dev/null
   exit 0
@@ -279,11 +333,15 @@ if [ "$mode" = agent ]; then
 fi
 
 name=$(printf '%s' "$result" | jq -r .name)
-[ -z "$name" ] && exit 0
+if [ -z "$name" ]; then
+  tlog "form result has no name; nothing to launch"
+  exit 0
+fi
 
 case "$mode" in
   feature|feature-bg)
     printf '%s' "$result" | nohup "$0" --launch-feature >>"$log" 2>&1 &!
+    tlog "forked feature worker"
     exit 0
     ;;
   resume|resume-bg)
@@ -291,9 +349,11 @@ case "$mode" in
     launch_mode=open
     [ "$mode" = "resume-bg" ] && launch_mode=bg
     printf '%s' "$result" | nohup "$0" --launch "$name" "$launch_mode" "$session_id" >>"$log" 2>&1 &!
+    tlog "forked resume worker"
     exit 0
     ;;
 esac
 
 # Detach so the popup closes on submit; claude takes several seconds to boot.
 printf '%s' "$result" | nohup "$0" --launch "$name" "$mode" >>"$log" 2>&1 &!
+tlog "forked launch worker"

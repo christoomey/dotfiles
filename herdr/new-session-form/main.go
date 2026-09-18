@@ -11,11 +11,15 @@
 //	                    with J/K or a mouse drag
 //
 // Ctrl+digits need the kitty keyboard protocol (see kitty.go); ctrl+r/f/a
-// jump straight to resume/feature/agents as legacy fallbacks. Both project
+// jump straight to resume/feature/agents as legacy fallbacks (except in the
+// prompt, where ctrl+a/f move the cursor). Both project
 // pickers default to august and sit above the main flow: shift+tab reaches
 // them, a/m/d pick a project while one has focus, and from anywhere in the
 // view ctrl+m / ctrl+d pick moi / dotfiles (ctrl+m needs kitty: in legacy
 // encoding it is enter). Prints one JSON result on stdout; exits 1 on cancel.
+// The new-session fields autosave as a draft that the next popup restores
+// until the launcher has the prompt on disk; esc over an unsent prompt only
+// warns, and a second esc discards it (see draft.go).
 //
 //	{"mode":"open"|"bg", "project","name","prompt","attachments"}   new session (attachments: png paths)
 //	{"mode":"resume"|"resume-bg", "project","session_id","name"}    resume a past session
@@ -140,6 +144,12 @@ type model struct {
 	attachDir   string
 	attachments []string
 
+	promptField *huh.Text
+	saved       draft     // last draft written; see draft.go
+	notice      string    // shown under the form, e.g. that a draft was restored
+	escAt       time.Time // first esc over an unsent prompt; a second one soon after discards it
+	discard     bool      // quit on that second esc, so the draft goes too
+
 	feature        textinput.Model // Linear branch
 	featureName    textinput.Model
 	featurePrompt  textarea.Model
@@ -214,7 +224,15 @@ func newModel(themeName string, start view, project string) model {
 	m := model{project: new(string), name: new(string), prompt: new(string), openNow: new(bool), view: start}
 	*m.openNow = true
 	*m.project = project
-	m.resumeProject = slices.Index(projects, project)
+	if d, ok := loadDraft(); ok && restoreDrafts {
+		if slices.Contains(projects, d.Project) {
+			*m.project = d.Project
+		}
+		*m.name, *m.prompt = d.Name, d.Prompt
+		m.saved = d
+		m.notice = fmt.Sprintf("restored the unsent draft from %s · esc twice discards it", d.SavedAt.Local().Format("Mon 15:04"))
+	}
+	m.resumeProject = slices.Index(projects, *m.project)
 	m.styles = themes[themeName]
 	m.sub = make([]view, len(sections))
 	for i, s := range sections {
@@ -258,6 +276,7 @@ func newModel(themeName string, start view, project string) model {
 		Negative("Run in background").
 		Value(m.openNow)
 	m.projSel = projectField
+	m.promptField = promptField
 	m.form = huh.NewForm(huh.NewGroup(projectField, nameField, promptField, confirmField)).
 		WithKeyMap(keys).WithShowHelp(false).WithTheme(m.styles.theme).WithWidth(77)
 	// huh sizes a focused text input one cell past the form width, which
@@ -411,7 +430,38 @@ func (m *model) switchSection(n int) tea.Cmd {
 	return m.switchView(m.sub[n])
 }
 
+// Update autosaves the new-session form after every message; see draft.go.
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	out, cmd := m.update(msg)
+	nm := out.(model)
+	if nm.mode == "" && !nm.discard {
+		d := draft{Project: *nm.project, Name: *nm.name, Prompt: *nm.prompt}
+		if !d.same(nm.saved) {
+			if err := saveDraft(d); err != nil {
+				nm.err = "could not save draft: " + err.Error()
+			} else {
+				nm.saved = d
+			}
+		}
+	}
+	return nm, cmd
+}
+
+// unsent is typed prompt text that quitting would throw away.
+func (m model) unsent() bool {
+	if strings.TrimSpace(*m.prompt) != "" {
+		return true
+	}
+	return m.promptEdited && strings.TrimSpace(m.featurePrompt.Value()) != ""
+}
+
+// inPrompt: the chat form's prompt has focus, where ctrl+a/f are line
+// editing keys rather than view shortcuts.
+func (m model) inPrompt() bool {
+	return m.view == viewNew && m.form.GetFocusedField() == m.promptField
+}
+
+func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	msg = translateKitty(msg)
 	switch msg := msg.(type) {
 	case ctrlDigitMsg:
@@ -474,8 +524,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	if k, ok := msg.(tea.KeyMsg); ok {
-		switch k.String() {
+		switch ks := k.String(); ks {
 		case "esc", "ctrl+c":
+			formLog("%s in view %d (prompt %d chars)", ks, m.view, len(*m.prompt))
+			if m.unsent() && time.Since(m.escAt) > 2*time.Second {
+				m.escAt = time.Now()
+				m.err = "unsent prompt (draft saved) · " + ks + " again to discard it"
+				return m, nil
+			}
+			m.discard = m.unsent()
 			return m, tea.Quit
 		case "ctrl+d":
 			return m.pickProject(projectDotfiles)
@@ -484,10 +541,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+r":
 			return m, m.switchView(viewResume)
 		case "ctrl+f":
-			return m, m.switchView(viewFeature)
+			if !m.inPrompt() {
+				return m, m.switchView(viewFeature)
+			}
 		case "ctrl+a":
 			// In the agents view ctrl+a is the scope toggle instead.
-			if m.view != viewAgents {
+			if m.view != viewAgents && !m.inPrompt() {
 				return m, m.switchView(viewAgents)
 			}
 		}
@@ -670,6 +729,9 @@ func (m model) View() string {
 	default:
 		help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
 		body = m.tabsView() + "\n\n" + m.form.View()
+		if m.notice != "" {
+			body += "\n" + m.styles.attach.Render(m.notice)
+		}
 		if a := m.attachmentsView(); a != "" {
 			body += "\n" + a + "\n"
 		}
@@ -1114,14 +1176,22 @@ func main() {
 	final, err := p.Run()
 	os.Stderr.WriteString(kittyPop)
 	if err != nil {
+		formLog("exited with error: %v", err)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	m := final.(model)
 	if m.mode == "" {
+		if m.discard {
+			clearDraft()
+			formLog("cancelled; draft discarded")
+		} else {
+			formLog("cancelled in view %d; draft kept (prompt %d chars)", m.view, len(*m.prompt))
+		}
 		m.cleanupAttachments()
 		os.Exit(1)
 	}
+	formLog("submitted %s %q (prompt %d chars)", m.mode, strings.TrimSpace(*m.name), len(strings.TrimSpace(*m.prompt)))
 	var res result
 	switch m.mode {
 	case "open", "bg":
