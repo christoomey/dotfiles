@@ -1,0 +1,81 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "artist-roulette",
+  "title": "Artist Roulette",
+  "description": "Suggests six artists (three from your rotation, two adjacent, one wild card) and starts a Spotify artist radio station from your pick.",
+  "icon": "icon.png",
+  "author": "christoomey",
+  "license": "MIT",
+  "platforms": [
+    "macOS"
+  ],
+  "categories": [
+    "Media"
+  ],
+  "commands": [
+    {
+      "name": "spin",
+      "title": "Spin Artist Roulette",
+      "subtitle": "Spotify",
+      "description": "Suggest six artists and start a radio station from the one you pick.",
+      "mode": "view"
+    },
+    {
+      "name": "history",
+      "title": "Artist Roulette History",
+      "subtitle": "Spotify",
+      "description": "Browse past spins: what you were shown and what you picked.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "spotifyClientId",
+      "title": "Spotify Client ID",
+      "description": "Client ID of your own Spotify app from developer.spotify.com/dashboard.",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "lastfmApiKey",
+      "title": "Last.fm API Key",
+      "description": "Free API key from last.fm/api/account/create. Used for artist similarity and charts.",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "adjacentMinListeners",
+      "title": "Adjacent Minimum Listeners",
+      "description": "Last.fm listener count an adjacent pick must clear. Lower means more obscure.",
+      "type": "textfield",
+      "default": "50000",
+      "required": false
+    },
+    {
+      "name": "wildcardMinListeners",
+      "title": "Wild Card Minimum Listeners",
+      "description": "Last.fm listener count the wild card must clear. Raise for bigger names.",
+      "type": "textfield",
+      "default": "500000",
+      "required": false
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^2.4.1",
+    "@raycast/utils": "^2.3.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "22.13.10",
+    "@types/react": "19.0.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint"
+  }
+}
