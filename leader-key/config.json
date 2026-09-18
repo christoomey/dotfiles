@@ -166,7 +166,7 @@
         {
           "key" : "l",
           "type" : "command",
-          "value" : "open -a Linear 'https://linear.app/august-health/view/kanban-by-assignee-99d4c3e7d75b'"
+          "value" : "open -a Linear 'https://linear.app/august-health/team/MEDS/view/kanban-by-assignee-99d4c3e7d75b'"
         },
         {
           "key" : "w",
@@ -287,9 +287,17 @@
           "label" : "Slack Capture",
           "type" : "url",
           "value" : "moimenubar://slack"
+        },
+        {
+          "key" : "m",
+          "label" : "Gmail Capture",
+          "type" : "url",
+          "value" : "moimenubar://gmail"
         }
       ],
+      "iconPath" : "/Applications/MoiMenubar.app",
       "key" : "m",
+      "label" : "Moi",
       "type" : "group"
     },
     {
