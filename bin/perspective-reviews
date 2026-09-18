@@ -1,0 +1,58 @@
+#!/bin/zsh
+# List the open code-review items from Perspective (moi), one per line.
+#
+# These are the canonical "PRs waiting on me": actions of kind pr_review on
+# the focus board. Perspective is the source of truth — it watches GitHub and
+# turns review requests into actions — so this reads it rather than asking
+# GitHub who requested review.
+#
+# The moi agent API is read-only; there is no write path here, so nothing in
+# this script can tick an item off. Marking a review done stays manual.
+#
+#   perspective-reviews [--json] [--all]
+#     --json  emit the raw rows as JSON instead of TSV
+#     --all   include items that are not on the focus board
+#
+# TSV columns: action_id, repo, number, url, title
+set -e
+
+json="" scope="in_focus=true"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --json) json=1; shift ;;
+    --all)  scope=""; shift ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+# The menubar app's settings are the source of truth for host and token.
+# MOI_URL overrides for a local worktree; the app's localPort is often stale.
+moi="${MOI_URL:-$(defaults read com.ctoomey.MoiMenubar apiUrl)}"
+token=$(defaults read com.ctoomey.MoiMenubar apiToken)
+
+url="$moi/api/agent/actions?kind=pr_review"
+[ -n "$scope" ] && url="$url&$scope"
+
+body=$(curl -sf "$url" -H "Authorization: Bearer $token") || {
+  echo "perspective API unreachable at $moi" >&2; exit 1; }
+
+# A review action carries its PR either as a group (several PRs for one issue)
+# or as a single authored PR; selecting on the link rather than the kind is
+# what yields the URL in the same pass.
+filter='
+  .actions[]
+  | (.githubPrGroup.prUrl // .githubAuthoredPr.url) as $url
+  | select($url != null)
+  | {
+      action_id: .id,
+      repo: (.githubPrGroup.repo // ($url | capture("github\\.com/(?<r>[^/]+/[^/]+)/pull").r)),
+      number: ($url | capture("/pull/(?<n>[0-9]+)").n | tonumber),
+      url: $url,
+      title: (.title | gsub("^_|_$"; ""))
+    }'
+
+if [ -n "$json" ]; then
+  printf '%s' "$body" | jq -c "$filter"
+else
+  printf '%s' "$body" | jq -r "$filter | [.action_id, .repo, .number, .url, .title] | @tsv"
+fi
