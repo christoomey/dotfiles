@@ -43,8 +43,8 @@ menu_command() {
 current_path="$(tmux display-message -p '#{pane_current_path}')"
 
 # Sibling backend/frontend product repos take precedence over the current dir
-# itself. An augie-features feature dir IS a linked worktree of the umbrella
-# repo (git-common-dir → augie-features/.git), so a naive is-inside-work-tree
+# itself. An august-worktrees feature dir IS a linked worktree of the umbrella
+# repo (git-common-dir -> august-workspace/.git), so a naive is-inside-work-tree
 # check would match that umbrella and open lazygit on it — a repo that tracks
 # nothing (.gitignore = /*) — instead of descending into the real product repo.
 # Finding the product repos first steps over the umbrella; we only act on the

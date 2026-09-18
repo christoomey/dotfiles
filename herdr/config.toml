@@ -245,7 +245,7 @@ height = 33
 # moi__worktrees/* it shows a small moi palette (open in browser / open notes);
 # everywhere else it execs the augie panel, unchanged.
 # augie panel (mirrors tmux `prefix o`, which routes to the same binary via
-# tmux-feature-palette). Go/Bubble Tea TUI (fullstack/panel/ via `af ui`):
+# tmux-feature-palette). Go/Bubble Tea TUI (august-workspace/tools/panel/ via `af ui`):
 # Local tab with per-feature quick actions (f/s/t/i/n) when invoked from a
 # feature dir (via HERDR_ACTIVE_PANE_CWD), plus a global Sessions tab —
 # open/closed features, mprocs status, x stop-mprocs, n/d/o/c for
@@ -314,7 +314,7 @@ command = 'herdr pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'
 # One-off Claude session in the august workspace from anywhere on prefix+ctrl+t.
 # Popup asks for a name, an optional first prompt, and open-vs-background;
 # herdr-new-thread then (detached, so the popup closes on submit) focuses or
-# opens the augie-features root workspace, adds a tab with that label, starts
+# opens the august-workspace root workspace, adds a tab with that label, starts
 # claude in it as a same-named agent, and sends the prompt. The tab closes
 # itself when claude exits (HERDR_THREAD hook in zsh/configs/herdr.zsh).
 # ctrl+1..3 switch the popup's sections (agents / chats / features), ctrl+t

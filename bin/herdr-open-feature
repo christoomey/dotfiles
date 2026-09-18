@@ -21,7 +21,7 @@
 #   herdr-open-feature PROJECT DIR [SESSION_ID]
 #     PROJECT: august | moi
 #     DIR:     the worktree directory name (moi__worktrees/<dir>,
-#              augie-features/<dir>)
+#              august-worktrees/<dir>)
 set -e
 usage="usage: herdr-open-feature PROJECT DIR [SESSION_ID]"
 project="${1:?$usage}"
@@ -43,8 +43,11 @@ latest_session_for() {
   printf '%s' "$link" | sed -E 's/.*-([0-9a-f]{8}-[0-9a-f-]{27})\)$/\1/'
 }
 
+# $root is the repo herdr lists worktrees *of*, not where they sit on disk:
+# it is only ever passed as --cwd, and the checkout path comes back in the
+# entry. moi's worktrees live outside its repo and august's now do too.
 case "$project" in
-  august) root=$(augie-path worktrees) ;;
+  august) root=$(augie-path root) ;;
   moi)    root="$HOME/code/moi" ;;
   *) echo "$project has no features" >&2; exit 2 ;;
 esac

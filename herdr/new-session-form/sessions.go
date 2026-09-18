@@ -25,9 +25,9 @@ type session struct {
 	LiveName string // herdr agent name for that tab
 }
 
-// augustRoot mirrors herdr-new-thread: paths.features from the augie config,
-// symlink-resolved, since Claude encodes the real cwd into the project dir.
-func augustRoot() (string, error) {
+// augiePath reads paths.<key> from the augie config, symlink-resolved, since
+// Claude encodes the real cwd into the project dir. Mirrors bin/augie-path.
+func augiePath(key string) (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -37,11 +37,26 @@ func augustRoot() (string, error) {
 		return "", err
 	}
 	for _, line := range strings.Split(string(data), "\n") {
-		if key, value, ok := strings.Cut(strings.TrimSpace(line), ":"); ok && key == "features" {
+		if k, value, ok := strings.Cut(strings.TrimSpace(line), ":"); ok && k == key {
 			return filepath.EvalSymlinks(strings.TrimSpace(value))
 		}
 	}
 	return "", os.ErrNotExist
+}
+
+// augustRoot is the workspace checkout, where chats run. Not paths.worktrees:
+// that is the container the feature dirs sit in, which is not itself a cwd
+// anything runs in, so it has no Claude project dir at all. The two keys named
+// the same directory until the workspace split.
+func augustRoot() (string, error) { return augiePath("root") }
+
+// augustWorktrees is where august's feature dirs live. `features` is the
+// pre-split spelling of the same key.
+func augustWorktrees() (string, error) {
+	if wt, err := augiePath("worktrees"); err == nil {
+		return wt, nil
+	}
+	return augiePath("features")
 }
 
 // projectRoot mirrors project_root in herdr-new-thread.
@@ -54,6 +69,20 @@ func projectRoot(project string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(home, "code", project), nil
+}
+
+// projectWorktreeRoot is the directory a project's feature worktrees sit in.
+// moi keeps them beside its repo as moi__worktrees; august names its own in
+// the augie config, and since the workspace split it is not under the root.
+func projectWorktreeRoot(project string) (string, error) {
+	if project == "august" {
+		return augustWorktrees()
+	}
+	root, err := projectRoot(project)
+	if err != nil {
+		return "", err
+	}
+	return root + "__worktrees", nil
 }
 
 func projectDir(root string) (string, error) {

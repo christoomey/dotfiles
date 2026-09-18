@@ -13,7 +13,7 @@
 #
 # Which of the two you get is implicit, the way herdr already splits chats
 # from features: inside a feature worktree (moi__worktrees/<dir>,
-# augie-features/<dir>) you are in a feature, anywhere else you are in a chat.
+# august-worktrees/<dir>) you are in a feature, anywhere else you are in a chat.
 # --feature / --chat force one.
 #
 # A feature link carries the session it was minted from as ?chat=, so clicking

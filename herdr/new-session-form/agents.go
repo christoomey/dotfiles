@@ -101,19 +101,29 @@ func (r agentRow) searchText() string {
 	return fmt.Sprintf("%-*s %s", projectWidth, project, r.label())
 }
 
-// projectRoots are the checkout paths each project's workspaces live under.
-// moi worktrees sit beside the repo as moi__worktrees/<name>.
-func projectRoots() map[string]string {
-	roots := map[string]string{}
+// projectRoots are the checkout paths each project's workspaces live under,
+// each paired with the directory its feature worktrees sit in (moi__worktrees
+// beside the moi repo; august's is named in the augie config and, since the
+// workspace split, is a sibling of the root rather than inside it).
+type projectPaths struct{ root, worktrees string }
+
+func projectRoots() map[string]projectPaths {
+	roots := map[string]projectPaths{}
 	for _, p := range projects {
-		if root, err := projectRoot(p); err == nil {
-			roots[p] = root
+		root, err := projectRoot(p)
+		if err != nil {
+			continue
 		}
+		wt, err := projectWorktreeRoot(p)
+		if err != nil {
+			wt = root + "__worktrees"
+		}
+		roots[p] = projectPaths{root: root, worktrees: wt}
 	}
 	return roots
 }
 
-func projectOf(roots map[string]string, path string) string {
+func projectOf(roots map[string]projectPaths, path string) string {
 	if path == "" {
 		return ""
 	}
@@ -121,11 +131,14 @@ func projectOf(roots map[string]string, path string) string {
 		path = real
 	}
 	for _, p := range projects {
-		root := roots[p]
-		if root == "" {
+		pp := roots[p]
+		if pp.root == "" {
 			continue
 		}
-		if path == root || strings.HasPrefix(path, root+"/") || strings.HasPrefix(path, root+"__worktrees/") {
+		if path == pp.root || strings.HasPrefix(path, pp.root+"/") {
+			return p
+		}
+		if pp.worktrees != "" && strings.HasPrefix(path, pp.worktrees+"/") {
 			return p
 		}
 	}

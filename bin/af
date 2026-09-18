@@ -16,7 +16,7 @@ root=$(awk '
     p && /^[^ ]/ { p=0 }
     p && $1 == "root:" { gsub(/^ *[^ :]+ *: */, ""); print; exit }
 ' "$config" 2>/dev/null)
-BIN="${root:-$HOME/code/work/august/augie-features}/tools/bin"
+BIN="${root:-$HOME/code/work/august/august-workspace}/tools/bin"
 
 usage() {
     cat <<'EOF'
