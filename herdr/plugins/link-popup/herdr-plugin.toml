@@ -1,0 +1,14 @@
+id = "link-popup"
+name = "Close / copy session link"
+version = "0.1.0"
+min_herdr_version = "0.7.4"
+platforms = ["macos"]
+description = "herdr-link-popup as a plugin pane, so herdr-close-pane (prefix+x) can open it only when the pane is a Claude session and close any other pane straight away."
+
+[[panes]]
+id = "close-pane"
+title = "Close pane"
+placement = "popup"
+width = 96
+height = 16
+command = ["herdr-link-popup", "--pane"]

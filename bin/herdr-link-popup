@@ -20,10 +20,17 @@
 # ctrl+m and enter are the same byte outside the kitty protocol, which is why
 # markdown is bound to enter rather than being a mode you toggle first.
 #
+# --pane scopes it to the source pane instead: prefix+x (herdr-close-pane)
+# opens it that way for a Claude pane, where "close" must mean just that pane,
+# like the native close_pane it stands in for, not its tab or workspace.
+#
 # Two degraded shapes, both of which must still close: a pane with no link at
 # all (not a Claude session and not in a known project), and a root project
 # tab, where herdr-close-guard blocks the close and only the copy is offered.
 set -e
+
+scope=""
+[ "${1:-}" = --pane ] && scope=pane
 
 pane="${HERDR_ACTIVE_PANE_ID:-${HERDR_PANE_ID:-}}"
 [ -z "$pane" ] && { print -u2 "no active pane"; exit 1; }
@@ -58,7 +65,9 @@ fi
 # A feature closes its whole workspace; a chat closes just its tab. The guard
 # only ever fires on the chat side — feature workspaces are meant to be
 # closed — so it is asked about the tab.
-if [ "$kind" = Feature ] && [ -n "$src_ws" ]; then
+if [ "$scope" = pane ]; then
+  target="this pane" blocked=""
+elif [ "$kind" = Feature ] && [ -n "$src_ws" ]; then
   target="this workspace" blocked=""
 else
   target="this tab"
@@ -123,6 +132,7 @@ fail() {
 close_source() {
   local cmd="herdr tab close ${(q)src_tab}"
   [ "$target" = "this workspace" ] && cmd="herdr workspace close ${(q)src_ws}"
+  [ "$target" = "this pane" ] && cmd="herdr pane close ${(q)pane}"
   nohup zsh -c "sleep 0.5; $cmd" >/dev/null 2>&1 &!
 }
 

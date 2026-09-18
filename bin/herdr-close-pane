@@ -1,0 +1,12 @@
+#!/bin/zsh
+# prefix+x: herdr's close_pane, except that a Claude session gets the
+# herdr-link-popup first (scoped to this pane, not the tab prefix+X closes),
+# so a stray x can't take a chat's context with it before its link is copied.
+# Any other pane closes straight away, as before.
+pane="${HERDR_ACTIVE_PANE_ID:?no active pane}"
+sid=$(herdr pane get "$pane" </dev/null | jq -r '.result.pane.agent_session.value // empty')
+if [ -n "$sid" ]; then
+  exec herdr plugin pane open --plugin link-popup --entrypoint close-pane \
+    --env HERDR_ACTIVE_PANE_ID="$pane" --focus >/dev/null
+fi
+exec herdr pane close "$pane" >/dev/null

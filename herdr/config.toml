@@ -101,8 +101,10 @@ new_worktree = ""
 # Free prefix+shift+x from herdr's native close_tab so it drives the close/copy
 # popup instead (see herdr-link-popup [[keys.command]] below) — closing a chat
 # and copying a link back to it are the same moment. prefix+x (close_pane) is
-# untouched, so a single pane still closes without ceremony.
+# freed too: herdr-close-pane gives a Claude pane the same popup, scoped to
+# the pane, and closes any other pane without ceremony.
 close_tab = ""
+close_pane = ""
 
 # Prefix-mode actions
 # help = "prefix+?"
@@ -226,6 +228,15 @@ command = "herdr-link-popup"
 description = "Close / copy session link"
 width = 96
 height = 16
+
+# prefix+x: native close_pane for a plain pane; a Claude pane gets the popup
+# above first (via the link-popup plugin, herdr/plugins/link-popup), where
+# closing means just that pane. A stray x no longer loses a chat uncopied.
+[[keys.command]]
+key = "prefix+x"
+type = "shell"
+command = "herdr-close-pane"
+description = "Close pane (copy session link first)"
 
 # Agent fuzzy finder on prefix+k: the New Session popup (herdr-new-thread)
 # opened straight into its agents view. Blocked/done agents are the list
