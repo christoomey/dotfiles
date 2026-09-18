@@ -1,0 +1,442 @@
+#!/usr/bin/env bash
+# herdr-notify — desktop notifications for herdr agent panes.
+#
+# Replaces the yankewei/herdr-focus-notify plugin. Same shape (a clickable
+# notification that jumps to the pane) with two fixes:
+#
+#   - the text names the project instead of saying "claude finished"
+#   - it is delivered as our own app bundle, so the style is Banners rather
+#     than Terminal.app's sticky Alerts (alerter impersonates com.apple.Terminal
+#     by default, and Terminal ships NSUserNotificationAlertStyle = alert)
+#
+#       ✓ august / order-times-data-model
+#       Effective period data model upgrade
+#       Finished · workspace 5
+#
+# The workspace hierarchy comes from `herdr workspace list`: a linked worktree
+# is shown under the label of the workspace that owns the same repo, which is
+# what makes "august / order-times-data-model" read the way the sidebar does.
+#
+# Wired up by herdr/plugins/agent-notify/herdr-plugin.toml, which subscribes to
+# pane.agent_status_changed and pane.focused.
+#
+# Usage:
+#   herdr-notify                 handle the event in HERDR_PLUGIN_EVENT_JSON
+#   herdr-notify install         build + register the sender app bundle (once)
+#   herdr-notify doctor          check alerter, the bundle, the alert style
+#   herdr-notify preview [PANE]  print what a pane's notification would say
+#   herdr-notify test [PANE]     send one real notification (10s timeout)
+#
+# Env overrides:
+#   HERDR_NOTIFY_SENDER    bundle id to deliver as  (default com.ctoomey.herdr-agents)
+#   HERDR_NOTIFY_TERMINAL  terminal raised on click (default com.mitchellh.ghostty)
+#   HERDR_NOTIFY_TIMEOUT   seconds alerter waits for a click (default 1800)
+#   HERDR_NOTIFY_SOUND     alerter sound name (default none; herdr's [ui.sound] owns audio)
+
+set -uo pipefail
+
+# The herdr server spawns plugin events with whatever PATH it was started with,
+# which is not guaranteed to include homebrew or ~/bin. jq, herdr and alerter
+# all have to resolve from here.
+for dir in /opt/homebrew/bin /usr/local/bin "$HOME/bin" "$HOME/.local/bin"; do
+    case ":$PATH:" in
+        *":$dir:"*) ;;
+        *) PATH="$PATH:$dir" ;;
+    esac
+done
+export PATH
+
+SENDER="${HERDR_NOTIFY_SENDER:-com.ctoomey.herdr-agents}"
+TERMINAL_BUNDLE="${HERDR_NOTIFY_TERMINAL:-com.mitchellh.ghostty}"
+TIMEOUT="${HERDR_NOTIFY_TIMEOUT:-1800}"
+SOUND="${HERDR_NOTIFY_SOUND:-}"
+
+# Unit separator: tab would collapse empty fields when read back.
+SEP=$'\x1f'
+
+APP_NAME="Herdr Agents"
+APP_DIR="$HOME/Applications/$APP_NAME.app"
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+
+# Resolve through the ~/bin -> code/dotfiles/bin symlink so the plugin dir
+# (which holds the icon) is found no matter how we were invoked.
+self_path() {
+    local src="${BASH_SOURCE[0]}" dir
+    while [ -L "$src" ]; do
+        dir="$(cd -P "$(dirname "$src")" && pwd)"
+        src="$(readlink "$src")"
+        [[ "$src" != /* ]] && src="$dir/$src"
+    done
+    printf '%s/%s' "$(cd -P "$(dirname "$src")" && pwd)" "$(basename "$src")"
+}
+
+SELF="$(self_path)"
+PLUGIN_DIR="$(dirname "$(dirname "$SELF")")/herdr/plugins/agent-notify"
+
+die() { printf 'herdr-notify: %s\n' "$*" >&2; exit 1; }
+
+alerter_bin() {
+    local candidate
+    for candidate in alerter /opt/homebrew/bin/alerter /usr/local/bin/alerter "$HOME/.local/bin/alerter"; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            command -v "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+group_for() { printf 'herdr-%s' "${1//:/-}"; }
+
+frontmost_bundle() {
+    osascript -e 'tell application "System Events" to return bundle identifier of first application process whose frontmost is true' 2>/dev/null
+}
+
+# ── notification content ────────────────────────────────────────────────────
+
+# Emits TSV: display, session, status, workspace number, tab id, focused
+#
+# Looks the pane up in `herdr agent list` rather than `herdr agent get`: the
+# latter resolves its target by agent name first, so it misses panes whose
+# agent has been named. The CLI also reports errors as JSON with exit 0, hence
+# the explicit .result checks.
+describe_pane() {
+    local pane="$1" agents workspaces
+    agents="$(herdr agent list 2>/dev/null)" || return 1
+    workspaces="$(herdr workspace list 2>/dev/null)" || return 1
+    [[ -n "$agents" && -n "$workspaces" ]] || return 1
+
+    jq -rn --arg pane "$pane" --argjson a "$agents" --argjson w "$workspaces" '
+        ($a.result.agents // []) as $agents
+        | ($w.result.workspaces // []) as $all
+        | (first($agents[] | select(.pane_id == $pane))) as $ag
+        | if $ag == null then empty else
+        (first($all[] | select(.workspace_id == $ag.workspace_id))
+         // {label: $ag.workspace_id, number: 0}) as $ws
+        | ($ws.worktree.repo_key // null) as $repo
+        | (if ($ws.worktree.is_linked_worktree // false) and $repo != null
+           then first($all[]
+                | select((.worktree.repo_key // null) == $repo
+                         and (((.worktree.is_linked_worktree // false)) | not))
+                | .label)
+           else null end) as $parent
+        | [ (if $parent then "\($parent) / \($ws.label)" else $ws.label end)
+          , ([$ag.terminal_title_stripped, $ag.name, ($ag.cwd // "" | split("/") | last)]
+             | map(select(. != null and . != "")) | first // "")
+          , ($ag.agent_status // "")
+          , (($ws.number // 0) | tostring)
+          , ($ag.tab_id // "")
+          , (if $ag.focused then "1" else "0" end)
+          ] | join("\u001f")
+        end
+    ' 2>/dev/null
+}
+
+# The live status of a pane, or "" when it cannot be resolved.
+pane_status() {
+    local info
+    info="$(describe_pane "$1")" || return 1
+    printf '%s' "$(cut -d "$SEP" -f3 <<<"$info")"
+}
+
+status_glyph() {
+    case "$1" in
+        done)    printf '✓' ;;
+        blocked) printf '×' ;;
+        *)       printf '•' ;;
+    esac
+}
+
+status_headline() {
+    case "$1" in
+        done)    printf 'Finished' ;;
+        blocked) printf 'Needs your input' ;;
+        *)       printf '%s' "$1" ;;
+    esac
+}
+
+# Emits: title, subtitle, message, tab id, focused
+compose() {
+    local pane="$1" status_override="${2:-}" info
+    local display session status wsnum tab focused message
+
+    # One retry: the pane is normally still settling when the event arrives.
+    info="$(describe_pane "$pane")"
+    if [[ -z "$info" ]]; then
+        sleep 0.3
+        info="$(describe_pane "$pane")"
+    fi
+    # No description means the pane closed between the event and now.
+    [[ -n "$info" ]] || return 1
+
+    IFS="$SEP" read -r display session status wsnum tab focused <<<"$info"
+    [[ -n "$status_override" ]] && status="$status_override"
+    [[ -n "$status" ]] || return 1
+
+    message="$(status_headline "$status")"
+    [[ "$wsnum" != "0" ]] && message="$message · workspace $wsnum"
+
+    printf '%s%s%s%s%s%s%s%s%s\n' \
+        "$(status_glyph "$status") $display" "$SEP" "$session" "$SEP" "$message" \
+        "$SEP" "$tab" "$SEP" "$focused"
+}
+
+# ── delivery ────────────────────────────────────────────────────────────────
+
+remove_notification() {
+    local alerter
+    alerter="$(alerter_bin)" || return 0
+    "$alerter" --remove "$(group_for "$1")" >/dev/null 2>&1
+    return 0
+}
+
+# Runs detached: alerter blocks until the notification is clicked, dismissed,
+# removed, or times out, so it cannot run inside the plugin event process.
+await_click() {
+    local pane="$1" tab="$2" timeout="$3" title="$4" subtitle="$5" message="$6"
+    local alerter result args
+    alerter="$(alerter_bin)" || exit 1
+
+    args=(--title "$title" --message "$message" --group "$(group_for "$pane")"
+          --sender "$SENDER" --actions Focus --close-label Dismiss --timeout "$timeout")
+    [[ -n "$subtitle" ]] && args+=(--subtitle "$subtitle")
+    [[ -n "$SOUND" ]] && args+=(--sound "$SOUND")
+
+    result="$("$alerter" "${args[@]}" 2>/dev/null)"
+    case "$result" in
+        Focus|@ACTIONCLICKED|@CONTENTCLICKED)
+            open -b "$TERMINAL_BUNDLE" >/dev/null 2>&1
+            herdr agent focus "$pane" >/dev/null 2>&1
+            [[ -n "$tab" ]] && herdr tab focus "$tab" >/dev/null 2>&1
+            ;;
+    esac
+}
+
+notify_pane() {
+    local pane="$1" status="$2" timeout="${3:-$TIMEOUT}" fields
+    local title subtitle message tab focused
+
+    # The event's status is authoritative: by the time we query herdr the pane
+    # may already have moved on, and the card should say what just happened.
+    fields="$(compose "$pane" "$status")" || return 0
+    IFS="$SEP" read -r title subtitle message tab focused <<<"$fields"
+
+    # You are already looking at it: the pane is focused and the terminal is
+    # frontmost. Anything else (another app, another pane) is worth a card.
+    if [[ "$focused" == "1" && "$(frontmost_bundle)" == "$TERMINAL_BUNDLE" ]]; then
+        return 0
+    fi
+
+    remove_notification "$pane"
+
+    nohup "$SELF" __await "$pane" "$tab" "$timeout" "$title" "$subtitle" "$message" \
+        >/dev/null 2>&1 &
+    disown 2>/dev/null
+    return 0
+}
+
+handle_event() {
+    local json="${HERDR_PLUGIN_EVENT_JSON:-}" name pane status
+    [[ -n "$json" ]] || return 0
+
+    name="${HERDR_PLUGIN_EVENT:-}"
+    [[ -n "$name" ]] || name="$(jq -r '.event // empty' <<<"$json" 2>/dev/null)"
+    pane="$(jq -r '.data.pane_id // empty' <<<"$json" 2>/dev/null)"
+    [[ -n "$pane" ]] || return 0
+
+    if [[ "$name" == "pane.focused" ]]; then
+        remove_notification "$pane"
+        return 0
+    fi
+
+    status="$(jq -r '.data.agent_status // empty' <<<"$json" 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+    case "$status" in
+        done|blocked) notify_pane "$pane" "$status" ;;
+        # Back to working/idle: drop the stale card rather than leave a
+        # "Finished" sitting in Notification Center for a pane that moved on.
+        *)            remove_notification "$pane" ;;
+    esac
+}
+
+# ── sender app bundle ───────────────────────────────────────────────────────
+#
+# alerter delivers under whatever bundle id --sender names, and macOS takes the
+# icon, the Notification Center entry, and the banner-vs-alert style from that
+# bundle. Owning the bundle is what lets us have our own icon and default to
+# Banners; --app-icon is ignored on macOS 14.
+
+build_icns() {
+    local src="$1" out="$2" tmp iconset size
+    tmp="$(mktemp -d)" || return 1
+    iconset="$tmp/AppIcon.iconset"
+    mkdir -p "$iconset"
+    for size in 16 32 128 256 512; do
+        sips -z "$size" "$size" "$src" --out "$iconset/icon_${size}x${size}.png" >/dev/null 2>&1
+        sips -z "$((size * 2))" "$((size * 2))" "$src" \
+            --out "$iconset/icon_${size}x${size}@2x.png" >/dev/null 2>&1
+    done
+    iconutil -c icns "$iconset" -o "$out" || { rm -rf "$tmp"; return 1; }
+    rm -rf "$tmp"
+}
+
+install_app() {
+    local icon_src="$PLUGIN_DIR/icon.png"
+    [[ -f "$icon_src" ]] || die "missing icon: $icon_src"
+
+    rm -rf "$APP_DIR"
+    mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
+
+    cat > "$APP_DIR/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>$SENDER</string>
+	<key>CFBundleName</key>
+	<string>$APP_NAME</string>
+	<key>CFBundleDisplayName</key>
+	<string>$APP_NAME</string>
+	<key>CFBundleExecutable</key>
+	<string>HerdrAgents</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>banner</string>
+</dict>
+</plist>
+PLIST
+
+    # LaunchServices will not register a bundle without an executable, but
+    # nothing ever launches it; alerter only borrows the identity.
+    cat > "$APP_DIR/Contents/MacOS/HerdrAgents" <<'STUB'
+#!/bin/sh
+exit 0
+STUB
+    chmod +x "$APP_DIR/Contents/MacOS/HerdrAgents"
+
+    build_icns "$icon_src" "$APP_DIR/Contents/Resources/AppIcon.icns" \
+        || die "could not build AppIcon.icns from $icon_src"
+
+    plutil -lint "$APP_DIR/Contents/Info.plist" >/dev/null || die "bad Info.plist"
+    [[ -x "$LSREGISTER" ]] && "$LSREGISTER" -f "$APP_DIR"
+
+    printf 'installed %s (%s)\n' "$APP_DIR" "$SENDER"
+}
+
+# ── diagnostics ─────────────────────────────────────────────────────────────
+
+alert_style_for() {
+    python3 - "$1" <<'PY' 2>/dev/null
+import os, plistlib, subprocess, sys
+path = os.path.expanduser("~/Library/Preferences/com.apple.ncprefs.plist")
+raw = subprocess.run(["plutil", "-convert", "xml1", "-o", "-", path],
+                     capture_output=True).stdout
+for app in plistlib.loads(raw).get("apps", []):
+    if app.get("bundle-id") == sys.argv[1]:
+        print({0: "None", 1: "Banners", 2: "Alerts"}.get((app.get("flags", 0) >> 3) & 3, "?"))
+        break
+else:
+    print("not registered yet")
+PY
+}
+
+doctor() {
+    local alerter style
+    if alerter="$(alerter_bin)"; then
+        printf 'alerter      %s\n' "$alerter"
+    else
+        printf 'alerter      MISSING (brew install vjeantet/tap/alerter)\n'
+    fi
+
+    if [[ -d "$APP_DIR" ]]; then
+        printf 'sender app   %s\n' "$APP_DIR"
+    else
+        printf 'sender app   MISSING (run: herdr-notify install)\n'
+    fi
+
+    printf 'sender id    %s\n' "$SENDER"
+    style="$(alert_style_for "$SENDER")"
+    printf 'alert style  %s\n' "${style:-unknown}"
+    printf '             (System Settings > Notifications > %s)\n' "$APP_NAME"
+    printf 'terminal     %s\n' "$TERMINAL_BUNDLE"
+    printf 'timeout      %ss\n' "$TIMEOUT"
+    printf 'icon source  %s\n' "$PLUGIN_DIR/icon.png"
+}
+
+first_actionable_pane() {
+    herdr agent list 2>/dev/null \
+        | jq -r '[.result.agents[] | select(.agent_status == "done" or .agent_status == "blocked")]
+                 | (first | .pane_id) // empty' 2>/dev/null
+}
+
+any_pane() {
+    herdr agent list 2>/dev/null | jq -r '.result.agents[0].pane_id // empty' 2>/dev/null
+}
+
+# A pane that is merely idle or working would never notify, so preview the
+# card it will get when it finishes rather than printing nothing useful.
+preview_status() {
+    local status
+    status="$(pane_status "$1")"
+    case "$status" in
+        done|blocked) printf '%s' "$status" ;;
+        *)            printf 'done' ;;
+    esac
+}
+
+preview() {
+    local pane="${1:-}" fields title subtitle message tab focused status
+    [[ -n "$pane" ]] || pane="$(first_actionable_pane)"
+    [[ -n "$pane" ]] || pane="$(any_pane)"
+    [[ -n "$pane" ]] || die "no agent panes found; pass a pane id"
+
+    status="$(preview_status "$pane")"
+    fields="$(compose "$pane" "$status")" || die "could not describe pane $pane"
+    IFS="$SEP" read -r title subtitle message tab focused <<<"$fields"
+
+    printf 'pane      %s (tab %s, focused=%s, as %s)\n\n' "$pane" "$tab" "$focused" "$status"
+    printf '  %s\n  %s\n  %s\n\n' "$title" "$subtitle" "$message"
+    printf 'would run:\n  %s --title '"'"'%s'"'"' --subtitle '"'"'%s'"'"' --message '"'"'%s'"'"' --group %s --sender %s --actions Focus --close-label Dismiss --timeout %s\n' \
+        "$(alerter_bin || echo alerter)" "$title" "$subtitle" "$message" \
+        "$(group_for "$pane")" "$SENDER" "$TIMEOUT"
+}
+
+send_test() {
+    local pane="${1:-}"
+    [[ -n "$pane" ]] || pane="$(first_actionable_pane)"
+    [[ -n "$pane" ]] || pane="$(any_pane)"
+    [[ -n "$pane" ]] || die "no agent panes found; pass a pane id"
+
+    local fields title subtitle message tab focused
+    fields="$(compose "$pane" "$(preview_status "$pane")")" \
+        || die "could not describe pane $pane"
+    IFS="$SEP" read -r title subtitle message tab focused <<<"$fields"
+
+    printf 'sending for %s: %s / %s / %s\n' "$pane" "$title" "$subtitle" "$message"
+    nohup "$SELF" __await "$pane" "$tab" 10 "$title" "$subtitle" "$message" >/dev/null 2>&1 &
+    disown 2>/dev/null
+}
+
+# ── entry point ─────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+    __await)  shift; await_click "$@" ;;
+    install)  install_app ;;
+    doctor)   doctor ;;
+    preview)  shift; preview "$@" ;;
+    test)     shift; send_test "$@" ;;
+    ""|event) handle_event ;;
+    -h|--help|help)
+        awk 'NR > 1 { if ($0 !~ /^#/) exit; sub(/^# ?/, ""); print }' "$SELF"
+        ;;
+    *) die "unknown command: $1 (try: install, doctor, preview, test)" ;;
+esac

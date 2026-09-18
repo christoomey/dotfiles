@@ -1,0 +1,24 @@
+id = "agent-notify"
+name = "Agent notifications"
+version = "0.1.0"
+min_herdr_version = "0.7.5"
+platforms = ["macos"]
+description = "Clickable desktop notifications naming the project whose agent finished or needs input, e.g. `✓ august / order-times-data-model`. Delivered as the Herdr Agents app bundle so the style is Banners, not Terminal.app's sticky Alerts. Replaces yankewei/herdr-focus-notify. Run `herdr-notify install` once to build the sender bundle."
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["herdr-notify"]
+
+[[events]]
+on = "pane.focused"
+command = ["herdr-notify"]
+
+[[actions]]
+id = "test"
+title = "Send test agent notification"
+command = ["herdr-notify", "test"]
+
+[[actions]]
+id = "doctor"
+title = "Check notification setup"
+command = ["herdr-notify", "doctor"]
