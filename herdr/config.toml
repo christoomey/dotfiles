@@ -427,8 +427,9 @@ status_indicators = "symbols"
 # delivery = "off"
 # delay_seconds = 1
 
-# Off: herdr-focus-notify (plugin) now owns done/blocked desktop alerts, with a
-# clickable Focus button that jumps to the pane. "system" here would duplicate.
+# Off: the agent-notify plugin (bin/herdr-notify) owns done/blocked desktop
+# alerts, with a clickable Focus button that jumps to the pane. "system" here
+# would duplicate.
 delivery = "off"
 [ui.toast.herdr]
 # position = "bottom-right"

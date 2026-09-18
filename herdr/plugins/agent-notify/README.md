@@ -35,7 +35,7 @@ its icon and its own row in System Settings > Notifications.
 
 ```sh
 herdr-notify install                    # build + register the sender bundle
-herdr plugin disable herdr-focus-notify # stop the old one duplicating
+herdr plugin uninstall herdr-focus-notify # if still installed; it would duplicate
 herdr plugin link ~/code/dotfiles/herdr/plugins/agent-notify
 herdr-notify doctor                     # expect: alert style Banners
 herdr-notify test                       # one real card, 10s timeout
@@ -43,9 +43,6 @@ herdr-notify test                       # one real card, 10s timeout
 
 `herdr-notify preview [PANE]` prints what a pane's card would say without
 sending anything.
-
-Once it is proven, `herdr plugin uninstall herdr-focus-notify` and drop the
-stale reference in the `[ui.toast]` comment in `herdr/config.toml`.
 
 ## Requirements
 
