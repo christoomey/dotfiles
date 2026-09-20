@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#
+# Tests for the herdr-new-thread launch path: the SIGHUP race herdr-detach
+# exists to fix, and the job runner's claim, events, failures, retry and sweep.
+# Everything runs against a temp HERDR_THREADS_DIR with a stub herdr on PATH,
+# so no tab, popup or notification reaches the live session.
+#
+#   run-tests [RACE_ITERATIONS]   (default 200; 0 skips the race test)
+
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bin="$(cd "$here/../../../bin" && pwd)"
+iterations="${1:-200}"
+failures=0
+
+echo "syntax:"
+for script in "$bin/herdr-new-thread"; do
+  printf '  zsh -n %s ... ' "${script##*/}"
+  if zsh -n "$script"; then echo ok; else echo FAIL; failures=$((failures + 1)); fi
+done
+for script in "$bin/claude-launch" "$bin/herdr-job-up" "$here/runner_test.sh" "$here/run-tests"; do
+  printf '  bash -n %s ... ' "${script##*/}"
+  if bash -n "$script"; then echo ok; else echo FAIL; failures=$((failures + 1)); fi
+done
+printf '  python3 -m py_compile herdr-detach ... '
+if python3 -m py_compile "$bin/herdr-detach"; then echo ok; else echo FAIL; failures=$((failures + 1)); fi
+
+echo "runner:"
+if ! bash "$here/runner_test.sh"; then
+  failures=$((failures + 1))
+fi
+
+if [[ "$iterations" != "0" ]]; then
+  echo "race ($iterations iterations):"
+  if ! python3 "$here/race_test.py" "$iterations"; then
+    failures=$((failures + 1))
+  fi
+fi
+
+if [[ $failures -gt 0 ]]; then
+  printf '\n%d test group(s) failed\n' "$failures"
+  exit 1
+fi
+printf '\nall launch tests passed\n'

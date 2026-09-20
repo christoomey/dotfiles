@@ -328,6 +328,9 @@ command = 'herdr pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'
 # opens the august-workspace root workspace, adds a tab with that label, starts
 # claude in it as a same-named agent, and sends the prompt. The tab closes
 # itself when claude exits (HERDR_THREAD hook in zsh/configs/herdr.zsh).
+# The submit is a job on disk (prompt included) that the worker picks up in its
+# own session, so closing this popup cannot kill it; `herdr-new-thread --jobs`
+# says how every launch ended and `--retry ID` runs one again.
 # ctrl+1..3 switch the popup's sections (agents / chats / features), ctrl+t
 # its subtabs: chats › resume is a fuzzy list of past sessions in that root
 # (enter resumes one in a new tab, or focuses it if it is still running);

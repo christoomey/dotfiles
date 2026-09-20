@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# herdr-job-up ID -- CMD ARGS...
+#
+# Supervises a feature bootstrap (af up / moi bin/up) inside the tab herdr-new-thread
+# opened for job ID. The bootstrap runs in an unfocused tab, so a failure there used
+# to be invisible: this records it in the job log and says so out loud.
+#
+#   - exports HERDR_JOB_ID, so claude-launch (which the up scripts call at the end)
+#     tags its own log lines and events with the job
+#   - tees the pane output to jobs/<id>.up.log while it still scrolls in the pane
+#   - appends bootstrapping / up-exited rc=N / done / failed to jobs/<id>.events
+#   - exits with CMD's status, so the pane's `&& exit` still closes the tab
+
+set -uo pipefail
+
+usage="usage: herdr-job-up ID -- CMD ARGS..."
+id="${1:?$usage}"
+shift
+[[ "${1:-}" == "--" ]] && shift
+[[ $# -gt 0 ]] || { echo "$usage" >&2; exit 2; }
+
+base="${HERDR_THREADS_DIR:-$HOME/.cache/herdr-threads}"
+jobs="$base/jobs"
+events="$jobs/$id.events"
+up_log="$jobs/$id.up.log"
+mkdir -p "$jobs"
+
+log() {
+  printf '%s [job-up] job=%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$id" "$*" >>"$base/launch.log"
+}
+
+event() {
+  printf '%s\t%s\t%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" "${2:-}" >>"$events"
+}
+
+# The prompt file the launcher handed the up script; named in any failure notice.
+prompt_file=""
+for ((i = 1; i <= $#; i++)); do
+  if [[ "${!i}" == "--prompt-file" ]]; then
+    j=$((i + 1))
+    [[ $j -le $# ]] && prompt_file="${!j}"
+  fi
+done
+
+export HERDR_JOB_ID="$id"
+
+event bootstrapping "$1"
+log "bootstrapping: $*"
+"$@" 2>&1 | tee -a "$up_log"
+rc=${PIPESTATUS[0]}
+event up-exited "rc=$rc"
+log "up exited rc=$rc"
+
+if [[ $rc -eq 0 ]]; then
+  # claude-launch runs inside the up script; if it already failed, the job did too.
+  if awk -F'\t' '$2 == "failed" { found = 1 } END { exit !found }' "$events" 2>/dev/null; then
+    log "up succeeded but the job already failed"
+  else
+    event done ""
+  fi
+else
+  event failed "bootstrapping: up exited $rc"
+  tail_lines="$(tail -n 4 "$up_log" 2>/dev/null | tr '\n' ' ')"
+  herdr notification show "Feature bootstrap failed" \
+    --body "$id · rc=$rc · ${tail_lines}${prompt_file:+ · prompt: $prompt_file} · retry: herdr-new-thread --retry $id" \
+    --sound request >/dev/null 2>&1 || true
+fi
+
+exit "$rc"

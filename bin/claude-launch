@@ -20,21 +20,33 @@
 #      never started, and a nonzero exit
 #
 # Usage:
-#   claude-launch --pane P [--name N] [--agent-name A] [--prompt-file F] [--timeout S]
-#   claude-launch --pane P --resume SESSION_ID [--agent-name A] [--prompt-file F] [--timeout S]
+#   claude-launch --pane P [--name N] [--agent-name A] [--prompt-file F] [--timeout S] [--job ID]
+#   claude-launch --pane P --resume SESSION_ID [--agent-name A] [--prompt-file F] [--timeout S] [--job ID]
 #   claude-launch --check-prompt-file F    # print F's absolute path, or fail
 #
 # --name is claude's session title; --agent-name renames the herdr agent (herdr
 # caps names at 32 chars of ^[a-z][a-z0-9_-]*$, so the caller slugs it).
+#
+# --job (or HERDR_JOB_ID, which herdr-job-up exports around a feature
+# bootstrap) is a herdr-new-thread job: log lines are tagged job=<id> and the
+# claude-started / acked / failed stages are appended to jobs/<id>.events.
 
 set -uo pipefail
 
-LOG="${CLAUDE_LAUNCH_LOG:-$HOME/.cache/herdr-threads/launch.log}"
+THREADS="${HERDR_THREADS_DIR:-$HOME/.cache/herdr-threads}"
+LOG="${CLAUDE_LAUNCH_LOG:-$THREADS/launch.log}"
 PROJECTS="$HOME/.claude/projects"
+job="${HERDR_JOB_ID:-}"
 
 log() {
   mkdir -p "$(dirname "$LOG")"
-  printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${pane:-?}" "$*" >>"$LOG"
+  printf '%s [%s]%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${pane:-?}" "${job:+ job=$job}" "$*" >>"$LOG"
+}
+
+event() {
+  [[ -n "$job" ]] || return 0
+  mkdir -p "$THREADS/jobs"
+  printf '%s\t%s\t%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" "${2:-}" >>"$THREADS/jobs/$job.events"
 }
 
 check_prompt_file() {
@@ -65,6 +77,7 @@ while [[ $# -gt 0 ]]; do
     --prompt-file) prompt_file="$2"; shift 2 ;;
     --resume) resume="$2"; shift 2 ;;
     --timeout) timeout="$2"; shift 2 ;;
+    --job) job="$2"; shift 2 ;;
     *) echo "claude-launch: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -77,9 +90,11 @@ fi
 fail() {
   local reason="$1"
   log "FAILED: $reason${prompt_file:+ (prompt: $prompt_file)}"
+  event failed "claude-launch: $reason"
   echo "claude-launch: $reason${prompt_file:+ (prompt saved at $prompt_file)}" >&2
   herdr notification show "Claude launch failed" \
-    --body "$reason${prompt_file:+ · prompt: $prompt_file}" --sound request >/dev/null 2>&1 || true
+    --body "${job:+job $job · }$reason${prompt_file:+ · prompt: $prompt_file}${job:+ · retry: herdr-new-thread --retry $job}" \
+    --sound request >/dev/null 2>&1 || true
   if ! claude_process_running; then
     local note="claude-launch failed: $reason"
     [[ -n "$prompt_file" ]] && note+=$'\n'"prompt: $prompt_file"
@@ -110,13 +125,14 @@ user_message_count() {
 
 # `herdr pane run` fails while a fresh pane's shell is still starting.
 run_in_pane() {
-  local i
+  local i out=""
   for i in $(seq 1 40); do
-    if herdr pane run "$pane" "$1" >/dev/null 2>&1; then
+    if out=$(herdr pane run "$pane" "$1" 2>&1); then
       return 0
     fi
     sleep 0.25
   done
+  log "pane run kept failing: $out"
   return 1
 }
 
@@ -164,7 +180,9 @@ else
   launch_marker="claude --session-id $session_id"
   launch_cmd="$(printf 'claude --session-id %q' "$session_id")"
   [[ -n "$name" ]] && launch_cmd+="$(printf ' --name %q' "$name")"
-  [[ -n "$prompt_file" ]] && launch_cmd+="$(printf ' "$(cat %q)"' "$prompt_file")"
+  # After --, claude takes the prompt as a positional, so a prompt starting
+  # with a dash is not parsed as a flag.
+  [[ -n "$prompt_file" ]] && launch_cmd+="$(printf ' -- "$(cat %q)"' "$prompt_file")"
 fi
 baseline="$(user_message_count "$session_id")"
 log "launching session $session_id${prompt_file:+ with $prompt_file}"
@@ -189,6 +207,7 @@ start_resume_via_herdr() {
 if [[ -n "$resume" ]]; then
   start_resume_via_herdr || fail "could not resume session $resume in pane $pane"
   agent_name=""
+  event claude-started "$session_id"
 fi
 
 attempt=1
@@ -206,6 +225,7 @@ while [[ -z "$resume" ]]; do
   attempt=$((attempt + 1))
   log "claude not detected, retrying"
 done
+[[ -n "$resume" ]] || event claude-started "$session_id"
 rename_agent
 
 if [[ -z "$prompt_file" ]]; then
@@ -239,6 +259,7 @@ fi
 
 if wait_for_ack "$([[ -n "$resume" ]] && echo 5 || echo "$timeout")"; then
   log "ack: session $session_id received its prompt"
+  event acked "$session_id"
   exit 0
 fi
 fail "session $session_id started but its prompt never reached the transcript"

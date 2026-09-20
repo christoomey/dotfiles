@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""herdr-detach [--log FILE] -- CMD ARGS...
+
+Run CMD in a new session, detached from the caller's process group, and return
+only once the child has called setsid(). A shell fork (`nohup ... &!`) races the
+SIGHUP herdr sends to a closing popup's process group: the child can be killed
+before it runs at all. Returning after setsid() means the caller may exit
+immediately and the child is already out of reach of that signal.
+
+stdin is /dev/null, stdout and stderr are appended to FILE (default /dev/null).
+Exit 0 means the child is in its own session; nonzero means it never got there
+and the caller still owns the work.
+"""
+import os
+import signal
+import sys
+
+args = sys.argv[1:]
+log = os.devnull
+while args and args[0] != "--":
+    if args[0] == "--log" and len(args) > 1:
+        log = args[1]
+        args = args[2:]
+    else:
+        sys.stderr.write("herdr-detach: unexpected argument: %s\n" % args[0])
+        sys.exit(2)
+if not args or len(args) < 2:
+    sys.stderr.write("usage: herdr-detach [--log FILE] -- CMD ARGS...\n")
+    sys.exit(2)
+cmd = args[1:]
+
+log_dir = os.path.dirname(os.path.abspath(log))
+try:
+    os.makedirs(log_dir, exist_ok=True)
+except OSError:
+    pass
+
+ready_r, ready_w = os.pipe()
+if os.fork() == 0:
+    try:
+        os.close(ready_r)
+        os.setsid()
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
+        fd = os.open(os.devnull, os.O_RDONLY)
+        os.dup2(fd, 0)
+        fd = os.open(log, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+        os.dup2(fd, 1)
+        os.dup2(fd, 2)
+        os.write(ready_w, b"1")
+        os.close(ready_w)
+        os.execvp(cmd[0], cmd)
+    except Exception as err:  # exec failed; the pipe already said "detached"
+        sys.stderr.write("herdr-detach: %s\n" % err)
+    os._exit(127)
+
+os.close(ready_w)
+sys.exit(0 if os.read(ready_r, 1) == b"1" else 1)

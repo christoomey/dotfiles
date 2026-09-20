@@ -31,8 +31,29 @@
 #     SECTION: agents | chats | resume | features | sidebar
 #     P: august | moi | dotfiles (or HERDR_NEW_THREAD_PROJECT, which
 #     `herdr plugin pane open --env` can set; see herdr/plugins/new-thread)
-#   herdr-new-thread --launch NAME open|bg [SESSION_ID]   # detached worker, form JSON on stdin
-#   herdr-new-thread --launch-feature                     # detached worker, form JSON on stdin
+#   herdr-new-thread --run-job ID     # detached runner for a queued job
+#   herdr-new-thread --watch ID       # detached watchdog for one detach
+#   herdr-new-thread --retry ID       # re-run a job (any state but done)
+#   herdr-new-thread --sweep          # notify about stranded/stalled jobs, expire old ones
+#   herdr-new-thread --jobs [N] [--json]   # recent launches, newest first
+#   herdr-new-thread --job ID         # one job's spec, events and logs
+#   herdr-new-thread --launch NAME open|bg [SESSION_ID]   # jobless worker (herdr-open-chat)
+#
+# Every submitted launch is a job on disk under ~/.cache/herdr-threads/jobs/
+# (HERDR_THREADS_DIR overrides the base). The form writes <id>.json (the spec,
+# prompt included) and the `queued` event before it exits, so the prompt is
+# durable before anything can fail; the launcher runs the job through
+# herdr-detach, which returns only once the runner is in its own session. A
+# plain `nohup ... &!` fork raced the SIGHUP herdr sends the closing popup's
+# process group and lost roughly a third of all launches.
+#
+# Each stage of a run appends a line to <id>.events (claimed, prompt-saved,
+# workspace, tab-created, claude-started, acked, done; feature runs add
+# bootstrapping and up-exited), so `--jobs` can say where anything stopped and
+# `--retry` can run it again. Nothing is silent: a detach that fails, a runner
+# that never claims its job (--watch), a stage that dies, a stalled job
+# (--sweep) and a failed feature bootstrap (herdr-job-up) all raise a
+# notification naming the job, its prompt file and the retry command.
 #
 # The new tab's shell gets HERDR_THREAD=1 so zsh/configs/herdr.zsh exits the
 # shell when claude does, which closes the pane and the tab, and AUGIE_SCRATCH
@@ -41,37 +62,76 @@
 # resume list shows later (Claude persists it as the session's custom title).
 # Both the new-session and resume launches go through claude-launch, which
 # starts claude, delivers the first prompt from a file, and confirms it landed
-# in claude's transcript before reporting success. The prompt is always written
-# to ~/.cache/herdr-threads/chat-prompts/ first, so it survives a failed
-# launch; claude-launch logs to ~/.cache/herdr-threads/launch.log.
-#
-# Before that, the form autosaves the chat fields to
-# ~/.cache/herdr-threads/draft.json (restored by the next popup), and the
-# launcher only deletes it once the prompt file is written. Every step from
-# the form closing to claude-launch taking over leaves a line in launch.log
-# too, and a launcher that dies on the way logs where and raises a
-# notification naming the saved prompt.
+# in claude's transcript before reporting success. Prompts are also written to
+# chat-prompts/ and feature-prompts/, which is what the failure notices name;
+# every component logs to ~/.cache/herdr-threads/launch.log tagged job=<id>.
 
 set -e
 
-threads="$HOME/.cache/herdr-threads"
+threads="${HERDR_THREADS_DIR:-$HOME/.cache/herdr-threads}"
+jobs_dir="$threads/jobs"
+self="${0:A}"       # $0 inside a function is the function's name
+self_dir="${self:h}"
+job_id=""     # the job being run; tags every log line
+job_stage=""  # the stage being attempted, for a failed event's detail
+
 tlog() {
   mkdir -p "$threads"
-  print -r -- "$(date '+%Y-%m-%d %H:%M:%S') [new-thread:$$] $*" >>"$threads/launch.log"
+  print -r -- "$(date '+%Y-%m-%d %H:%M:%S') [new-thread:$$]${job_id:+ job=$job_id} $*" >>"$threads/launch.log"
 }
+
+job_event() {
+  local id="$1" stage="$2" detail="${3:-}"
+  mkdir -p "$jobs_dir"
+  printf '%s\t%s\t%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$stage" "$detail" >>"$jobs_dir/$id.events"
+}
+
+# Events only exist for a job; the legacy --launch path runs without one.
+event() {
+  [ -n "$job_id" ] || return 0
+  job_stage="$1"
+  job_event "$job_id" "$1" "${2:-}"
+}
+
+job_state() {
+  local f="$jobs_dir/$1.events"
+  [ -f "$f" ] || return 0
+  tail -n1 "$f" | cut -f2
+}
+
+notify() {
+  herdr notification show "$1" --body "$2" --sound request >/dev/null 2>&1 || true
+}
+
+# A banner the user sees while the launch is still booting; must not block the
+# runner, and herdr's own sound would fire on every submit.
+notify_quiet() {
+  { herdr notification show "$1" --body "$2" >/dev/null 2>&1 || true } &!
+}
+
+retry_hint() { print -r -- "retry: herdr-new-thread --retry $1"; }
 
 # set -e exits through here; the EXIT trap does not fire for an errexit
 # inside a function. A $(...) inherits the trap, so a failure inside one
 # logs its own line first and the worker reports once it unwinds.
 worker_failed() {
-  local rc=$1 where=$2 saved=${pfile:-$threads/draft.json}
+  local rc=$1 where=$2 saved=${pfile:-} reason
   if (( ZSH_SUBSHELL )); then
     tlog "failed (rc=$rc) at $where"
     return
   fi
-  tlog "FAILED (rc=$rc) at $where; prompt: $saved"
-  herdr notification show "New session failed" \
-    --body "launcher died at $where · prompt: $saved" --sound request >/dev/null 2>&1 || true
+  # The runner's own stderr is jobs/<id>.err, so the last line there is
+  # usually the real message ("tab create returned no pane").
+  reason=$(tail -n 5 "$jobs_dir/$job_id.err" 2>/dev/null | grep -v '^[[:space:]]*$' | tail -n1)
+  [ -z "$reason" ] && reason="rc=$rc at $where"
+  tlog "FAILED (rc=$rc) at $where${saved:+; prompt: $saved}"
+  if [ -n "$job_id" ]; then
+    job_event "$job_id" failed "${job_stage:-?}: $reason"
+    notify "New session failed" \
+      "$job_id · ${job_stage:-?}: $reason${saved:+ · prompt: $saved} · $(retry_hint "$job_id")"
+  else
+    notify "New session failed" "launcher died at $where${saved:+ · prompt: $saved}"
+  fi
 }
 
 august_root() { augie-path root; }
@@ -141,7 +201,7 @@ print(find(json.load(sys.stdin).get("result", {})) or "")'
 # feature's own tab is arranged; on failure it stays open with the error.
 # feature-bg keeps focus where it is throughout.
 launch_feature() {
-  local form project branch name prompt mode root ws pane cmd focus
+  local form project branch name prompt mode root ws pane cmd focus perr
   form=$(cat)
   project=$(printf '%s' "$form" | jq -r .project)
   branch=$(printf '%s' "$form" | jq -r .branch)
@@ -149,9 +209,6 @@ launch_feature() {
   prompt=$(printf '%s' "$form" | jq -r '.prompt // ""')
   mode=$(printf '%s' "$form" | jq -r .mode)
   tlog "feature $project $branch ($mode)"
-  root=$(project_root "$project")
-  ws=$(ensure_ws "$project" "$root")
-  tlog "feature: workspace $ws"
 
   local -a args=(--name "$name")
   focus="--focus"
@@ -165,23 +222,38 @@ launch_feature() {
     pfile="$pdir/$name-$(date +%Y%m%d-%H%M%S).md"
     printf '%s\n' "$prompt" > "$pfile"
     tlog "feature prompt saved to $pfile"
+    event prompt-saved "$pfile"
     args+=(--prompt-file "$pfile")
   fi
+
+  root=$(project_root "$project")
+  ws=$(ensure_ws "$project" "$root")
+  tlog "feature: workspace $ws"
+  event workspace "$ws"
+
   case "$project" in
-    august) args+=("$branch"); cmd="af up ${(j: :)${(q)args[@]}} && exit" ;;
-    moi)    args+=(--snapshot "$branch"); cmd="bin/up ${(j: :)${(q)args[@]}} && exit" ;;
+    august) args+=("$branch"); cmd="af up ${(j: :)${(q)args[@]}}" ;;
+    moi)    args+=(--snapshot "$branch"); cmd="bin/up ${(j: :)${(q)args[@]}}" ;;
     *) echo "$project has no feature flow" >&2; return 1 ;;
   esac
+  # herdr-job-up tees the bootstrap to the job log and reports how it ended;
+  # it exits with the bootstrap's own status, so `&& exit` still closes the tab.
+  [ -n "$job_id" ] && cmd="${(q)self_dir}/herdr-job-up ${(q)job_id} -- $cmd"
+  cmd="$cmd && exit"
+
   pane=$(herdr tab create --workspace "$ws" --cwd "$root" --label "up: ${branch##*/}" $focus | first_pane)
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
+  event tab-created "$pane"
+  perr=""
   for i in {1..40}; do
-    if herdr pane run "$pane" "$cmd" >/dev/null 2>&1; then
+    if perr=$(herdr pane run "$pane" "$cmd" 2>&1); then
       tlog "feature: bootstrap running in $pane"
       return 0
     fi
     sleep 0.25
   done
-  echo "pane $pane never accepted the command" >&2
+  tlog "pane run kept failing: $perr"
+  echo "pane $pane never accepted the command: $perr" >&2
   return 1
 }
 
@@ -206,13 +278,14 @@ launch() {
     pfile="$pdir/$slug-$(date +%Y%m%d-%H%M%S).md"
     printf '%s\n' "$prompt" > "$pfile"
     tlog "prompt saved to $pfile"
+    event prompt-saved "$pfile"
   fi
-  [ -z "$session_id" ] && rm -f "$threads/draft.json"
 
   local root ws
   root=$(project_root "$project")
   ws=$(ensure_ws "$project" "$root")
   tlog "workspace $ws ($root)"
+  event workspace "$ws"
 
   local focus="--focus"
   [ "$mode" = "bg" ] && focus="--no-focus"
@@ -220,7 +293,7 @@ launch() {
   # Per-session scratch dir; august's CLAUDE.md tells Claude to write throwaway
   # files here. Other projects keep it out of the repo.
   local scratch="$root/scratch/$slug"
-  [ "$project" = august ] || scratch="$HOME/.cache/herdr-threads/$project/$slug"
+  [ "$project" = august ] || scratch="$threads/$project/$slug"
   mkdir -p "$scratch"
 
   local -a attached
@@ -243,6 +316,7 @@ launch() {
     fi
     printf '%s\n' "$prompt" > "$pfile"
     tlog "attached ${#attached[@]} screenshot(s) to $pfile"
+    event prompt-saved "$pfile"
   fi
 
   local pane
@@ -252,6 +326,7 @@ launch() {
   )
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
   tlog "tab created, pane $pane"
+  event tab-created "$pane"
 
   # Agent names must match ^[a-z][a-z0-9_-]*$ and be <= 32 chars; resumed
   # session titles are usually longer, so cap the base and leave room for a
@@ -273,21 +348,293 @@ launch() {
     launch_args+=(--name "$name")
   fi
   [ -n "$pfile" ] && launch_args+=(--prompt-file "$pfile")
+  [ -n "$job_id" ] && launch_args+=(--job "$job_id")
   tlog "handing pane $pane to claude-launch"
+  job_stage="claude-started"
   claude-launch "${launch_args[@]}"
 }
 
-if [ "${1:-}" = "--launch" ] || [ "${1:-}" = "--launch-feature" ]; then
-  tlog "worker started ($1)"
+# The runner for one job. mkdir is the claim: a second runner (a retry racing
+# the watchdog, say) finds the directory there and leaves without doing
+# anything. The spec is the form's, so the prompt survives everything below.
+run_job() {
+  local id="$1" spec mode name project sid lmode
+  spec="$jobs_dir/$id.json"
+  if [ ! -f "$spec" ]; then
+    tlog "job=$id has no spec at $spec"
+    exit 1
+  fi
+  if ! mkdir "$jobs_dir/$id.claim" 2>/dev/null; then
+    tlog "job=$id already claimed; nothing to do"
+    exit 0
+  fi
+  job_id="$id"
   pfile=""
   trap 'worker_failed $? "${funcfiletrace[1]:-?}"' ZERR
-  if [ "$1" = "--launch" ]; then
-    launch "$2" "$3" "${4:-}"
-  else
-    launch_feature
+  event claimed ""
+
+  mode=$(jq -r '.mode // ""' "$spec")
+  name=$(jq -r '.name // ""' "$spec")
+  project=$(jq -r '.project // ""' "$spec")
+  tlog "claimed \"$name\" ($mode, $project)"
+  notify_quiet "Starting $name…" "$project · $mode"
+
+  case "$mode" in
+    feature|feature-bg)
+      # herdr-job-up owns done/failed from the moment the bootstrap starts.
+      launch_feature < "$spec"
+      ;;
+    open|bg|resume|resume-bg)
+      sid=$(jq -r '.session_id // ""' "$spec")
+      lmode=open
+      case "$mode" in bg|resume-bg) lmode=bg ;; esac
+      launch "$name" "$lmode" "$sid" < "$spec"
+      event done ""
+      tlog "done"
+      ;;
+    *)
+      echo "job $id has no launchable mode: $mode" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Independent of the runner: if nothing claimed the job, the detach or the
+# runner itself died and only the user can decide what to do about it.
+watch_job() {
+  local id="$1" name
+  sleep 15
+  if [ -d "$jobs_dir/$id.claim" ] || [ ! -f "$jobs_dir/$id.json" ]; then
+    return 0
   fi
-  exit
-fi
+  if [ -e "$jobs_dir/$id.stranded-notified" ]; then
+    return 0
+  fi
+  : > "$jobs_dir/$id.stranded-notified"
+  name=$(jq -r '.name // ""' "$jobs_dir/$id.json")
+  tlog "job=$id launch never started"
+  notify "Launch never started" "$name · job $id · $(retry_hint "$id")"
+  return 0
+}
+
+detach_job() {
+  local id="$1" name
+  mkdir -p "$jobs_dir"
+  if "$self_dir/herdr-detach" --log "$jobs_dir/$id.err" -- "$self" --run-job "$id"; then
+    tlog "detached runner for job $id"
+    if ! "$self_dir/herdr-detach" --log "$jobs_dir/$id.err" -- "$self" --watch "$id"; then
+      tlog "watchdog detach failed for job $id"
+    fi
+    return 0
+  fi
+  name=$(jq -r '.name // ""' "$jobs_dir/$id.json" 2>/dev/null)
+  tlog "detach FAILED for job $id; it stays queued"
+  notify "Launch not started" "$name · the worker could not be detached · job $id · $(retry_hint "$id")"
+  return 1
+}
+
+retry_job() {
+  local id="$1" state
+  if [ ! -f "$jobs_dir/$id.json" ]; then
+    echo "no such job: $id" >&2
+    exit 1
+  fi
+  state=$(job_state "$id")
+  if [ "$state" = done ]; then
+    echo "job $id is already done" >&2
+    exit 1
+  fi
+  rm -rf "$jobs_dir/$id.claim" "$jobs_dir/$id.stranded-notified" "$jobs_dir/$id.stalled-notified"
+  job_event "$id" retry ""
+  detach_job "$id"
+}
+
+# Notices for launches nobody is watching, plus the 14-day retention. Runs
+# detached at every popup open, and marks each job it has complained about so
+# the next open stays quiet.
+sweep() {
+  local now f id state age spec name mode limit
+  now=$(date +%s)
+  for f in "$jobs_dir"/*.events(N); do
+    id=${${f:t}%.events}
+    spec="$jobs_dir/$id.json"
+    state=$(job_state "$id")
+    age=$(( now - $(stat -f %m "$f") ))
+    case "$state" in
+      done|failed|superseded)
+        if (( age > 14 * 86400 )); then
+          rm -rf "$jobs_dir/$id".*(N)
+          tlog "retention: removed job $id"
+        fi
+        continue
+        ;;
+    esac
+    name=$(jq -r '.name // ""' "$spec" 2>/dev/null)
+    mode=$(jq -r '.mode // ""' "$spec" 2>/dev/null)
+    if [ ! -d "$jobs_dir/$id.claim" ]; then
+      if [ "$state" = queued ] && (( age > 10 )) && [ ! -e "$jobs_dir/$id.stranded-notified" ]; then
+        : > "$jobs_dir/$id.stranded-notified"
+        tlog "stranded job $id (queued ${age}s ago, never claimed)"
+        notify "Launch never started" "$name · queued ${age}s ago with no worker · job $id · $(retry_hint "$id")"
+      fi
+      continue
+    fi
+    limit=180
+    case "$mode" in feature|feature-bg) limit=1200 ;; esac
+    if (( age > limit )) && [ ! -e "$jobs_dir/$id.stalled-notified" ]; then
+      : > "$jobs_dir/$id.stalled-notified"
+      tlog "stalled job $id (stage $state for ${age}s)"
+      notify "Launch stalled" "$name · stuck at $state for $((age / 60))m · job $id · $(retry_hint "$id")"
+    fi
+  done
+}
+
+jobs_table() {
+  local n=15 as_json=0 arg
+  for arg in "$@"; do
+    case "$arg" in
+      --json) as_json=1 ;;
+      <->) n="$arg" ;;
+      *) echo "usage: herdr-new-thread --jobs [N] [--json]" >&2; exit 2 ;;
+    esac
+  done
+  JOBS_DIR="$jobs_dir" JOBS_N="$n" JOBS_JSON="$as_json" python3 -c '
+import json, os, time
+
+jobs = os.environ["JOBS_DIR"]
+limit = int(os.environ["JOBS_N"])
+as_json = os.environ["JOBS_JSON"] == "1"
+TERMINAL = ("done", "failed", "superseded")
+
+def stamp(text):
+    try:
+        return time.mktime(time.strptime(text, "%Y-%m-%d %H:%M:%S"))
+    except ValueError:
+        return None
+
+def ago(seconds):
+    if seconds is None:
+        return "?"
+    seconds = int(seconds)
+    for size, unit in ((86400, "d"), (3600, "h"), (60, "m")):
+        if seconds >= size:
+            return "%d%s" % (seconds // size, unit)
+    return "%ds" % seconds
+
+try:
+    names = os.listdir(jobs)
+except OSError:
+    names = []
+ids = sorted({n[:-5] for n in names if n.endswith(".json")} |
+             {n[:-7] for n in names if n.endswith(".events")}, reverse=True)[:limit]
+
+rows = []
+for jid in ids:
+    try:
+        with open(os.path.join(jobs, jid + ".json")) as fh:
+            spec = json.load(fh)
+    except Exception:
+        spec = {}
+    events = []
+    try:
+        with open(os.path.join(jobs, jid + ".events")) as fh:
+            for line in fh:
+                if line.strip():
+                    parts = line.rstrip("\n").split("\t")
+                    events.append(parts + [""] * (3 - len(parts)))
+    except OSError:
+        pass
+    stage = events[-1][1] if events else "queued"
+    detail = events[-1][2] if events else ""
+    started = stamp(events[0][0]) if events else None
+    ended = stamp(events[-1][0]) if events and stage in TERMINAL else None
+    rows.append({
+        "id": jid,
+        "age_seconds": int(time.time() - started) if started else None,
+        "mode": spec.get("mode", ""),
+        "project": spec.get("project", ""),
+        "name": spec.get("name", ""),
+        "stage": stage,
+        "detail": detail,
+        "duration_seconds": round(ended - started, 1) if started and ended else None,
+        "prompt_chars": len(spec.get("prompt", "") or ""),
+        "claimed": os.path.isdir(os.path.join(jobs, jid + ".claim")),
+    })
+
+if as_json:
+    print(json.dumps(rows, indent=2))
+else:
+    fmt = "%%-%ds %%5s %%-11s %%-8s %%-26s %%-14s %%7s %%7s" % max([2] + [len(r["id"]) for r in rows])
+    print(fmt % ("ID", "AGE", "MODE", "PROJECT", "NAME", "STAGE", "TOOK", "PROMPT"))
+    for row in rows:
+        print(fmt % (
+            row["id"], ago(row["age_seconds"]), row["mode"][:11],
+            row["project"][:8], row["name"][:26], row["stage"][:14],
+            ("%.1fs" % row["duration_seconds"]) if row["duration_seconds"] is not None else "-",
+            row["prompt_chars"]))
+        if row["stage"] == "failed" and row["detail"]:
+            print("    %s" % row["detail"])
+    if not rows:
+        print("(no jobs)")
+'
+}
+
+job_show() {
+  local id="$1"
+  if [ ! -f "$jobs_dir/$id.json" ] && [ ! -f "$jobs_dir/$id.events" ]; then
+    echo "no such job: $id" >&2
+    exit 1
+  fi
+  echo "spec: $jobs_dir/$id.json"
+  jq . "$jobs_dir/$id.json" 2>/dev/null || echo "(missing)"
+  echo
+  echo "events:"
+  cat "$jobs_dir/$id.events" 2>/dev/null || echo "(none)"
+  echo
+  echo "claimed: $([ -d "$jobs_dir/$id.claim" ] && echo yes || echo no)"
+  echo "runner log: $jobs_dir/$id.err"
+  echo "bootstrap log: $jobs_dir/$id.up.log"
+}
+
+case "${1:-}" in
+  --run-job)
+    tlog "runner started for ${2:-?}"
+    run_job "${2:?job id required}"
+    exit
+    ;;
+  --watch)
+    watch_job "${2:?job id required}"
+    exit
+    ;;
+  --retry)
+    retry_job "${2:?job id required}"
+    exit
+    ;;
+  --sweep)
+    sweep
+    exit
+    ;;
+  --jobs)
+    shift
+    jobs_table "$@"
+    exit
+    ;;
+  --job)
+    job_show "${2:?job id required}"
+    exit
+    ;;
+  --launch)
+    # Jobless worker, form JSON on stdin; herdr-open-chat resumes through it.
+    tlog "worker started (--launch)"
+    pfile=""
+    trap 'worker_failed $? "${funcfiletrace[1]:-?}"' ZERR
+    launch "$2" "$3" "${4:-}"
+    exit
+    ;;
+esac
+
+# Detached so it never delays the form.
+"$self_dir/herdr-detach" --log "$threads/sweep.log" -- "$self" --sweep >/dev/null 2>&1 || true
 
 # Self-building form binary (herdr/new-session-form, charmbracelet/huh).
 form_src="${0:A:h}/../herdr/new-session-form"
@@ -306,7 +653,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-log="$HOME/.config/herdr/new-thread.log"
 rc=0
 result=$("$form_bin" "${form_args[@]}") || rc=$?
 if [ $rc -ne 0 ] || [ -z "$result" ]; then
@@ -331,6 +677,10 @@ if [ "$mode" = agent ]; then
   herdr agent focus "$(printf '%s' "$result" | jq -r .pane_id)" >/dev/null
   exit 0
 fi
+if [ "$mode" = retry ]; then
+  retry_job "$(printf '%s' "$result" | jq -r .job_id)"
+  exit
+fi
 
 name=$(printf '%s' "$result" | jq -r .name)
 if [ -z "$name" ]; then
@@ -338,22 +688,25 @@ if [ -z "$name" ]; then
   exit 0
 fi
 
-case "$mode" in
-  feature|feature-bg)
-    printf '%s' "$result" | nohup "$0" --launch-feature >>"$log" 2>&1 &!
-    tlog "forked feature worker"
-    exit 0
-    ;;
-  resume|resume-bg)
-    session_id=$(printf '%s' "$result" | jq -r .session_id)
-    launch_mode=open
-    [ "$mode" = "resume-bg" ] && launch_mode=bg
-    printf '%s' "$result" | nohup "$0" --launch "$name" "$launch_mode" "$session_id" >>"$log" 2>&1 &!
-    tlog "forked resume worker"
-    exit 0
-    ;;
-esac
+# The form writes the job spec and its queued event before it prints; older
+# builds did not, and a launch is never worth losing over that.
+id=$(printf '%s' "$result" | jq -r '.job_id // ""')
+if [ -z "$id" ] || [ ! -f "$jobs_dir/$id.json" ]; then
+  slug=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+  [ -z "$slug" ] && slug=session
+  id="$(date +%Y%m%d-%H%M%S)-${slug:0:40}-$(printf '%04x' $RANDOM)"
+  mkdir -p "$jobs_dir"
+  printf '%s' "$result" | jq -c --arg id "$id" --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{
+    id: $id, created_at: $at, mode: .mode, project: (.project // ""),
+    name: (.name // ""), branch: (.branch // ""), prompt: (.prompt // ""),
+    attachments: (.attachments // []), session_id: (.session_id // "")
+  }' >"$jobs_dir/$id.json.tmp"
+  mv "$jobs_dir/$id.json.tmp" "$jobs_dir/$id.json"
+  job_event "$id" queued ""
+  tlog "form returned no job_id; wrote $jobs_dir/$id.json"
+fi
 
 # Detach so the popup closes on submit; claude takes several seconds to boot.
-printf '%s' "$result" | nohup "$0" --launch "$name" "$mode" >>"$log" 2>&1 &!
-tlog "forked launch worker"
+# herdr-detach returns only once the runner has its own session, out of reach
+# of the SIGHUP herdr sends this popup's process group.
+detach_job "$id" || exit 1
