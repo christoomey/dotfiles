@@ -322,8 +322,8 @@
     {
       "actions" : [
         {
-          "key" : "a",
-          "label" : "[A]gents",
+          "key" : "k",
+          "label" : "Agents",
           "type" : "command",
           "value" : "herdr-popup agents"
         },
@@ -364,6 +364,12 @@
               "label" : "Resume chat",
               "type" : "command",
               "value" : "herdr-popup resume moi"
+            },
+            {
+              "key" : "f",
+              "label" : "Features (new)",
+              "type" : "command",
+              "value" : "herdr-popup features"
             }
           ],
           "key" : "m",
@@ -383,10 +389,16 @@
               "label" : "Resume chat",
               "type" : "command",
               "value" : "herdr-popup resume august"
+            },
+            {
+              "key" : "f",
+              "label" : "Features (new)",
+              "type" : "command",
+              "value" : "herdr-popup features"
             }
           ],
-          "key" : "w",
-          "label" : "[W]ork (august)",
+          "key" : "a",
+          "label" : "[A]ugust",
           "type" : "group"
         },
         {
@@ -402,6 +414,12 @@
               "label" : "Resume chat",
               "type" : "command",
               "value" : "herdr-popup resume dotfiles"
+            },
+            {
+              "key" : "f",
+              "label" : "Features (new)",
+              "type" : "command",
+              "value" : "herdr-popup features"
             }
           ],
           "key" : "d",
