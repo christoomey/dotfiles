@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// projectLine is what the form's project field draws, since the help line
+// projectLine is what a view's project picker draws, since the help line
 // mentions project names too.
 func projectLine(m tea.Model) string {
 	plain := regexp.MustCompile(`\x1b\[[0-9;]*m`).ReplaceAllString(m.View(), "")
@@ -142,7 +142,7 @@ func TestClickingTabsSwitchesViews(t *testing.T) {
 func TestProjectInitialsJumpPickers(t *testing.T) {
 	var m tea.Model = newModel("minimal", viewNew, projects[0])
 	m = drive(m, m.Init())
-	// huh moves focus through commands, so run each key's command tree.
+	// Focus moves through commands, so run each key's command tree.
 	key := func(k tea.KeyMsg) {
 		next, cmd := m.Update(k)
 		m = drive(next, cmd)
@@ -150,19 +150,18 @@ func TestProjectInitialsJumpPickers(t *testing.T) {
 	rune_ := func(r rune) { key(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}}) }
 
 	rune_('m')
-	if got := *m.(model).project; got != "august" {
+	if got := projects[m.(model).chatProject]; got != "august" {
 		t.Errorf("m in the name field changed the project to %q", got)
 	}
 	key(tea.KeyMsg{Type: tea.KeyShiftTab})
 	rune_('m')
-	if got := *m.(model).project; got != "moi" {
+	if got := projects[m.(model).chatProject]; got != "moi" {
 		t.Errorf("form picker: project %q, want moi", got)
 	}
 	rune_('d')
-	if got, sel := *m.(model).project, m.(model).projSel.GetValue(); got != "dotfiles" || sel != "dotfiles" {
-		t.Errorf("form picker: project %q / select %v, want dotfiles", got, sel)
+	if got := projects[m.(model).chatProject]; got != "dotfiles" {
+		t.Errorf("form picker: project %q, want dotfiles", got)
 	}
-	// The select draws its own cursor, not the bound value: check the frame.
 	if got := projectLine(m); !strings.Contains(got, "dotfiles") {
 		t.Errorf("form picker: the field draws %q", got)
 	}
@@ -192,21 +191,21 @@ func TestProjectHotkeysWithoutLeavingTheField(t *testing.T) {
 		next, cmd := m.Update(msg)
 		m = drive(next, cmd)
 	}
-	project := func() string { return *m.(model).project }
+	project := func() string { return projects[m.(model).chatProject] }
 
 	send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("dose")})
 	send(tea.KeyMsg{Type: tea.KeyCtrlD})
-	if project() != "dotfiles" || projectLine(m) != "┃ dotfiles" {
+	if project() != "dotfiles" || projectLine(m) != "dotfiles" {
 		t.Errorf("ctrl+d: %q draws %q", project(), projectLine(m))
 	}
 	send(ctrlMMsg{})
-	if project() != "moi" || projectLine(m) != "┃ moi" {
+	if project() != "moi" || projectLine(m) != "moi" {
 		t.Errorf("ctrl+m: %q draws %q", project(), projectLine(m))
 	}
-	if got := *m.(model).name; got != "dose" {
+	if got := m.(model).chatName.Value(); got != "dose" {
 		t.Errorf("name field lost or gained text: %q", got)
 	}
-	if m.(model).form.GetFocusedField() == m.(model).projSel {
+	if m.(model).chatFocus == chatProjectField {
 		t.Error("focus moved to the project field")
 	}
 

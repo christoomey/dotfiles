@@ -56,8 +56,8 @@ func TestDraftSurvivesThePopup(t *testing.T) {
 	restoreDrafts = true
 	defer func() { restoreDrafts = false }()
 	get, _ := newFormModel(t)
-	if m := get(); *m.name != "dose bug" || *m.prompt != "go look into it" || m.notice == "" {
-		t.Errorf("draft not restored: name %q prompt %q notice %q", *m.name, *m.prompt, m.notice)
+	if m := get(); m.chatName.Value() != "dose bug" || m.chatPrompt.Value() != "go look into it" || m.notice == "" {
+		t.Errorf("draft not restored: name %q prompt %q notice %q", m.chatName.Value(), m.chatPrompt.Value(), m.notice)
 	}
 }
 
@@ -131,8 +131,8 @@ func TestOldDraftsStillLoad(t *testing.T) {
 	withRestore(t)
 	get, _ := newFormModel(t)
 	m := get()
-	if m.view != viewNew || *m.name != "dose bug" || *m.prompt != "go look" {
-		t.Errorf("legacy draft not restored: view %d %q %q", m.view, *m.name, *m.prompt)
+	if m.view != viewNew || m.chatName.Value() != "dose bug" || m.chatPrompt.Value() != "go look" {
+		t.Errorf("legacy draft not restored: view %d %q %q", m.view, m.chatName.Value(), m.chatPrompt.Value())
 	}
 }
 
@@ -171,7 +171,7 @@ func TestCtrlAInThePromptEditsInsteadOfSwitching(t *testing.T) {
 	typeText(send, "look")
 	send(tea.KeyMsg{Type: tea.KeyCtrlA})
 	typeText(send, "go ")
-	if m := get(); m.view != viewNew || *m.prompt != "go look" {
-		t.Errorf("view %d prompt %q", m.view, *m.prompt)
+	if m := get(); m.view != viewNew || m.chatPrompt.Value() != "go look" {
+		t.Errorf("view %d prompt %q", m.view, m.chatPrompt.Value())
 	}
 }

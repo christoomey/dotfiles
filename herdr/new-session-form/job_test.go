@@ -165,8 +165,8 @@ func TestSubmitFailureKeepsTheFormAndTheText(t *testing.T) {
 	if m.err == "" {
 		t.Error("no error shown")
 	}
-	if *m.name != "dose bug" || *m.prompt != "go look into it" {
-		t.Errorf("text lost: %q %q", *m.name, *m.prompt)
+	if m.chatName.Value() != "dose bug" || m.chatPrompt.Value() != "go look into it" {
+		t.Errorf("text lost: %q %q", m.chatName.Value(), m.chatPrompt.Value())
 	}
 	if d, ok := loadDraft(); !ok || d.Prompt != "go look into it" {
 		t.Errorf("draft not kept: %+v %v", d, ok)

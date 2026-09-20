@@ -95,27 +95,27 @@ const (
 	featFields
 )
 
-func (m *model) initFeature(s styles) {
-	input := func(placeholder string) textinput.Model {
-		in := textinput.New()
-		in.Prompt = "> "
-		in.Placeholder = placeholder
-		in.Width = 70
-		in.PromptStyle = lipgloss.NewStyle().Foreground(s.accent)
-		in.PlaceholderStyle = lipgloss.NewStyle().Foreground(s.dim)
-		in.TextStyle = lipgloss.NewStyle().Foreground(s.text)
-		return in
-	}
-	m.feature = input("christoomey/meds-1234-short-description")
-	m.featureName = input("short-description")
+// newInput and newPromptArea are the one-line and multi-line fields both the
+// feature and the chat views are built from.
+func newInput(s styles, placeholder string) textinput.Model {
+	in := textinput.New()
+	in.Prompt = "> "
+	in.Placeholder = placeholder
+	in.Width = 70
+	in.PromptStyle = lipgloss.NewStyle().Foreground(s.accent)
+	in.PlaceholderStyle = lipgloss.NewStyle().Foreground(s.dim)
+	in.TextStyle = lipgloss.NewStyle().Foreground(s.text)
+	return in
+}
 
+func newPromptArea(s styles, placeholder string, height int) textarea.Model {
 	ta := textarea.New()
 	ta.Prompt = ""
 	ta.ShowLineNumbers = false
-	ta.Placeholder = "/linear-review MEDS-1234"
+	ta.Placeholder = placeholder
 	ta.CharLimit = 0
 	ta.SetWidth(72)
-	ta.SetHeight(3)
+	ta.SetHeight(height)
 	ta.KeyMap.InsertNewline = key.NewBinding(key.WithKeys("enter", "ctrl+j"))
 	for _, st := range []*textarea.Style{&ta.FocusedStyle, &ta.BlurredStyle} {
 		st.Base = lipgloss.NewStyle()
@@ -125,7 +125,13 @@ func (m *model) initFeature(s styles) {
 		st.EndOfBuffer = lipgloss.NewStyle()
 	}
 	ta.Cursor.Style = lipgloss.NewStyle().Foreground(s.accent)
-	m.featurePrompt = ta
+	return ta
+}
+
+func (m *model) initFeature(s styles) {
+	m.feature = newInput(s, "christoomey/meds-1234-short-description")
+	m.featureName = newInput(s, "short-description")
+	m.featurePrompt = newPromptArea(s, "/linear-review MEDS-1234", 3)
 }
 
 // setFeature fills the three inputs from a draft or a job. SetValue keeps the
@@ -241,16 +247,8 @@ func (m model) submitFeature(background bool) (tea.Model, tea.Cmd) {
 }
 
 func (m model) featureView() string {
-	t := m.styles.theme
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
 	accent := lipgloss.NewStyle().Foreground(m.styles.accent).Bold(true)
-
-	field := func(i int, title, body string) string {
-		if m.featureFocus == i {
-			return t.Focused.Base.Render(t.Focused.Title.Render(title) + "\n" + body)
-		}
-		return t.Blurred.Base.Render(t.Blurred.Title.Render(title) + "\n" + body)
-	}
 
 	branch := strings.TrimSpace(m.feature.Value())
 	var hint string
@@ -267,12 +265,17 @@ func (m model) featureView() string {
 
 	var b strings.Builder
 	b.WriteString(m.tabsView() + "\n\n")
-	b.WriteString(field(featBranch, "Linear branch", m.feature.View()+"\n"+hint) + "\n\n")
-	b.WriteString(field(featName, "Feature name", m.featureName.View()) + "\n\n")
-	b.WriteString(field(featPrompt, "Initial prompt", dim.Render("optional · enter for a new line")+"\n"+m.featurePrompt.View()) + "\n")
+	b.WriteString(m.inputField(m.featureFocus == featBranch, "Linear branch", "", m.feature.View()) + "\n  " + hint + "\n\n")
+	b.WriteString(m.inputField(m.featureFocus == featName, "Feature name", "", m.featureName.View()) + "\n\n")
+	b.WriteString(m.inputField(m.featureFocus == featPrompt, "Initial prompt", dim.Render("optional · enter for a new line"), m.featurePrompt.View()) + "\n")
+	rows := m.menuRows()
+	b.WriteString(m.menuView(rows))
 	b.WriteString(m.noticesView())
 
 	help := "ctrl+s start feature · ctrl+b in background · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
+	if len(rows) > 0 {
+		help = menuHelp(m.menuProject())
+	}
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }

@@ -636,7 +636,7 @@ esac
 # Detached so it never delays the form.
 "$self_dir/herdr-detach" --log "$threads/sweep.log" -- "$self" --sweep >/dev/null 2>&1 || true
 
-# Self-building form binary (herdr/new-session-form, charmbracelet/huh).
+# Self-building form binary (herdr/new-session-form, charmbracelet/bubbletea).
 form_src="${0:A:h}/../herdr/new-session-form"
 form_bin="$form_src/herdr-new-session-form"
 if [ ! -x "$form_bin" ] || [ -n "$(find "$form_src" -name '*.go' -newer "$form_bin" -print -quit)" ]; then

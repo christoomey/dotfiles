@@ -17,9 +17,13 @@
 // them, a/m/d pick a project while one has focus, and from anywhere in the
 // view ctrl+m / ctrl+d pick moi / dotfiles (ctrl+m needs kitty: in legacy
 // encoding it is enter). Prints one JSON result on stdout; exits 1 on cancel.
-// Both the chat and the feature fields autosave as a draft that the next
-// popup restores until the launcher has the prompt on disk; esc over an
-// unsent prompt only warns, and a second esc discards it (see draft.go).
+// Every view is hand-rolled over bubbles widgets (huh is only the theme):
+// tab walks the fields, and in either prompt typing /word opens a menu of the
+// project's and the user's skills and slash commands, which tab completes
+// (see skills.go). Both the chat and the feature fields autosave as a draft
+// that the next popup restores until the launcher has the prompt on disk; esc
+// over an unsent prompt only warns, and a second esc discards it (see
+// draft.go).
 // Every launch is written to jobs/<id>.json before the popup closes and the
 // id travels with the result (see job.go); a launch that never started shows
 // up in the next popup as a notice, with ctrl+g to retry it and ctrl+o to
@@ -34,19 +38,17 @@
 //	{"mode":"retry", "job_id"}                                      run a stranded job again
 //
 //	herdr-new-session-form [--theme NAME] [--view agents]
-//	herdr-new-session-form --demo NAME fresh|filled|resume|agents|sidebar   # print one frame (ANSI)
+//	herdr-new-session-form --demo NAME fresh|filled|menu|resume|agents|sidebar   # print one frame (ANSI)
 package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -137,29 +139,25 @@ type sessionsMsg struct {
 
 type liveMsg struct{ live map[string]session }
 
-// Field values are heap-allocated: huh keeps pointers to them, and Bubble Tea
-// passes the model by value, so plain struct fields would be pointed at a
-// stale copy.
 type model struct {
-	form    *huh.Form
-	projSel *huh.Select[string] // the form's project field, for a/m/d jumps
-	project *string
-	name    *string
-	prompt  *string
-	openNow *bool
-	mode    string
-	err     string
-	styles  styles
+	mode   string
+	err    string
+	styles styles
 
 	attachDir   string
 	attachments []string
 
-	nameField   *huh.Input
-	promptField *huh.Text
-	saved       draft     // last draft written; see draft.go
-	notice      string    // shown under the form, e.g. that a draft was restored
-	escAt       time.Time // first esc over an unsent prompt; a second one soon after discards it
-	discard     bool      // quit on that second esc, so the draft goes too
+	// Chat view (chats › new).
+	chatProject int // index into projects
+	chatName    textinput.Model
+	chatPrompt  textarea.Model
+	chatFocus   int
+	openNow     bool
+
+	saved   draft     // last draft written; see draft.go
+	notice  string    // shown under the form, e.g. that a draft was restored
+	escAt   time.Time // first esc over an unsent prompt; a second one soon after discards it
+	discard bool      // quit on that second esc, so the draft goes too
 
 	// Launches that never started; see job.go.
 	jobID      string // spec written for this submit, reported to the launcher
@@ -175,6 +173,12 @@ type model struct {
 	promptEdited   bool
 	branch         string
 	featureProject string
+
+	// Slash completion over both prompts; see skills.go.
+	skillCache    map[string][]skill
+	menuToken     string // token the menu state below belongs to
+	menuIdx       int
+	menuDismissed bool
 
 	view     view
 	sub      []view // last-used view per section, so ctrl+N returns where you were
@@ -238,15 +242,16 @@ type styles struct {
 }
 
 func newModel(themeName string, start view, project string) model {
-	m := model{project: new(string), name: new(string), prompt: new(string), openNow: new(bool), view: start}
-	*m.openNow = true
-	*m.project = project
+	m := model{view: start, openNow: true, skillCache: map[string][]skill{}}
+	m.styles = themes[themeName]
+	m.initChat(m.styles)
+	m.chatProject = max(0, slices.Index(projects, project))
 	var restored draft
 	if d, ok := loadDraft(); ok && restoreDrafts {
-		if slices.Contains(projects, d.Project) {
-			*m.project = d.Project
+		if i := slices.Index(projects, d.Project); i >= 0 {
+			m.chatProject = i
 		}
-		*m.name, *m.prompt = d.Name, d.Prompt
+		m.setChat(d.Name, d.Prompt)
 		restored = d
 		m.saved = d
 		m.notice = fmt.Sprintf("restored the unsent draft from %s · esc twice discards it", d.SavedAt.Local().Format("Mon 15:04"))
@@ -259,59 +264,12 @@ func newModel(themeName string, start view, project string) model {
 	}
 	m.stranded = strandedJobs(time.Now())
 	m.jobNotice = strandedNotice(m.stranded)
-	m.resumeProject = slices.Index(projects, *m.project)
-	m.styles = themes[themeName]
+	m.resumeProject = m.chatProject
 	m.sub = make([]view, len(sections))
 	for i, s := range sections {
 		m.sub[i] = s.views[0]
 	}
 	m.sub[sectionOf(start)] = start
-
-	keys := huh.NewDefaultKeyMap()
-	keys.Input.Next = key.NewBinding(key.WithKeys("tab", "enter"))
-	keys.Text.Next = key.NewBinding(key.WithKeys("tab"))
-	keys.Text.NewLine = key.NewBinding(key.WithKeys("enter", "ctrl+j"))
-	keys.Text.Submit = key.NewBinding(key.WithKeys("ctrl+s"))
-	keys.Confirm.Next = key.NewBinding(key.WithKeys("enter"))
-	keys.Confirm.Toggle = key.NewBinding(key.WithKeys("tab", "left", "right", "h", "l", " "))
-
-	projectField := huh.NewSelect[string]().
-		Title("Project").
-		Options(huh.NewOptions(projects...)...).
-		Inline(true).
-		Filtering(false).
-		Value(m.project)
-	nameField := huh.NewInput().
-		Title("Session name").
-		Placeholder("dose unit case bug").
-		Value(m.name).
-		Validate(func(s string) error {
-			if strings.TrimSpace(s) == "" {
-				return errors.New("name is required")
-			}
-			return nil
-		})
-	promptField := huh.NewText().
-		Title("First prompt").
-		Description("optional · enter for a new line").
-		Placeholder("go look into…").
-		Lines(4).
-		Value(m.prompt)
-	confirmField := huh.NewConfirm().
-		Title("Start").
-		Affirmative("Open now").
-		Negative("Run in background").
-		Value(m.openNow)
-	m.projSel = projectField
-	m.nameField = nameField
-	m.promptField = promptField
-	m.form = huh.NewForm(huh.NewGroup(projectField, nameField, promptField, confirmField)).
-		WithKeyMap(keys).WithShowHelp(false).WithTheme(m.styles.theme).WithWidth(77)
-	// huh sizes a focused text input one cell past the form width, which
-	// clips a bordered field's right edge; size the fields themselves narrower.
-	for _, f := range []huh.Field{nameField, projectField, promptField, confirmField} {
-		f.WithWidth(73)
-	}
 
 	m.filter = textinput.New()
 	m.filter.Prompt = "> "
@@ -330,11 +288,14 @@ func newModel(themeName string, start view, project string) model {
 	m.listRows = 12
 	m.width = 86
 	m.loaded = map[string][]session{}
+	// The project picker sits above the chat fields; typing starts in the name.
+	m.chatFocus = chatNameField
 	switch start {
 	case viewAgents:
 		m.agentFilter.Focus()
 		m.agentsLoading = true
 	case viewNew:
+		m.chatName.Focus()
 	default:
 		m.view = viewNew
 		m.initCmd = m.switchView(start)
@@ -342,14 +303,13 @@ func newModel(themeName string, start view, project string) model {
 	return m
 }
 
-// Init skips past the project picker so typing starts in the name field.
 func (m model) Init() tea.Cmd {
-	cmds := []tea.Cmd{m.form.Init(), huh.NextField, loadSessionsCmd(projects[m.resumeProject]), loadLiveCmd}
+	cmds := []tea.Cmd{textinput.Blink, loadSessionsCmd(projects[m.resumeProject]), loadLiveCmd}
 	if m.view == viewAgents {
-		cmds = append(cmds, loadAgentsCmd(m.mru), textinput.Blink)
+		cmds = append(cmds, loadAgentsCmd(m.mru))
 	}
 	if m.initCmd != nil {
-		cmds = append(cmds, m.initCmd, textinput.Blink)
+		cmds = append(cmds, m.initCmd)
 	}
 	return tea.Batch(cmds...)
 }
@@ -431,6 +391,8 @@ func (m *model) switchView(v view) tea.Cmd {
 		m.filter.Blur()
 	case viewFeature:
 		m.blurFeature()
+	case viewNew:
+		m.blurChat()
 	}
 	m.err = ""
 	m.view = v
@@ -446,7 +408,7 @@ func (m *model) switchView(v view) tea.Cmd {
 	case viewSidebar:
 		return m.enterSidebar()
 	default:
-		return m.form.Init()
+		return m.focusChat(m.chatFocus)
 	}
 }
 
@@ -466,8 +428,9 @@ func (m *model) switchSection(n int) tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	out, cmd := m.update(msg)
 	nm := out.(model)
+	nm.syncMenu()
 	if nm.mode == "" && !nm.discard {
-		d := draft{Project: *nm.project, Name: *nm.name, Prompt: *nm.prompt,
+		d := draft{Project: projects[nm.chatProject], Name: nm.chatName.Value(), Prompt: nm.chatPrompt.Value(),
 			Branch: nm.feature.Value(), FeatureName: nm.featureName.Value(), FeaturePrompt: nm.featurePrompt.Value(),
 			NameEdited: nm.nameEdited, PromptEdited: nm.promptEdited}
 		if !d.same(nm.saved) {
@@ -483,7 +446,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // unsent is typed prompt text that quitting would throw away.
 func (m model) unsent() bool {
-	if strings.TrimSpace(*m.prompt) != "" {
+	if strings.TrimSpace(m.chatPrompt.Value()) != "" {
 		return true
 	}
 	return m.promptEdited && strings.TrimSpace(m.featurePrompt.Value()) != ""
@@ -492,7 +455,7 @@ func (m model) unsent() bool {
 // inPrompt: the chat form's prompt has focus, where ctrl+a/f are line
 // editing keys rather than view shortcuts.
 func (m model) inPrompt() bool {
-	return m.view == viewNew && m.form.GetFocusedField() == m.promptField
+	return m.view == viewNew && m.chatFocus == chatPromptField
 }
 
 // resultFor is what this submit prints, built from whichever view owns the
@@ -500,7 +463,7 @@ func (m model) inPrompt() bool {
 func (m model) resultFor(mode string) result {
 	switch mode {
 	case "open", "bg":
-		return result{Mode: mode, Project: *m.project, Name: strings.TrimSpace(*m.name), Prompt: strings.TrimSpace(*m.prompt), Attach: m.attachments}
+		return result{Mode: mode, Project: projects[m.chatProject], Name: strings.TrimSpace(m.chatName.Value()), Prompt: strings.TrimSpace(m.chatPrompt.Value()), Attach: m.attachments}
 	case "feature", "feature-bg":
 		return result{Mode: mode, Project: m.featureProject, Branch: m.branch, Name: m.picked.Title, Prompt: strings.TrimSpace(m.featurePrompt.Value())}
 	case "focus":
@@ -554,15 +517,10 @@ func (m model) editStranded() (tea.Model, tea.Cmd) {
 		m.nameEdited, m.promptEdited = j.Name != "", j.Prompt != ""
 		return m, m.switchView(viewFeature)
 	}
-	*m.name, *m.prompt = j.Name, j.Prompt
-	// huh fields only read the bound value when it is bound; rebinding is
-	// what makes the widgets show it.
-	m.nameField.Value(m.name)
-	m.promptField.Value(m.prompt)
+	m.setChat(j.Name, j.Prompt)
 	cmd := m.switchView(viewNew)
 	if i := slices.Index(projects, j.Project); i >= 0 {
-		out, jump := m.jumpProject(i)
-		return out, tea.Batch(cmd, jump)
+		m.chatProject = i
 	}
 	return m, cmd
 }
@@ -616,7 +574,7 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case msg.err == errNoImage:
 			// Plain text on the clipboard: let the field paste it.
-			return m.forwardToForm(tea.KeyMsg{Type: tea.KeyCtrlV})
+			return m.forwardChat(tea.KeyMsg{Type: tea.KeyCtrlV})
 		case msg.err != nil:
 			m.err = msg.err.Error()
 		default:
@@ -630,9 +588,13 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	if k, ok := msg.(tea.KeyMsg); ok {
+		// The completion menu owns tab, esc and the arrows while it is up.
+		if out, cmd, taken := m.menuKey(k); taken {
+			return out, cmd
+		}
 		switch ks := k.String(); ks {
 		case "esc", "ctrl+c":
-			formLog("%s in view %d (prompt %d chars, feature prompt %d chars)", ks, m.view, len(*m.prompt), len(m.featurePrompt.Value()))
+			formLog("%s in view %d (prompt %d chars, feature prompt %d chars)", ks, m.view, len(m.chatPrompt.Value()), len(m.featurePrompt.Value()))
 			if m.unsent() && time.Since(m.escAt) > 2*time.Second {
 				m.escAt = time.Now()
 				m.err = "unsent prompt (draft saved) · " + ks + " again to discard it"
@@ -677,30 +639,7 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case viewSidebar:
 		return m.updateSidebar(msg)
 	}
-	if k, ok := msg.(tea.KeyMsg); ok {
-		if i, ok := projectByInitial(k.String()); ok && m.form.GetFocusedField() == m.projSel {
-			return m.jumpProject(i)
-		}
-		switch k.String() {
-		case "ctrl+v":
-			m.err = ""
-			return m, m.attachClipboardCmd()
-		case "ctrl+x":
-			m.dropLastAttachment()
-			return m, nil
-		case "ctrl+s", "ctrl+b":
-			if strings.TrimSpace(*m.name) == "" {
-				m.err = "name is required"
-				return m, nil
-			}
-			mode := "open"
-			if k.String() == "ctrl+b" {
-				mode = "bg"
-			}
-			return m.submit(mode)
-		}
-	}
-	return m.forwardToForm(msg)
+	return m.updateChat(msg)
 }
 
 // pickProject sets the active view's project without moving focus. Views
@@ -717,59 +656,135 @@ func (m model) pickProject(i int) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// jumpProject moves the form's inline project select to projects[i] by
-// stepping the field itself with arrow keys, whichever field has focus.
-// huh's select only re-reads its bound value on binding, so writing the
-// pointer would leave its cursor (and what it draws) behind.
+// jumpProject points the chat view's project picker at projects[i], without
+// moving focus.
 func (m model) jumpProject(i int) (tea.Model, tea.Cmd) {
-	cur := 0
-	for j, p := range projects {
-		if p == *m.project {
-			cur = j
-		}
-	}
-	step := tea.KeyMsg{Type: tea.KeyRight}
-	if i < cur {
-		step = tea.KeyMsg{Type: tea.KeyLeft}
-	}
-	var cmds []tea.Cmd
-	for n := 0; n < max(i-cur, cur-i); n++ {
-		_, cmd := m.projSel.Update(step)
-		cmds = append(cmds, cmd)
-	}
-	// The form draws a cached render of its fields that only its own Update
-	// rebuilds; any message will do.
-	out, cmd := m.forwardToForm(formRefreshMsg{})
-	return out, tea.Batch(append(cmds, cmd)...)
+	m.chatProject = (i + len(projects)) % len(projects)
+	return m, nil
 }
 
-type formRefreshMsg struct{}
+// ── chats › new ─────────────────────────────────────────────────────────────
 
-func (m model) forwardToForm(msg tea.Msg) (tea.Model, tea.Cmd) {
-	f, cmd := m.form.Update(msg)
-	if form, ok := f.(*huh.Form); ok {
-		m.form = form
+const (
+	chatProjectField = iota
+	chatNameField
+	chatPromptField
+	chatStartField
+)
+
+func (m *model) initChat(s styles) {
+	m.chatName = newInput(s, "dose unit case bug")
+	m.chatPrompt = newPromptArea(s, "go look into…", 4)
+}
+
+// setChat fills the two fields from a draft or a job; SetValue keeps the old
+// cursor position, so the input is moved to the end as well.
+func (m *model) setChat(name, prompt string) {
+	m.chatName.SetValue(name)
+	m.chatName.CursorEnd()
+	m.chatPrompt.SetValue(prompt)
+}
+
+func (m *model) focusChat(i int) tea.Cmd {
+	if i < chatProjectField || i > chatStartField {
+		return nil
 	}
-	if m.form.State == huh.StateCompleted {
-		if strings.TrimSpace(*m.name) == "" {
-			return m, tea.Quit
-		}
+	m.blurChat()
+	m.chatFocus = i
+	switch i {
+	case chatNameField:
+		return m.chatName.Focus()
+	case chatPromptField:
+		return m.chatPrompt.Focus()
+	}
+	return nil
+}
+
+func (m *model) blurChat() {
+	m.chatName.Blur()
+	m.chatPrompt.Blur()
+}
+
+func (m model) updateChat(msg tea.Msg) (tea.Model, tea.Cmd) {
+	k, ok := msg.(tea.KeyMsg)
+	if !ok {
+		return m.forwardChat(msg)
+	}
+	switch k.String() {
+	case "ctrl+v":
+		m.err = ""
+		return m, m.attachClipboardCmd()
+	case "ctrl+x":
+		m.dropLastAttachment()
+		return m, nil
+	case "ctrl+s", "ctrl+b":
 		mode := "open"
-		if !*m.openNow {
+		if k.String() == "ctrl+b" {
 			mode = "bg"
 		}
-		out, cmd := m.submit(mode)
-		if out.(model).mode == "" {
-			// The spec could not be written: put the form back on screen
-			// rather than closing over the text.
-			m.form.State = huh.StateNormal
-		}
-		return out, cmd
+		return m.submitChat(mode)
 	}
-	if m.form.State == huh.StateAborted {
-		return m, tea.Quit
+	switch m.chatFocus {
+	case chatProjectField:
+		if i, ok := projectByInitial(k.String()); ok {
+			return m.jumpProject(i)
+		}
+		switch k.String() {
+		case "left", "h", "up", "k":
+			return m.jumpProject(m.chatProject - 1)
+		case "right", "l", "down", "j", " ":
+			return m.jumpProject(m.chatProject + 1)
+		case "tab", "enter":
+			return m, m.focusChat(chatNameField)
+		}
+		return m, nil
+	case chatStartField:
+		switch k.String() {
+		case "tab", "left", "right", "h", "l", " ":
+			m.openNow = !m.openNow
+			return m, nil
+		case "shift+tab":
+			return m, m.focusChat(chatPromptField)
+		case "enter":
+			mode := "bg"
+			if m.openNow {
+				mode = "open"
+			}
+			return m.submitChat(mode)
+		}
+		return m, nil
+	}
+	switch k.String() {
+	case "tab":
+		return m, m.focusChat(m.chatFocus + 1)
+	case "shift+tab":
+		return m, m.focusChat(m.chatFocus - 1)
+	case "enter":
+		if m.chatFocus == chatNameField {
+			return m, m.focusChat(chatPromptField)
+		}
+	}
+	m.err = ""
+	return m.forwardChat(msg)
+}
+
+func (m model) forwardChat(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch m.chatFocus {
+	case chatNameField:
+		m.chatName, cmd = m.chatName.Update(msg)
+	case chatPromptField:
+		m.chatPrompt, cmd = m.chatPrompt.Update(msg)
 	}
 	return m, cmd
+}
+
+func (m model) submitChat(mode string) (tea.Model, tea.Cmd) {
+	if strings.TrimSpace(m.chatName.Value()) == "" {
+		m.err = "name is required"
+		return m, m.focusChat(chatNameField)
+	}
+	return m.submit(mode)
 }
 
 func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -848,13 +863,7 @@ func (m model) View() string {
 	case viewSidebar:
 		body = m.sidebarView()
 	default:
-		help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + m.strandedHelp() + " · esc cancel"
-		body = m.tabsView() + "\n\n" + m.form.View()
-		body += m.noticesView()
-		if a := m.attachmentsView(); a != "" {
-			body += "\n" + a + "\n"
-		}
-		body += "\n" + m.styles.help.Render(help)
+		body = m.chatView()
 	}
 	if m.err != "" {
 		body += "\n" + m.styles.err.Render(m.err)
@@ -967,15 +976,71 @@ func (m model) tabAt(x, y int) (view, bool) {
 	return 0, false
 }
 
-// projectPicker renders a view's project line in the same shape as the
-// form's inline select: a label, then ← project → when focused.
+// projectPicker renders a view's project line: a label, then ← project →
+// when focused. Like the other non-text fields it takes no box, so focus
+// shows in the title style and the indicators alone.
 func (m model) projectPicker(name string, focused bool) string {
 	t := m.styles.theme
 	if focused {
-		return t.Focused.Base.Render(t.Focused.Title.Render("Project") + "\n" +
-			t.Focused.PrevIndicator.String() + name + t.Focused.NextIndicator.String())
+		return t.Focused.Title.Render("Project") + "\n" +
+			t.Focused.PrevIndicator.String() + name + t.Focused.NextIndicator.String()
 	}
-	return t.Blurred.Base.Render(t.Blurred.Title.Render("Project") + "\n" + name)
+	return t.Blurred.Title.Render("Project") + "\n" + name
+}
+
+// inputField is the shell every editable field shares: a title line, an
+// optional pre-styled hint beside it, then the widget in a box that lights
+// up when the field has focus.
+func (m model) inputField(focused bool, title, hint, body string) string {
+	t := m.styles.theme
+	titleStyle, edge := t.Blurred.Title, lipgloss.Color("#45475a")
+	if focused {
+		titleStyle, edge = t.Focused.Title, m.styles.accent
+	}
+	head := titleStyle.Render(title)
+	if hint != "" {
+		head += "  " + hint
+	}
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(edge).Padding(0, 1).Width(74)
+	return head + "\n" + box.Render(body)
+}
+
+// startField is the Open now / Run in background choice, drawn as huh's
+// confirm buttons were.
+func (m model) startField() string {
+	t := m.styles.theme
+	fs := t.Blurred
+	if m.chatFocus == chatStartField {
+		fs = t.Focused
+	}
+	open, background := fs.BlurredButton, fs.FocusedButton
+	if m.openNow {
+		open, background = fs.FocusedButton, fs.BlurredButton
+	}
+	return fs.Title.Render("Start") + "\n" + open.Render("Open now") + " " + background.Render("Run in background")
+}
+
+func (m model) chatView() string {
+	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
+	var b strings.Builder
+	b.WriteString(m.tabsView() + "\n\n")
+	b.WriteString(m.projectPicker(projects[m.chatProject], m.chatFocus == chatProjectField) + "\n\n")
+	b.WriteString(m.inputField(m.chatFocus == chatNameField, "Session name", "", m.chatName.View()) + "\n\n")
+	b.WriteString(m.inputField(m.chatFocus == chatPromptField, "First prompt", dim.Render("optional · enter for a new line"), m.chatPrompt.View()) + "\n")
+	rows := m.menuRows()
+	b.WriteString(m.menuView(rows))
+	b.WriteString("\n" + m.startField() + "\n")
+	b.WriteString(m.noticesView())
+	if a := m.attachmentsView(); a != "" {
+		b.WriteString("\n" + a + "\n")
+	}
+
+	help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + m.strandedHelp() + " · esc cancel"
+	if len(rows) > 0 {
+		help = menuHelp(m.menuProject())
+	}
+	b.WriteString("\n" + m.styles.help.Render(help))
+	return b.String()
 }
 
 func (m model) resumeView() string {
@@ -1176,9 +1241,17 @@ func drive(m tea.Model, cmd tea.Cmd) tea.Model {
 }
 
 func demo(themeName, state string) {
-	mm := newModel(themeName, viewNew, projects[0])
-	mm.form = mm.form.WithHeight(40)
-	var m tea.Model = mm
+	// Never over the real draft: a demo frame runs a full model, autosave
+	// and all.
+	if os.Getenv("HERDR_THREADS_DIR") == "" {
+		dir, err := os.MkdirTemp("", "herdr-demo-")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		os.Setenv("HERDR_THREADS_DIR", dir)
+	}
+	var m tea.Model = newModel(themeName, viewNew, projects[0])
 	m = drive(m, m.Init())
 	// agents[-sample][-all][:pattern] — live rows, or a synthetic mix of
 	// every status so the needs-you layout can be seen without one.
@@ -1257,7 +1330,7 @@ func demo(themeName, state string) {
 			m = drive(next, c)
 		}
 	}
-	if state == "filled" {
+	if state == "filled" || state == "menu" {
 		typeText := func(t string) {
 			for _, r := range t {
 				next, c := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
@@ -1270,8 +1343,12 @@ func demo(themeName, state string) {
 		}
 		typeText("dose unit case bug")
 		tab()
-		typeText("Look into why HL7 dose units like \"Ml\" blank the review unit select.")
-		tab()
+		if state == "menu" {
+			typeText("look at this then run /ver")
+		} else {
+			typeText("Look into why HL7 dose units like \"Ml\" blank the review unit select.")
+			tab()
+		}
 	}
 	fmt.Print(m.View())
 }
@@ -1326,7 +1403,7 @@ func main() {
 			formLog("cancelled; draft discarded")
 		} else {
 			formLog("cancelled in view %d; draft kept (prompt %d chars, feature prompt %d chars)",
-				m.view, len(*m.prompt), len(m.featurePrompt.Value()))
+				m.view, len(m.chatPrompt.Value()), len(m.featurePrompt.Value()))
 		}
 		m.cleanupAttachments()
 		os.Exit(1)
