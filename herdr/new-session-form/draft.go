@@ -9,14 +9,23 @@ import (
 	"time"
 )
 
-// A draft is the new-session form's contents, written on every change so a
-// prompt outlives the popup: an esc, a crash, or a launcher that dies before
-// saving the prompt file. The launcher (herdr-new-thread --launch) deletes it
-// once the prompt is on disk; the next popup restores whatever is left.
+// A draft is the form's contents, chat fields and feature fields alike,
+// written on every change so a prompt outlives the popup: an esc, a crash, or
+// a launcher that dies before saving the prompt file. The launcher
+// (herdr-new-thread --launch) deletes it once the prompt is on disk; the next
+// popup restores whatever is left. The feature keys are optional, so a
+// draft.json written before they existed still loads.
 type draft struct {
-	Project string    `json:"project"`
-	Name    string    `json:"name"`
-	Prompt  string    `json:"prompt"`
+	Project string `json:"project"`
+	Name    string `json:"name"`
+	Prompt  string `json:"prompt"`
+
+	Branch        string `json:"branch,omitempty"`
+	FeatureName   string `json:"feature_name,omitempty"`
+	FeaturePrompt string `json:"feature_prompt,omitempty"`
+	NameEdited    bool   `json:"feature_name_edited,omitempty"`
+	PromptEdited  bool   `json:"feature_prompt_edited,omitempty"`
+
 	SavedAt time.Time `json:"saved_at"`
 }
 
@@ -24,14 +33,34 @@ type draft struct {
 var restoreDrafts = true
 
 func (d draft) empty() bool {
-	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == ""
+	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == "" && d.featureEmpty()
+}
+
+// featureEmpty: nothing typed in the features view. The name and prompt
+// follow the branch, so a branch alone is still worth keeping.
+func (d draft) featureEmpty() bool {
+	return strings.TrimSpace(d.Branch) == "" && strings.TrimSpace(d.FeatureName) == "" &&
+		strings.TrimSpace(d.FeaturePrompt) == ""
+}
+
+// featureOnly drafts open the popup on the features view, so the restored
+// text is in sight.
+func (d draft) featureOnly() bool {
+	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == "" && !d.featureEmpty()
 }
 
 func (d draft) same(o draft) bool {
-	return d.Project == o.Project && d.Name == o.Name && d.Prompt == o.Prompt
+	return d.Project == o.Project && d.Name == o.Name && d.Prompt == o.Prompt &&
+		d.Branch == o.Branch && d.FeatureName == o.FeatureName && d.FeaturePrompt == o.FeaturePrompt &&
+		d.NameEdited == o.NameEdited && d.PromptEdited == o.PromptEdited
 }
 
+// threadsCacheDir holds the draft, the launch log and jobs/. The env
+// override keeps tests off the real one.
 func threadsCacheDir() string {
+	if dir := os.Getenv("HERDR_THREADS_DIR"); dir != "" {
+		return dir
+	}
 	home, _ := os.UserHomeDir()
 	return filepath.Join(home, ".cache", "herdr-threads")
 }

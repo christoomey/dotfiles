@@ -17,16 +17,21 @@
 // them, a/m/d pick a project while one has focus, and from anywhere in the
 // view ctrl+m / ctrl+d pick moi / dotfiles (ctrl+m needs kitty: in legacy
 // encoding it is enter). Prints one JSON result on stdout; exits 1 on cancel.
-// The new-session fields autosave as a draft that the next popup restores
-// until the launcher has the prompt on disk; esc over an unsent prompt only
-// warns, and a second esc discards it (see draft.go).
+// Both the chat and the feature fields autosave as a draft that the next
+// popup restores until the launcher has the prompt on disk; esc over an
+// unsent prompt only warns, and a second esc discards it (see draft.go).
+// Every launch is written to jobs/<id>.json before the popup closes and the
+// id travels with the result (see job.go); a launch that never started shows
+// up in the next popup as a notice, with ctrl+g to retry it and ctrl+o to
+// load it back into the form.
 //
-//	{"mode":"open"|"bg", "project","name","prompt","attachments"}   new session (attachments: png paths)
-//	{"mode":"resume"|"resume-bg", "project","session_id","name"}    resume a past session
+//	{"mode":"open"|"bg", "project","name","prompt","attachments","job_id"}   new session (attachments: png paths)
+//	{"mode":"resume"|"resume-bg", "project","session_id","name","job_id"}    resume a past session
 //	{"mode":"focus", "tab_id","name"}                               session is live already
-//	{"mode":"feature"|"feature-bg", "project","branch","name","prompt"}  bootstrap a feature worktree
+//	{"mode":"feature"|"feature-bg", "project","branch","name","prompt","job_id"}  bootstrap a feature worktree
 //	{"mode":"agent", "tab_id","pane_id","name"}                     jump to a live agent's pane
 //	{"mode":"workspace", "workspace_id","name"}                     focus a workspace from the sidebar tab
+//	{"mode":"retry", "job_id"}                                      run a stranded job again
 //
 //	herdr-new-session-form [--theme NAME] [--view agents]
 //	herdr-new-session-form --demo NAME fresh|filled|resume|agents|sidebar   # print one frame (ANSI)
@@ -58,6 +63,7 @@ type result struct {
 	Prompt    string   `json:"prompt,omitempty"`
 	Attach    []string `json:"attachments,omitempty"`
 	SessionID string   `json:"session_id,omitempty"`
+	JobID     string   `json:"job_id,omitempty"`
 	TabID     string   `json:"tab_id,omitempty"`
 	PaneID    string   `json:"pane_id,omitempty"`
 	Workspace string   `json:"workspace_id,omitempty"`
@@ -72,6 +78,10 @@ const (
 	viewFeature
 	viewSidebar
 )
+
+// explicitView records a --view flag. Without one, a restored draft with
+// only feature text decides which view opens.
+var explicitView bool
 
 // startViews are the --view names: a section opens on its first subtab.
 var startViews = map[string]view{
@@ -144,11 +154,18 @@ type model struct {
 	attachDir   string
 	attachments []string
 
+	nameField   *huh.Input
 	promptField *huh.Text
 	saved       draft     // last draft written; see draft.go
 	notice      string    // shown under the form, e.g. that a draft was restored
 	escAt       time.Time // first esc over an unsent prompt; a second one soon after discards it
 	discard     bool      // quit on that second esc, so the draft goes too
+
+	// Launches that never started; see job.go.
+	jobID      string // spec written for this submit, reported to the launcher
+	stranded   []strandedJob
+	jobNotice  string
+	supersedes string // stranded job this submit replaces
 
 	feature        textinput.Model // Linear branch
 	featureName    textinput.Model
@@ -224,14 +241,24 @@ func newModel(themeName string, start view, project string) model {
 	m := model{project: new(string), name: new(string), prompt: new(string), openNow: new(bool), view: start}
 	*m.openNow = true
 	*m.project = project
+	var restored draft
 	if d, ok := loadDraft(); ok && restoreDrafts {
 		if slices.Contains(projects, d.Project) {
 			*m.project = d.Project
 		}
 		*m.name, *m.prompt = d.Name, d.Prompt
+		restored = d
 		m.saved = d
 		m.notice = fmt.Sprintf("restored the unsent draft from %s · esc twice discards it", d.SavedAt.Local().Format("Mon 15:04"))
+		// Nothing in the chat fields: open where the text actually is,
+		// unless the caller asked for a view itself.
+		if d.featureOnly() && !explicitView && start == viewNew {
+			start = viewFeature
+			m.view = start
+		}
 	}
+	m.stranded = strandedJobs(time.Now())
+	m.jobNotice = strandedNotice(m.stranded)
 	m.resumeProject = slices.Index(projects, *m.project)
 	m.styles = themes[themeName]
 	m.sub = make([]view, len(sections))
@@ -276,6 +303,7 @@ func newModel(themeName string, start view, project string) model {
 		Negative("Run in background").
 		Value(m.openNow)
 	m.projSel = projectField
+	m.nameField = nameField
 	m.promptField = promptField
 	m.form = huh.NewForm(huh.NewGroup(projectField, nameField, promptField, confirmField)).
 		WithKeyMap(keys).WithShowHelp(false).WithTheme(m.styles.theme).WithWidth(77)
@@ -292,6 +320,10 @@ func newModel(themeName string, start view, project string) model {
 	m.filter.PromptStyle = lipgloss.NewStyle().Foreground(m.styles.accent)
 	m.filter.PlaceholderStyle = lipgloss.NewStyle().Foreground(m.styles.dim)
 	m.initFeature(m.styles)
+	if !restored.featureEmpty() {
+		m.setFeature(restored.Branch, restored.FeatureName, restored.FeaturePrompt)
+		m.nameEdited, m.promptEdited = restored.NameEdited, restored.PromptEdited
+	}
 	m.agentFilter = newAgentFilter(m.styles)
 	m.mru = loadAgentMRU()
 	m.loading = true
@@ -430,12 +462,14 @@ func (m *model) switchSection(n int) tea.Cmd {
 	return m.switchView(m.sub[n])
 }
 
-// Update autosaves the new-session form after every message; see draft.go.
+// Update autosaves the form after every message; see draft.go.
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	out, cmd := m.update(msg)
 	nm := out.(model)
 	if nm.mode == "" && !nm.discard {
-		d := draft{Project: *nm.project, Name: *nm.name, Prompt: *nm.prompt}
+		d := draft{Project: *nm.project, Name: *nm.name, Prompt: *nm.prompt,
+			Branch: nm.feature.Value(), FeatureName: nm.featureName.Value(), FeaturePrompt: nm.featurePrompt.Value(),
+			NameEdited: nm.nameEdited, PromptEdited: nm.promptEdited}
 		if !d.same(nm.saved) {
 			if err := saveDraft(d); err != nil {
 				nm.err = "could not save draft: " + err.Error()
@@ -459,6 +493,78 @@ func (m model) unsent() bool {
 // editing keys rather than view shortcuts.
 func (m model) inPrompt() bool {
 	return m.view == viewNew && m.form.GetFocusedField() == m.promptField
+}
+
+// resultFor is what this submit prints, built from whichever view owns the
+// mode. It is also what the job spec is written from.
+func (m model) resultFor(mode string) result {
+	switch mode {
+	case "open", "bg":
+		return result{Mode: mode, Project: *m.project, Name: strings.TrimSpace(*m.name), Prompt: strings.TrimSpace(*m.prompt), Attach: m.attachments}
+	case "feature", "feature-bg":
+		return result{Mode: mode, Project: m.featureProject, Branch: m.branch, Name: m.picked.Title, Prompt: strings.TrimSpace(m.featurePrompt.Value())}
+	case "focus":
+		// herdr only reports a name for agents it started itself.
+		name := m.picked.LiveName
+		if name == "" {
+			name = m.picked.Title
+		}
+		return result{Mode: mode, Name: name, TabID: m.picked.LiveTab}
+	case "agent":
+		return result{Mode: mode, Name: m.agentPicked.Name, TabID: m.agentPicked.TabID, PaneID: m.agentPicked.PaneID}
+	case "workspace":
+		return result{Mode: mode, Name: m.wsPicked.Label, Workspace: m.wsPicked.ID}
+	case "retry":
+		return result{Mode: mode}
+	default:
+		return result{Mode: mode, Project: projects[m.resumeProject], Name: m.picked.Title, SessionID: m.picked.ID}
+	}
+}
+
+// submit closes the popup on a launch. The job spec and its queued event go
+// to disk first and the draft only afterwards, so text can never be lost
+// between here and the launcher; if the spec cannot be written the form
+// stays open with everything still in it.
+func (m model) submit(mode string) (tea.Model, tea.Cmd) {
+	if jobModes[mode] {
+		id, err := queueJob(m.resultFor(mode), time.Now())
+		if err != nil {
+			m.err = "could not save the launch: " + err.Error()
+			return m, nil
+		}
+		m.jobID = id
+		if m.supersedes != "" {
+			appendEvent(m.supersedes, "superseded", id)
+			m.supersedes = ""
+		}
+		clearDraft()
+	}
+	m.mode = mode
+	return m, tea.Quit
+}
+
+// editStranded loads the newest launch that never started back into the view
+// it came from, so it can be changed and sent again.
+func (m model) editStranded() (tea.Model, tea.Cmd) {
+	j := m.stranded[0]
+	m.supersedes = j.ID
+	m.stranded, m.jobNotice, m.err = nil, "", ""
+	if j.Mode == "feature" || j.Mode == "feature-bg" {
+		m.setFeature(j.Branch, j.Name, j.Prompt)
+		m.nameEdited, m.promptEdited = j.Name != "", j.Prompt != ""
+		return m, m.switchView(viewFeature)
+	}
+	*m.name, *m.prompt = j.Name, j.Prompt
+	// huh fields only read the bound value when it is bound; rebinding is
+	// what makes the widgets show it.
+	m.nameField.Value(m.name)
+	m.promptField.Value(m.prompt)
+	cmd := m.switchView(viewNew)
+	if i := slices.Index(projects, j.Project); i >= 0 {
+		out, jump := m.jumpProject(i)
+		return out, tea.Batch(cmd, jump)
+	}
+	return m, cmd
 }
 
 func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -526,7 +632,7 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if k, ok := msg.(tea.KeyMsg); ok {
 		switch ks := k.String(); ks {
 		case "esc", "ctrl+c":
-			formLog("%s in view %d (prompt %d chars)", ks, m.view, len(*m.prompt))
+			formLog("%s in view %d (prompt %d chars, feature prompt %d chars)", ks, m.view, len(*m.prompt), len(m.featurePrompt.Value()))
 			if m.unsent() && time.Since(m.escAt) > 2*time.Second {
 				m.escAt = time.Now()
 				m.err = "unsent prompt (draft saved) · " + ks + " again to discard it"
@@ -548,6 +654,16 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// In the agents view ctrl+a is the scope toggle instead.
 			if m.view != viewAgents && !m.inPrompt() {
 				return m, m.switchView(viewAgents)
+			}
+		case retryKey:
+			if len(m.stranded) > 0 {
+				m.jobID = m.stranded[0].ID
+				m.mode = "retry"
+				return m, tea.Quit
+			}
+		case editKey:
+			if len(m.stranded) > 0 {
+				return m.editStranded()
 			}
 		}
 	}
@@ -577,11 +693,11 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = "name is required"
 				return m, nil
 			}
-			m.mode = "open"
+			mode := "open"
 			if k.String() == "ctrl+b" {
-				m.mode = "bg"
+				mode = "bg"
 			}
-			return m, tea.Quit
+			return m.submit(mode)
 		}
 	}
 	return m.forwardToForm(msg)
@@ -638,11 +754,17 @@ func (m model) forwardToForm(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if strings.TrimSpace(*m.name) == "" {
 			return m, tea.Quit
 		}
-		m.mode = "open"
+		mode := "open"
 		if !*m.openNow {
-			m.mode = "bg"
+			mode = "bg"
 		}
-		return m, tea.Quit
+		out, cmd := m.submit(mode)
+		if out.(model).mode == "" {
+			// The spec could not be written: put the form back on screen
+			// rather than closing over the text.
+			m.form.State = huh.StateNormal
+		}
+		return out, cmd
 	}
 	if m.form.State == huh.StateAborted {
 		return m, tea.Quit
@@ -696,13 +818,12 @@ func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.picked = m.matches[m.cursor]
 		switch {
 		case m.picked.LiveTab != "":
-			m.mode = "focus"
+			return m.submit("focus")
 		case k.String() == "ctrl+b":
-			m.mode = "resume-bg"
+			return m.submit("resume-bg")
 		default:
-			m.mode = "resume"
+			return m.submit("resume")
 		}
-		return m, tea.Quit
 	}
 	var cmd tea.Cmd
 	m.filter, cmd = m.filter.Update(msg)
@@ -727,11 +848,9 @@ func (m model) View() string {
 	case viewSidebar:
 		body = m.sidebarView()
 	default:
-		help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
+		help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + m.strandedHelp() + " · esc cancel"
 		body = m.tabsView() + "\n\n" + m.form.View()
-		if m.notice != "" {
-			body += "\n" + m.styles.attach.Render(m.notice)
-		}
+		body += m.noticesView()
 		if a := m.attachmentsView(); a != "" {
 			body += "\n" + a + "\n"
 		}
@@ -741,6 +860,25 @@ func (m model) View() string {
 		body += "\n" + m.styles.err.Render(m.err)
 	}
 	return m.styles.frame.Render(body)
+}
+
+// noticesView is the restored-draft line and the stranded-launch line, in
+// the views that can act on them.
+func (m model) noticesView() string {
+	var out string
+	for _, n := range []string{m.notice, m.jobNotice} {
+		if n != "" {
+			out += "\n" + m.styles.attach.Render(n)
+		}
+	}
+	return out
+}
+
+func (m model) strandedHelp() string {
+	if len(m.stranded) == 0 {
+		return ""
+	}
+	return " · " + retryKey + " retry · " + editKey + " edit"
 }
 
 // tabHit is the column span of one clickable label on the tabs lines.
@@ -1159,6 +1297,7 @@ func main() {
 				os.Exit(2)
 			}
 			start = v
+			explicitView = true
 		case "--project":
 			if !slices.Contains(projects, args[i+1]) {
 				fmt.Fprintln(os.Stderr, "unknown project:", args[i+1])
@@ -1186,37 +1325,18 @@ func main() {
 			clearDraft()
 			formLog("cancelled; draft discarded")
 		} else {
-			formLog("cancelled in view %d; draft kept (prompt %d chars)", m.view, len(*m.prompt))
+			formLog("cancelled in view %d; draft kept (prompt %d chars, feature prompt %d chars)",
+				m.view, len(*m.prompt), len(m.featurePrompt.Value()))
 		}
 		m.cleanupAttachments()
 		os.Exit(1)
 	}
-	formLog("submitted %s %q (prompt %d chars)", m.mode, strings.TrimSpace(*m.name), len(strings.TrimSpace(*m.prompt)))
-	var res result
-	switch m.mode {
-	case "open", "bg":
-		res = result{Mode: m.mode, Project: *m.project, Name: strings.TrimSpace(*m.name), Prompt: strings.TrimSpace(*m.prompt), Attach: m.attachments}
-	case "feature", "feature-bg":
+	res := m.resultFor(m.mode)
+	res.JobID = m.jobID
+	if m.mode != "open" && m.mode != "bg" {
 		m.cleanupAttachments()
-		res = result{Mode: m.mode, Project: m.featureProject, Branch: m.branch, Name: m.picked.Title, Prompt: strings.TrimSpace(m.featurePrompt.Value())}
-	case "focus":
-		m.cleanupAttachments()
-		// herdr only reports a name for agents it started itself.
-		name := m.picked.LiveName
-		if name == "" {
-			name = m.picked.Title
-		}
-		res = result{Mode: m.mode, Name: name, TabID: m.picked.LiveTab}
-	case "agent":
-		m.cleanupAttachments()
-		res = result{Mode: m.mode, Name: m.agentPicked.Name, TabID: m.agentPicked.TabID, PaneID: m.agentPicked.PaneID}
-	case "workspace":
-		m.cleanupAttachments()
-		res = result{Mode: m.mode, Name: m.wsPicked.Label, Workspace: m.wsPicked.ID}
-	default:
-		m.cleanupAttachments()
-		res = result{Mode: m.mode, Project: projects[m.resumeProject], Name: m.picked.Title, SessionID: m.picked.ID}
 	}
+	formLog("submitted %s %q (prompt %d chars) job=%s", m.mode, res.Name, len(res.Prompt), m.jobID)
 	out, _ := json.Marshal(res)
 	fmt.Println(string(out))
 }

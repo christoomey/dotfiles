@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -126,6 +128,16 @@ func (m *model) initFeature(s styles) {
 	m.featurePrompt = ta
 }
 
+// setFeature fills the three inputs from a draft or a job. SetValue keeps the
+// old cursor position, so the inputs are moved to the end as well.
+func (m *model) setFeature(branch, name, prompt string) {
+	m.feature.SetValue(branch)
+	m.feature.CursorEnd()
+	m.featureName.SetValue(name)
+	m.featureName.CursorEnd()
+	m.featurePrompt.SetValue(prompt)
+}
+
 func (m *model) focusFeature(i int) tea.Cmd {
 	m.blurFeature()
 	m.featureFocus = (i + featFields) % featFields
@@ -210,14 +222,22 @@ func (m model) submitFeature(background bool) (tea.Model, tea.Cmd) {
 		m.err = "feature name is required"
 		return m, nil
 	}
+	// The bootstrap would fail later in a tab nobody is looking at.
+	if dir, err := projectWorktreeRoot(project); err == nil {
+		wt := filepath.Join(dir, name)
+		if _, err := os.Stat(wt); err == nil {
+			m.err = "worktree exists already: " + wt
+			return m, nil
+		}
+	}
 	m.branch = branch
 	m.featureProject = project
 	m.picked.Title = name
-	m.mode = "feature"
+	mode := "feature"
 	if background {
-		m.mode = "feature-bg"
+		mode = "feature-bg"
 	}
-	return m, tea.Quit
+	return m.submit(mode)
 }
 
 func (m model) featureView() string {
@@ -250,8 +270,9 @@ func (m model) featureView() string {
 	b.WriteString(field(featBranch, "Linear branch", m.feature.View()+"\n"+hint) + "\n\n")
 	b.WriteString(field(featName, "Feature name", m.featureName.View()) + "\n\n")
 	b.WriteString(field(featPrompt, "Initial prompt", dim.Render("optional · enter for a new line")+"\n"+m.featurePrompt.View()) + "\n")
+	b.WriteString(m.noticesView())
 
-	help := "ctrl+s start feature · ctrl+b in background · tab next field · " + tabsHelp + " · esc cancel"
+	help := "ctrl+s start feature · ctrl+b in background · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }
