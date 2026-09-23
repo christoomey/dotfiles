@@ -10,7 +10,8 @@
 #   ● review · august.fe         $review|$feature|$chat · $project
 #     1234 tidy login form        $name
 #
-#   review   the tab is a /review-queue session (label REV-<FE|BE>-…)
+#   review   the tab is a /review-queue session (label REV-<FE|BE>-…, any
+#            case, dashes or spaces)
 #   feature  the cwd is a linked git worktree (an august or moi feature)
 #   chat     anything else (herdr-new-thread chats, ad-hoc splits)
 #   name     the review number + slug, the worktree dir, or the tab label,
@@ -108,7 +109,7 @@ generic_label() {
 classify() {
   local cwd="$1" label="$2" kind name project side feature
   project=$(project_for "$cwd")
-  if [[ "$label" =~ ^REV-(FE|BE)-(.+)$ ]]; then
+  if [[ "$label" =~ ^[Rr][Ee][Vv][-\ ]([FfBb][Ee])[-\ ](.+)$ ]]; then
     side=$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:upper:]' '[:lower:]')
     kind=review
     name="${BASH_REMATCH[2]}"

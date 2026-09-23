@@ -12,7 +12,10 @@
 #
 #   herdr-open-chat PROJECT SESSION_ID [NAME]
 #     PROJECT: august | moi | dotfiles
-#     NAME:    tab label for a resumed session (default: the session id)
+#     NAME:    tab label for a resumed session when the transcript carries no
+#              title of its own (default: the session id). A link's slug is a
+#              lowercased, de-dashed copy of the title, which would turn a
+#              REV-FE-… tab into "rev fe …" and lose its sidebar kind.
 set -e
 usage="usage: herdr-open-chat PROJECT SESSION_ID [NAME]"
 project="${1:?$usage}"
@@ -67,6 +70,9 @@ if [ -z "$transcript" ]; then
   echo "no Claude session $session_id on this machine" >&2
   exit 2
 fi
+title=$(grep -F '"type":"custom-title"' "$transcript" | tail -n1 | jq -r '.customTitle // empty')
+[ -z "$title" ] && title=$(grep -F '"type":"ai-title"' "$transcript" | tail -n1 | jq -r '.aiTitle // empty')
+[ -n "$title" ] && name="$title"
 
 open -a Ghostty
 
