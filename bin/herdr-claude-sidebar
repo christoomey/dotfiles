@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+#
+# herdr-claude-sidebar: label a Claude pane for the herdr agents sidebar.
+#
+# The sidebar's default rows (workspace · tab / agent) repeat the project name
+# and the tab label for every review session and say nothing about which
+# project a feature worktree belongs to. This reports display-only pane
+# metadata tokens instead, which herdr/config.toml renders as
+#
+#   ● review · august.fe         $review|$feature|$chat · $project
+#     1234 tidy login form        $name
+#
+#   review   the tab is a /review-queue session (label REV-<FE|BE>-…)
+#   feature  the cwd is a linked git worktree (an august or moi feature)
+#   chat     anything else (herdr-new-thread chats, ad-hoc splits)
+#   name     the review number + slug, the worktree dir, or the tab label,
+#            dashes and underscores read as spaces
+#   project  august / august.fe / august.be / moi / dotfiles / repo basename
+#
+# Only the matching kind token is set (the others are cleared), so the sidebar
+# can give each kind a fixed color without per-token rules.
+#
+# Runs as a Claude Code SessionStart hook (startup, resume, clear, compact,
+# fork), so a restored session re-reports after a herdr restart, which drops
+# token metadata. Tokens live until the pane closes.
+#
+# Usage:
+#   herdr-claude-sidebar            # hook mode: JSON on stdin, HERDR_PANE_ID set
+#   herdr-claude-sidebar --all      # re-label every live claude pane
+#   herdr-claude-sidebar --dry-run [--all]   # print what would be reported
+
+set -uo pipefail
+
+SOURCE="dotfiles-sidebar"
+dry_run=0 all=0
+for arg in "$@"; do
+  case "$arg" in
+    --all) all=1 ;;
+    --dry-run) dry_run=1 ;;
+    *) echo "herdr-claude-sidebar: unknown argument: $arg" >&2; exit 2 ;;
+  esac
+done
+
+command -v herdr >/dev/null 2>&1 || exit 0
+command -v jq >/dev/null 2>&1 || exit 0
+
+real() { (cd "$1" 2>/dev/null && pwd -P); }
+
+august_root=$(augie-path root 2>/dev/null || true)
+august_worktrees=$(augie-path worktrees 2>/dev/null || true)
+august_repos=$(augie-path repos 2>/dev/null || true)
+moi_root=$(real "$HOME/code/moi")
+moi_worktrees="$HOME/code/moi__worktrees"
+dotfiles_root=$(real "$HOME/code/dotfiles")
+
+under() { [[ -n "$2" && ("$1" == "$2" || "$1" == "$2"/*) ]]; }
+
+# First path component of $1 below directory $2.
+child_of() {
+  local rest="${1#"$2"/}"
+  printf '%s' "${rest%%/*}"
+}
+
+project_for() {
+  local cwd="$1" top common
+  if under "$cwd" "$august_root" || under "$cwd" "$august_worktrees" || under "$cwd" "$august_repos"; then
+    echo august
+  elif under "$cwd" "$moi_root" || under "$cwd" "$moi_worktrees"; then
+    echo moi
+  elif under "$cwd" "$dotfiles_root"; then
+    echo dotfiles
+  else
+    # The main repo's directory, even from a linked worktree.
+    common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+    if [[ -n "$common" ]]; then
+      basename "$(dirname "$common")"
+    else
+      basename "$cwd"
+    fi
+  fi
+}
+
+# A worktree checked out apart from its main repo: feature work.
+feature_name_for() {
+  local cwd="$1" git_dir common
+  if [[ -n "$august_worktrees" ]] && under "$cwd" "$august_worktrees" && [[ "$cwd" != "$august_worktrees" ]]; then
+    child_of "$cwd" "$august_worktrees"
+    return 0
+  fi
+  if under "$cwd" "$moi_worktrees" && [[ "$cwd" != "$moi_worktrees" ]]; then
+    child_of "$cwd" "$moi_worktrees"
+    return 0
+  fi
+  git_dir=$(git -C "$cwd" rev-parse --absolute-git-dir 2>/dev/null) || return 1
+  common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  [[ "$git_dir" != "$common" ]] || return 1
+  basename "$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)"
+}
+
+generic_label() {
+  case "$1" in
+    ""|main|server|[0-9]*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Prints "kind<TAB>name<TAB>project" for a pane's cwd and tab label.
+classify() {
+  local cwd="$1" label="$2" kind name project side feature
+  project=$(project_for "$cwd")
+  if [[ "$label" =~ ^REV-(FE|BE)-(.+)$ ]]; then
+    side=$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:upper:]' '[:lower:]')
+    kind=review
+    name="${BASH_REMATCH[2]}"
+    project="$project.$side"
+  elif feature=$(feature_name_for "$cwd") && [[ -n "$feature" ]]; then
+    kind=feature
+    name="$feature"
+  else
+    kind=chat
+    if generic_label "$label"; then
+      name=$(basename "$cwd")
+    else
+      name="$label"
+    fi
+  fi
+  # Worktree dirs and review slugs are kebab-case; read as words in the sidebar.
+  name="${name//[-_]/ }"
+  printf '%s\t%s\t%s\n' "$kind" "$name" "$project"
+}
+
+report() {
+  local pane="$1" cwd="$2" label="$3" kind name project
+  IFS=$'\t' read -r kind name project < <(classify "$cwd" "$label")
+  if (( dry_run )); then
+    printf '%s\t%s\t%s\t%s\n' "$pane" "$kind" "$name" "$project"
+    return 0
+  fi
+  # One token per kind so each can carry its own fixed sidebar color; the
+  # other two are cleared in case the pane was relabelled.
+  local -a clear=()
+  for other in review feature chat; do
+    [[ "$other" == "$kind" ]] || clear+=(--clear-token "$other")
+  done
+  herdr pane report-metadata "$pane" --source "$SOURCE" \
+    --token "$kind=$kind" --token "name=$name" --token "project=$project" \
+    "${clear[@]}" >/dev/null 2>&1
+}
+
+tab_label() {
+  herdr tab get "$1" 2>/dev/null | jq -r '.result.tab.label // ""'
+}
+
+if (( all )); then
+  herdr agent list 2>/dev/null |
+    jq -r '.result.agents[] | select(.agent == "claude") | [.pane_id, .tab_id, (.foreground_cwd // .cwd // "")] | @tsv' |
+    while IFS=$'\t' read -r pane tab cwd; do
+      [[ -n "$pane" && -n "$cwd" ]] || continue
+      report "$pane" "$(real "$cwd")" "$(tab_label "$tab")"
+    done
+  exit 0
+fi
+
+# Hook mode: only inside a herdr pane.
+[[ "${HERDR_ENV:-}" == "1" && -n "${HERDR_PANE_ID:-}" ]] || exit 0
+input=$(cat 2>/dev/null || true)
+cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)
+[[ -n "$cwd" ]] || cwd="$PWD"
+cwd=$(real "$cwd")
+# The pane's current tab, not HERDR_TAB_ID: a pane promoted into its own tab
+# (prefix+M) keeps the stale env var.
+tab=$(herdr pane get "$HERDR_PANE_ID" 2>/dev/null | jq -r '.result.pane.tab_id // empty')
+[[ -n "$tab" ]] || tab="${HERDR_TAB_ID:-}"
+label=""
+[[ -n "$tab" ]] && label=$(tab_label "$tab")
+report "$HERDR_PANE_ID" "$cwd" "$label"
+exit 0

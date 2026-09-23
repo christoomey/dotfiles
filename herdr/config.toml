@@ -433,6 +433,20 @@ agent_panel_sort = "priority"
 # instead of plain dots — the same glyphs the prefix+k agent finder
 # uses, so the sidebar and the popup read alike.
 status_indicators = "symbols"
+# Claude rows: "<kind> · <project>" over the name, from pane tokens that
+# bin/herdr-claude-sidebar reports at every Claude SessionStart. Exactly one of
+# $review / $feature / $chat is set (a /review-queue tab, a worktree feature,
+# anything else); unreported tokens vanish, which is how each kind gets its
+# own color on 0.8.x (no per-token rules yet). Explicit fg values instead of
+# dim: catppuccin's dim lands on overlay0 and reads faint. Tokens are not
+# restored across a herdr restart; `herdr-claude-sidebar --all` relabels every
+# live Claude pane. Other agents keep the default rows.
+[ui.sidebar.agents.rows_by_agent]
+claude = [
+  ["state_icon", { token = "$review", fg = "#fab387" }, { token = "$feature", fg = "#a6e3a1" }, { token = "$chat", fg = "#89b4fa" }, { token = "$project", fg = "#a6adc8" }],
+  [{ token = "$name", fg = "#cdd6f4", bold = true }],
+]
+
 [ui.toast]
 # off = disable pop-up notifications
 # herdr = show in-app toasts
