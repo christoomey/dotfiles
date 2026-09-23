@@ -6,14 +6,15 @@
 # turns review requests into actions — so this reads it rather than asking
 # GitHub who requested review.
 #
-# The moi agent API is read-only; there is no write path here, so nothing in
-# this script can tick an item off. Marking a review done stays manual.
+# The `session` column is the moimenubar chat link a finished review left in
+# the action's notes (see /review-queue), or "-" when none has run yet: that
+# is how the queue tells a fresh item from one already reviewed.
 #
 #   perspective-reviews [--json] [--all]
 #     --json  emit the raw rows as JSON instead of TSV
 #     --all   include items that are not on the focus board
 #
-# TSV columns: action_id, repo, number, url, title
+# TSV columns: action_id, repo, number, url, title, session
 set -e
 
 json="" scope="in_focus=true"
@@ -48,11 +49,12 @@ filter='
       repo: (.githubPrGroup.repo // ($url | capture("github\\.com/(?<r>[^/]+/[^/]+)/pull").r)),
       number: ($url | capture("/pull/(?<n>[0-9]+)").n | tonumber),
       url: $url,
-      title: (.title | gsub("^_|_$"; ""))
+      title: (.title | gsub("^_|_$"; "")),
+      session: ((.notes // "") | capture("(?<u>moimenubar://chats/[^)\\s]+)").u // "-")
     }'
 
 if [ -n "$json" ]; then
   printf '%s' "$body" | jq -c "$filter"
 else
-  printf '%s' "$body" | jq -r "$filter | [.action_id, .repo, .number, .url, .title] | @tsv"
+  printf '%s' "$body" | jq -r "$filter | [.action_id, .repo, .number, .url, .title, .session] | @tsv"
 fi
