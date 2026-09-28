@@ -1,8 +1,8 @@
 #!/bin/zsh
 
 # Start (or resume) a one-off Claude session in a project workspace (august,
-# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). Three
-# sections on ctrl+1..3 (ctrl+t cycles a section's subtabs):
+# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). Four
+# sections on ctrl+1..4 (ctrl+t cycles a section's subtabs):
 #   agents            fuzzy finder over live herdr agents (blocked/done
 #                     first); enter focuses the pane. `--agents` (bound to
 #                     prefix+k) opens straight into it.
@@ -25,10 +25,13 @@
 #                     mouse drag reorder them live (a worktree among its
 #                     siblings, a primary with its whole space), which the
 #                     sidebar itself cannot do. enter focuses one.
+#   review            optional instructions for /review-queue, started as a
+#                     plain chats › new launch in august named "Review queue
+#                     <date>"; in the background by default, ctrl+s opens it.
 # The popup closes as soon as you submit; the launch continues detached.
 #
 #   herdr-new-thread [--agents] [--view SECTION] [--project P]   # interactive
-#     SECTION: agents | chats | resume | features | sidebar
+#     SECTION: agents | chats | resume | features | sidebar | review
 #     P: august | moi | dotfiles (or HERDR_NEW_THREAD_PROJECT, which
 #     `herdr plugin pane open --env` can set; see herdr/plugins/new-thread)
 #   herdr-new-thread --run-job ID     # detached runner for a queued job

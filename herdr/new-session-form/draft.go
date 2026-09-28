@@ -13,8 +13,8 @@ import (
 // written on every change so a prompt outlives the popup: an esc, a crash, or
 // a launcher that dies before saving the prompt file. The launcher
 // (herdr-new-thread --launch) deletes it once the prompt is on disk; the next
-// popup restores whatever is left. The feature keys are optional, so a
-// draft.json written before they existed still loads.
+// popup restores whatever is left. The feature and review keys are optional,
+// so a draft.json written before they existed still loads.
 type draft struct {
 	Project string `json:"project"`
 	Name    string `json:"name"`
@@ -26,6 +26,8 @@ type draft struct {
 	NameEdited    bool   `json:"feature_name_edited,omitempty"`
 	PromptEdited  bool   `json:"feature_prompt_edited,omitempty"`
 
+	ReviewPrompt string `json:"review_prompt,omitempty"`
+
 	SavedAt time.Time `json:"saved_at"`
 }
 
@@ -33,7 +35,8 @@ type draft struct {
 var restoreDrafts = true
 
 func (d draft) empty() bool {
-	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == "" && d.featureEmpty()
+	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == "" && d.featureEmpty() &&
+		strings.TrimSpace(d.ReviewPrompt) == ""
 }
 
 // featureEmpty: nothing typed in the features view. The name and prompt
@@ -49,10 +52,16 @@ func (d draft) featureOnly() bool {
 	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == "" && !d.featureEmpty()
 }
 
+// reviewOnly drafts open on the review view for the same reason.
+func (d draft) reviewOnly() bool {
+	return strings.TrimSpace(d.Name) == "" && strings.TrimSpace(d.Prompt) == "" && d.featureEmpty() &&
+		strings.TrimSpace(d.ReviewPrompt) != ""
+}
+
 func (d draft) same(o draft) bool {
 	return d.Project == o.Project && d.Name == o.Name && d.Prompt == o.Prompt &&
 		d.Branch == o.Branch && d.FeatureName == o.FeatureName && d.FeaturePrompt == o.FeaturePrompt &&
-		d.NameEdited == o.NameEdited && d.PromptEdited == o.PromptEdited
+		d.NameEdited == o.NameEdited && d.PromptEdited == o.PromptEdited && d.ReviewPrompt == o.ReviewPrompt
 }
 
 // threadsCacheDir holds the draft, the launch log and jobs/. The env

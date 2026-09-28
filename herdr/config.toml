@@ -331,11 +331,12 @@ command = 'herdr pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'
 # The submit is a job on disk (prompt included) that the worker picks up in its
 # own session, so closing this popup cannot kill it; `herdr-new-thread --jobs`
 # says how every launch ended and `--retry ID` runs one again.
-# ctrl+1..3 switch the popup's sections (agents / chats / features), ctrl+t
-# its subtabs: chats › resume is a fuzzy list of past sessions in that root
-# (enter resumes one in a new tab, or focuses it if it is still running);
+# ctrl+1..4 switch the popup's sections (agents / chats / features / review),
+# ctrl+t its subtabs: chats › resume is a fuzzy list of past sessions in that
+# root (enter resumes one in a new tab, or focuses it if it is still running);
 # features › sidebar mirrors the sidebar's spaces; J/K or a mouse drag
-# reorders them live.
+# reorders them live. review is an optional-instructions box that starts
+# `/review-queue` in august in the background.
 [[keys.command]]
 key = "prefix+ctrl+t"
 type = "popup"
