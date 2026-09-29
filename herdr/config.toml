@@ -441,7 +441,8 @@ status_indicators = "symbols"
 # own color on 0.8.x (no per-token rules yet). Explicit fg values instead of
 # dim: catppuccin's dim lands on overlay0 and reads faint. Tokens are not
 # restored across a herdr restart; `herdr-claude-sidebar --all` relabels every
-# live Claude pane. Other agents keep the default rows.
+# live Claude pane. Other agents keep the default rows. The prefix+k agent
+# finder draws the same two-line rows from the same tokens and colors.
 [ui.sidebar.agents.rows_by_agent]
 claude = [
   ["state_icon", { token = "$review", fg = "#fab387" }, { token = "$feature", fg = "#a6e3a1" }, { token = "$chat", fg = "#89b4fa" }, { token = "$project", fg = "#a6adc8" }],

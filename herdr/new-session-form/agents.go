@@ -20,10 +20,17 @@ import (
 // fuzzy finder over herdr's live agents. Blocked and done agents are the list
 // — blocked first, then most recently finished — with everything else dimmed
 // below as a preview; ctrl+a again widens to every agent, most recently
-// visited first. Rows read project · kind · title, the kind being a feature
-// worktree or a chat in the project root, and a project picker above the
-// filter (all by default) narrows the list. Enter hands the pane to the
-// launcher, which focuses it.
+// visited first. A project picker above the filter (all by default) narrows
+// the list. Enter hands the pane to the launcher, which focuses it.
+//
+// Rows are drawn like the herdr sidebar's Claude rows, from the same pane
+// tokens bin/herdr-claude-sidebar reports:
+//
+//   ○ feature · august
+//     fix login bug
+//
+// Panes without tokens (other agents, or Claude before its SessionStart hook
+// re-reports after a herdr restart) get the same shape from the workspace.
 
 type agentRow struct {
 	Key       string // MRU identity: Claude session id, else pane id
@@ -34,39 +41,66 @@ type agentRow struct {
 	Agent     string
 	Status    string // blocked / done / working / idle / unknown
 	Workspace string
-	Tab       string // "" when the tab label is just its number
-	Project   string // august / moi / dotfiles, "" when outside all three
-	Feature   bool   // lives in a feature worktree, not the project root
-	Seq       int    // state_change_seq: higher = changed more recently
-	Current   bool   // the pane the popup was opened from
-	mruRank   int    // 0 = visited most recently; agentMRUMax when never
+	Tab       string            // "" when the tab label is just its number
+	Project   string            // august / moi / dotfiles, "" when outside all three
+	Feature   bool              // lives in a feature worktree, not the project root
+	Tokens    map[string]string // herdr-claude-sidebar's kind/name/project
+	Seq       int               // state_change_seq: higher = changed more recently
+	Current   bool              // the pane the popup was opened from
+	mruRank   int               // 0 = visited most recently; agentMRUMax when never
 }
 
-// Nerd Font glyphs: a git branch for a feature worktree, a comment bubble
-// for a chat in the project root.
-const (
-	glyphFeature = "\ue0a0"
-	glyphChat    = "\uf075"
+var agentKinds = []string{"review", "feature", "chat"}
+
+// Kind colors match [ui.sidebar.agents.rows_by_agent] in herdr/config.toml.
+var (
+	kindColor = map[string]lipgloss.Color{
+		"review":  lipgloss.Color("#fab387"),
+		"feature": lipgloss.Color("#a6e3a1"),
+		"chat":    lipgloss.Color("#89b4fa"),
+	}
+	agentProjectColor = lipgloss.Color("#a6adc8")
+	agentNameColor    = lipgloss.Color("#cdd6f4")
 )
 
-func (r agentRow) kindGlyph() string {
-	if r.Feature {
-		return glyphFeature
+func (r agentRow) kind() string {
+	for _, k := range agentKinds {
+		if r.Tokens[k] != "" {
+			return k
+		}
 	}
-	return glyphChat
+	if r.Feature {
+		return "feature"
+	}
+	return "chat"
 }
 
-// label is what the row is called: the feature name for a worktree agent
-// (its workspace label), the session name for a chat. The tab label carries
-// the full session name where herdr's agent name is capped at 32 characters.
+func (r agentRow) projectLabel() string {
+	switch {
+	case r.Tokens["project"] != "":
+		return r.Tokens["project"]
+	case r.Project != "":
+		return r.Project
+	}
+	return "·"
+}
+
+// label is what the row is called: the sidebar's name token, else the
+// feature name for a worktree agent (its workspace label), the session name
+// for a chat. The tab label carries the full session name where herdr's
+// agent name is capped at 32 characters.
 func (r agentRow) label() string {
+	if name := r.Tokens["name"]; name != "" {
+		return name
+	}
+	name := r.Name
 	switch {
 	case r.Feature && r.Workspace != "":
-		return r.Workspace
+		name = r.Workspace
 	case r.Tab != "":
-		return r.Tab
+		name = r.Tab
 	}
-	return r.Name
+	return strings.NewReplacer("-", " ", "_", " ").Replace(name)
 }
 
 // Blocked agents want you now; finished ones want you next.
@@ -88,17 +122,14 @@ func (r agentRow) statusRank() int {
 	return 4
 }
 
-// projectColumn pads the project to the column width the rows share.
-const projectWidth = 9
+func (r agentRow) header() string {
+	return r.kind() + " · " + r.projectLabel()
+}
 
-// searchText is the one string the fuzzy matcher sees and the row displays
-// (project column, then the label), so highlights land where they matched.
+// searchText is the one string the fuzzy matcher sees: the header line, then
+// the name line, so highlights split back onto the line they matched.
 func (r agentRow) searchText() string {
-	project := r.Project
-	if project == "" {
-		project = "·"
-	}
-	return fmt.Sprintf("%-*s %s", projectWidth, project, r.label())
+	return r.header() + " " + r.label()
 }
 
 // projectRoots are the checkout paths each project's workspaces live under,
@@ -173,15 +204,16 @@ func fetchAgents(mru *agentMRU) ([]agentRow, error) {
 				Session *struct {
 					Value string `json:"value"`
 				} `json:"agent_session"`
-				Status      string `json:"agent_status"`
-				Cwd         string `json:"cwd"`
-				Focused     bool   `json:"focused"`
-				Name        string `json:"name"`
-				PaneID      string `json:"pane_id"`
-				Seq         int    `json:"state_change_seq"`
-				TabID       string `json:"tab_id"`
-				Title       string `json:"terminal_title_stripped"`
-				WorkspaceID string `json:"workspace_id"`
+				Status      string            `json:"agent_status"`
+				Cwd         string            `json:"cwd"`
+				Focused     bool              `json:"focused"`
+				Name        string            `json:"name"`
+				PaneID      string            `json:"pane_id"`
+				Seq         int               `json:"state_change_seq"`
+				TabID       string            `json:"tab_id"`
+				Title       string            `json:"terminal_title_stripped"`
+				Tokens      map[string]string `json:"tokens"`
+				WorkspaceID string            `json:"workspace_id"`
 			} `json:"agents"`
 		} `json:"result"`
 	}
@@ -276,6 +308,7 @@ func fetchAgents(mru *agentMRU) ([]agentRow, error) {
 			Tab:       tabLabel[a.TabID],
 			Project:   projectOf(roots, where),
 			Feature:   wsLinked[a.WorkspaceID],
+			Tokens:    a.Tokens,
 			Seq:       a.Seq,
 			Current:   a.PaneID == activePane || (activePane == "" && a.Focused),
 		}
@@ -594,57 +627,68 @@ func (m model) agentGlyph(status string) string {
 }
 
 // agentListView: the navigable rows in a window around the cursor, then as
-// many dimmed preview rows as still fit. Rows are the search text with fuzzy
-// hits underlined; the status glyph on the left is the only status shown.
+// many dimmed preview rows as still fit. Each agent takes two lines, kind ·
+// project over the name, with fuzzy hits underlined and a blank line between
+// agents; the status glyph on the left is the only status shown.
 func (m model) agentListView() string {
 	var b strings.Builder
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
 	section := lipgloss.NewStyle().Foreground(m.styles.dim).Bold(true).Transform(strings.ToUpper)
 	accent := lipgloss.NewStyle().Foreground(m.styles.accent)
+	projectStyle := lipgloss.NewStyle().Foreground(agentProjectColor)
+	nameStyle := lipgloss.NewStyle().Foreground(agentNameColor).Bold(true)
 	selected := lipgloss.NewStyle().Foreground(m.styles.accent).Bold(true)
-	plain := lipgloss.NewStyle().Foreground(m.styles.text)
-	matched := lipgloss.NewStyle().Foreground(m.styles.accent).Bold(true).Underline(true)
 
-	// frame padding (4) + cursor/status (5) + kind glyph (2)
-	textWidth := max(24, m.width-11)
-	rows := m.listRows
+	// frame padding (4) + cursor/status (4)
+	textWidth := max(24, m.width-8)
+	lines := m.listRows
 	if m.agentNavLabel != "" {
-		rows--
+		lines--
 	}
 
 	row := func(r agentRow, hits map[int]bool, cursor bool, muted bool) string {
 		mark := "  "
-		style := plain
-		hit := matched
+		if cursor {
+			mark = accent.Render("❯ ")
+		}
+		kind := lipgloss.NewStyle().Foreground(kindColor[r.kind()])
+		project, name := projectStyle, nameStyle
 		switch {
 		case cursor:
-			mark = accent.Render("❯ ")
-			style = selected
+			name = selected
 		case muted:
-			style = dim
-			hit = dim.Underline(true)
+			kind, project, name = dim, dim, dim
 		}
-		text := r.searchText()
+		underline := func(s lipgloss.Style) lipgloss.Style { return s.Underline(true) }
+
+		// Header runes: kind, " · ", project; then a space and the name.
+		kindLen := len([]rune(r.kind()))
+		header := []rune(r.header())
+		var top strings.Builder
+		for i, c := range header {
+			style := project
+			if i < kindLen {
+				style = kind
+			}
+			if hits[i] {
+				style = underline(style)
+			}
+			top.WriteString(style.Render(string(c)))
+		}
+
+		label := r.label()
 		if r.Current {
-			text += " (here)"
+			label += " (here)"
 		}
-		// The kind glyph sits between the project column and the label, so
-		// the two halves of the search text are rendered around it.
-		kind := dim.Render(r.kindGlyph())
-		if cursor {
-			kind = accent.Render(r.kindGlyph())
-		}
-		split := projectWidth + 1
-		runes := []rune(text)
-		project := renderTitle(string(runes[:split]), split, style, hit, hits)
+		split := len(header) + 1
 		rest := map[int]bool{}
 		for i := range hits {
 			if i >= split {
 				rest[i-split] = true
 			}
 		}
-		label := renderTitle(string(runes[split:]), textWidth-split-2, style, hit, rest)
-		return fmt.Sprintf("%s%s  %s%s %s\n", mark, m.agentGlyph(r.Status), project, kind, label)
+		bottom := renderTitle(label, textWidth, name, underline(name), rest)
+		return fmt.Sprintf("%s%s %s\n    %s\n", mark, m.agentGlyph(r.Status), top.String(), strings.TrimRight(bottom, " "))
 	}
 	hitsFor := func(idx [][]int, i int) map[int]bool {
 		if idx == nil || i >= len(idx) {
@@ -662,27 +706,35 @@ func (m model) agentListView() string {
 	}
 	if len(m.agentNav) == 0 {
 		b.WriteString(dim.Render("  (none)") + "\n")
-		rows--
+		lines--
 	}
-	navRows := min(len(m.agentNav), rows)
+	// Agents cost 3 lines (2 + the gap), the last one no gap.
+	navRows := min(len(m.agentNav), max(1, lines/3))
 	start := 0
 	if m.agentCursor >= navRows {
 		start = m.agentCursor - navRows + 1
 	}
 	end := min(len(m.agentNav), start+navRows)
 	for i := start; i < end; i++ {
+		if i > start {
+			b.WriteString("\n")
+		}
 		b.WriteString(row(m.agentNav[i], hitsFor(m.agentNavIdx, i), i == m.agentCursor, false))
 	}
+	lines -= max(0, 3*(end-start)-1)
 	if navRows > 0 && (start > 0 || end < len(m.agentNav)) {
 		b.WriteString(dim.Render(fmt.Sprintf("  %d–%d of %d", start+1, end, len(m.agentNav))) + "\n")
+		lines--
 	}
 
-	left := rows - (end - start) - 2 // section header + a possible "n more" line
-	if len(m.agentDim) > 0 && left > 1 {
-		left--
+	left := (lines - 2) / 3 // blank + section header + a possible "n more" line
+	if len(m.agentDim) > 0 && left > 0 {
 		b.WriteString("\n" + section.Render(" others") + dim.Render("  ctrl+a to include") + "\n")
 		shown := min(len(m.agentDim), left)
 		for i := 0; i < shown; i++ {
+			if i > 0 {
+				b.WriteString("\n")
+			}
 			b.WriteString(row(m.agentDim[i], nil, false, true))
 		}
 		if shown < len(m.agentDim) {
@@ -747,12 +799,14 @@ func (m *agentMRU) save() {
 	}
 }
 
-// sampleAgents is the --demo fixture: one of every status plus the current pane.
+// sampleAgents is the --demo fixture: one of every status and kind plus the current pane.
 func sampleAgents() []agentRow {
 	return []agentRow{
 		{Key: "a", PaneID: "w1:p1", Name: "omnicare-timeout", Status: "blocked", Workspace: "august", Project: "august", Seq: 5},
 		{Key: "b", PaneID: "w2:p1", Name: "emar-sync", Status: "done", Workspace: "emar-sync-tab-race", Project: "august", Feature: true, Seq: 9},
 		{Key: "c", PaneID: "w3:p1", Name: "Representative test data generation", Status: "done", Workspace: "emar-perf-investigation", Project: "august", Feature: true, Seq: 3},
+		{Key: "g", PaneID: "w7:p1", Name: "REV-FE-1234-tidy-login-form", Status: "done", Workspace: "august", Project: "august", Seq: 7,
+			Tokens: map[string]string{"review": "review", "name": "1234 tidy login form", "project": "august.fe"}},
 		{Key: "d", PaneID: "w4:p1", Name: "dictation-app", Status: "working", Workspace: "dotfiles", Project: "dotfiles", mruRank: 1},
 		{Key: "e", PaneID: "w5:p1", Name: "deadlines-agent", Status: "idle", Workspace: "deadlines", Project: "moi", Feature: true, mruRank: agentMRUMax},
 		{Key: "f", PaneID: "w6:p1", Name: "new-session-thing", Status: "working", Workspace: "dotfiles", Project: "dotfiles", Current: true},

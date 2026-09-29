@@ -96,11 +96,11 @@ func TestAgentsProjectScope(t *testing.T) {
 		}
 		return out
 	}
-	if got := labels(); len(got) != 6 {
+	if got := labels(); len(got) != 7 {
 		t.Fatalf("all: %v", got)
 	}
 	send(tea.KeyMsg{Type: tea.KeyCtrlD})
-	if got := labels(); len(got) != 2 || got[0] != "dictation-app" {
+	if got := labels(); len(got) != 2 || got[0] != "dictation app" {
 		t.Errorf("ctrl+d: %v", got)
 	}
 	send(tea.KeyMsg{Type: tea.KeyShiftTab})
@@ -113,7 +113,7 @@ func TestAgentsProjectScope(t *testing.T) {
 	}
 	send(tea.KeyMsg{Type: tea.KeyLeft})
 	send(tea.KeyMsg{Type: tea.KeyLeft})
-	if got := labels(); len(got) != 6 || m.(model).agentProject != 0 {
+	if got := labels(); len(got) != 7 || m.(model).agentProject != 0 {
 		t.Errorf("wrapped back to all: %v (project %d)", got, m.(model).agentProject)
 	}
 }
