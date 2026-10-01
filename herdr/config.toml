@@ -439,13 +439,19 @@ status_indicators = "symbols"
 # $review / $feature / $chat is set (a /review-queue tab, a worktree feature,
 # anything else); unreported tokens vanish, which is how each kind gets its
 # own color on 0.8.x (no per-token rules yet). Explicit fg values instead of
-# dim: catppuccin's dim lands on overlay0 and reads faint. Tokens are not
-# restored across a herdr restart; `herdr-claude-sidebar --all` relabels every
-# live Claude pane. Other agents keep the default rows. The prefix+k agent
-# finder draws the same two-line rows from the same tokens and colors.
+# dim: catppuccin's dim lands on overlay0 and reads faint. pi rows are
+# Abulafia debugging sessions: just "debug" over the name, reported by
+# herdr-new-thread once pi is detected. Tokens are not restored across a herdr
+# restart; `herdr-claude-sidebar --all` relabels every live Claude and pi
+# pane. Other agents keep the default rows. The prefix+k agent finder draws
+# the same two-line rows from the same tokens and colors.
 [ui.sidebar.agents.rows_by_agent]
 claude = [
   ["state_icon", { token = "$review", fg = "#fab387" }, { token = "$feature", fg = "#a6e3a1" }, { token = "$chat", fg = "#89b4fa" }, { token = "$project", fg = "#a6adc8" }],
+  [{ token = "$name", fg = "#cdd6f4", bold = true }],
+]
+pi = [
+  ["state_icon", { token = "$debug", fg = "#f38ba8" }],
   [{ token = "$name", fg = "#cdd6f4", bold = true }],
 ]
 

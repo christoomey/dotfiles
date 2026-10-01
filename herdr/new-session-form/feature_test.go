@@ -96,7 +96,7 @@ func TestAgentsProjectScope(t *testing.T) {
 		}
 		return out
 	}
-	if got := labels(); len(got) != 7 {
+	if got := labels(); len(got) != 8 {
 		t.Fatalf("all: %v", got)
 	}
 	send(tea.KeyMsg{Type: tea.KeyCtrlD})
@@ -113,7 +113,7 @@ func TestAgentsProjectScope(t *testing.T) {
 	}
 	send(tea.KeyMsg{Type: tea.KeyLeft})
 	send(tea.KeyMsg{Type: tea.KeyLeft})
-	if got := labels(); len(got) != 7 || m.(model).agentProject != 0 {
+	if got := labels(); len(got) != 8 || m.(model).agentProject != 0 {
 		t.Errorf("wrapped back to all: %v (project %d)", got, m.(model).agentProject)
 	}
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# herdr-claude-sidebar: label a Claude pane for the herdr agents sidebar.
+# herdr-claude-sidebar: label a Claude (or pi) pane for the herdr agents sidebar.
 #
 # The sidebar's default rows (workspace · tab / agent) repeat the project name
 # and the tab label for every review session and say nothing about which
@@ -10,13 +10,19 @@
 #   ● review · august.fe         $review|$feature|$chat · $project
 #     1234 tidy login form        $name
 #
-#   review   the tab is a /review-queue session (label REV-<FE|BE>-…, any
+#   review   the tab is a /review-queue session (label REV-<FE|BE>-…, or
+#            another repo code before the PR number like REV-AB-3-…; any
 #            case, dashes or spaces)
 #   feature  the cwd is a linked git worktree (an august or moi feature)
 #   chat     anything else (herdr-new-thread chats, ad-hoc splits)
 #   name     the review number + slug, the worktree dir, or the tab label,
 #            dashes and underscores read as spaces
 #   project  august / august.fe / august.be / moi / dotfiles / repo basename
+#
+# pi panes are Abulafia debugging sessions and only take part in --all: they
+# get debug + name (the tab label) and no project. herdr-new-thread labels the
+# ones it starts; --all brings the labels back after a herdr restart and
+# catches an abulafia started by hand.
 #
 # Only the matching kind token is set (the others are cleared), so the sidebar
 # can give each kind a fixed color without per-token rules.
@@ -27,7 +33,7 @@
 #
 # Usage:
 #   herdr-claude-sidebar            # hook mode: JSON on stdin, HERDR_PANE_ID set
-#   herdr-claude-sidebar --all      # re-label every live claude pane
+#   herdr-claude-sidebar --all      # re-label every live claude and pi pane
 #   herdr-claude-sidebar --dry-run [--all]   # print what would be reported
 
 set -uo pipefail
@@ -109,7 +115,8 @@ generic_label() {
 classify() {
   local cwd="$1" label="$2" kind name project side feature
   project=$(project_for "$cwd")
-  if [[ "$label" =~ ^[Rr][Ee][Vv][-\ ]([FfBb][Ee])[-\ ](.+)$ ]]; then
+  if [[ "$label" =~ ^[Rr][Ee][Vv][-\ ]([FfBb][Ee])[-\ ](.+)$ ||
+        "$label" =~ ^[Rr][Ee][Vv][-\ ]([A-Za-z]{2,4})[-\ ]([0-9].*)$ ]]; then
     side=$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:upper:]' '[:lower:]')
     kind=review
     name="${BASH_REMATCH[2]}"
@@ -138,9 +145,9 @@ report() {
     return 0
   fi
   # One token per kind so each can carry its own fixed sidebar color; the
-  # other two are cleared in case the pane was relabelled.
+  # others are cleared in case the pane was relabelled.
   local -a clear=()
-  for other in review feature chat; do
+  for other in review feature chat debug; do
     [[ "$other" == "$kind" ]] || clear+=(--clear-token "$other")
   done
   herdr pane report-metadata "$pane" --source "$SOURCE" \
@@ -152,11 +159,29 @@ tab_label() {
   herdr tab get "$1" 2>/dev/null | jq -r '.result.tab.label // ""'
 }
 
+report_debug() {
+  local pane="$1" name="$2"
+  generic_label "$name" && name=abulafia
+  name="${name//[-_]/ }"
+  if (( dry_run )); then
+    printf '%s\t%s\t%s\t%s\n' "$pane" debug "$name" ""
+    return 0
+  fi
+  herdr pane report-metadata "$pane" --source "$SOURCE" \
+    --token debug=debug --token "name=$name" \
+    --clear-token review --clear-token feature --clear-token chat --clear-token project >/dev/null 2>&1
+}
+
 if (( all )); then
   herdr agent list 2>/dev/null |
-    jq -r '.result.agents[] | select(.agent == "claude") | [.pane_id, .tab_id, (.foreground_cwd // .cwd // "")] | @tsv' |
-    while IFS=$'\t' read -r pane tab cwd; do
-      [[ -n "$pane" && -n "$cwd" ]] || continue
+    jq -r '.result.agents[] | select(.agent == "claude" or .agent == "pi") | [.agent, .pane_id, .tab_id, (.foreground_cwd // .cwd // "")] | @tsv' |
+    while IFS=$'\t' read -r agent pane tab cwd; do
+      [[ -n "$pane" ]] || continue
+      if [[ "$agent" == pi ]]; then
+        report_debug "$pane" "$(tab_label "$tab")"
+        continue
+      fi
+      [[ -n "$cwd" ]] || continue
       report "$pane" "$(real "$cwd")" "$(tab_label "$tab")"
     done
   exit 0

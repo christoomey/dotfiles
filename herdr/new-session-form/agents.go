@@ -29,8 +29,9 @@ import (
 //   ○ feature · august
 //     fix login bug
 //
-// Panes without tokens (other agents, or Claude before its SessionStart hook
-// re-reports after a herdr restart) get the same shape from the workspace.
+// Debug (pi) rows carry no project, as in the sidebar. Panes without tokens
+// (other agents, or Claude before its SessionStart hook re-reports after a
+// herdr restart) get the same shape from the workspace.
 
 type agentRow struct {
 	Key       string // MRU identity: Claude session id, else pane id
@@ -50,7 +51,7 @@ type agentRow struct {
 	mruRank   int               // 0 = visited most recently; agentMRUMax when never
 }
 
-var agentKinds = []string{"review", "feature", "chat"}
+var agentKinds = []string{"review", "feature", "chat", "debug"}
 
 // Kind colors match [ui.sidebar.agents.rows_by_agent] in herdr/config.toml.
 var (
@@ -58,6 +59,7 @@ var (
 		"review":  lipgloss.Color("#fab387"),
 		"feature": lipgloss.Color("#a6e3a1"),
 		"chat":    lipgloss.Color("#89b4fa"),
+		"debug":   lipgloss.Color("#f38ba8"),
 	}
 	agentProjectColor = lipgloss.Color("#a6adc8")
 	agentNameColor    = lipgloss.Color("#cdd6f4")
@@ -69,7 +71,10 @@ func (r agentRow) kind() string {
 			return k
 		}
 	}
-	if r.Feature {
+	switch {
+	case r.Agent == "pi":
+		return "debug"
+	case r.Feature:
 		return "feature"
 	}
 	return "chat"
@@ -123,6 +128,9 @@ func (r agentRow) statusRank() int {
 }
 
 func (r agentRow) header() string {
+	if r.kind() == "debug" {
+		return "debug"
+	}
 	return r.kind() + " · " + r.projectLabel()
 }
 
@@ -807,6 +815,8 @@ func sampleAgents() []agentRow {
 		{Key: "c", PaneID: "w3:p1", Name: "Representative test data generation", Status: "done", Workspace: "emar-perf-investigation", Project: "august", Feature: true, Seq: 3},
 		{Key: "g", PaneID: "w7:p1", Name: "REV-FE-1234-tidy-login-form", Status: "done", Workspace: "august", Project: "august", Seq: 7,
 			Tokens: map[string]string{"review": "review", "name": "1234 tidy login form", "project": "august.fe"}},
+		{Key: "h", PaneID: "w8:p1", Name: "export-failures", Agent: "pi", Status: "working", Workspace: "august", Project: "august", Seq: 2,
+			Tokens: map[string]string{"debug": "debug", "name": "export failures"}},
 		{Key: "d", PaneID: "w4:p1", Name: "dictation-app", Status: "working", Workspace: "dotfiles", Project: "dotfiles", mruRank: 1},
 		{Key: "e", PaneID: "w5:p1", Name: "deadlines-agent", Status: "idle", Workspace: "deadlines", Project: "moi", Feature: true, mruRank: agentMRUMax},
 		{Key: "f", PaneID: "w6:p1", Name: "new-session-thing", Status: "working", Workspace: "dotfiles", Project: "dotfiles", Current: true},
