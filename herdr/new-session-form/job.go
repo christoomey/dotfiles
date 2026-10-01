@@ -23,6 +23,7 @@ type job struct {
 	ID        string   `json:"id"`
 	CreatedAt string   `json:"created_at"` // RFC3339
 	Mode      string   `json:"mode"`
+	Kind      string   `json:"kind,omitempty"`
 	Project   string   `json:"project"`
 	Name      string   `json:"name"`
 	Branch    string   `json:"branch"`
@@ -125,6 +126,7 @@ func queueJob(res result, now time.Time) (string, error) {
 		ID:        jobID(res.Name, now),
 		CreatedAt: now.Format(time.RFC3339),
 		Mode:      res.Mode,
+		Kind:      res.Kind,
 		Project:   res.Project,
 		Name:      res.Name,
 		Branch:    res.Branch,

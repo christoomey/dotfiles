@@ -1,0 +1,19 @@
+#!/bin/zsh
+#
+# herdr-abulafia-launch PROMPT_FILE NAME: start an Abulafia session named NAME
+# on the prompt in PROMPT_FILE. herdr-new-thread runs it in a fresh pane so a
+# multi-line prompt reaches pi without going through `herdr pane run`
+# quoting. HERDR_DEBUG_CMD swaps abulafia for a stub in tests.
+
+pfile="${1:?prompt file required}"
+name="${2:?name required}"
+[[ -s "$pfile" ]] || { print -u2 "herdr-abulafia-launch: prompt file missing or empty: $pfile"; exit 2; }
+"${HERDR_DEBUG_CMD:-abulafia}" --name "$name" -- "$(<"$pfile")"
+st=$?
+# The tab closes when this exits, so keep a failed launch (bad MFA code,
+# expired cookie) on screen until it has been read.
+if (( st != 0 )); then
+  print -P "\n%F{red}abulafia exited with status $st.%f Prompt: $pfile"
+  read -rs -k 1 "?Press any key to close this tab. "
+fi
+exit $st

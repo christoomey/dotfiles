@@ -1,8 +1,8 @@
 #!/bin/zsh
 
 # Start (or resume) a one-off Claude session in a project workspace (august,
-# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). Four
-# sections on ctrl+1..4 (ctrl+t cycles a section's subtabs):
+# moi, dotfiles) from anywhere. Bound to prefix+ctrl+t (popup). Five
+# sections on ctrl+1..5 (ctrl+t cycles a section's subtabs):
 #   agents            fuzzy finder over live herdr agents (blocked/done
 #                     first); enter focuses the pane. `--agents` (bound to
 #                     prefix+k) opens straight into it.
@@ -28,10 +28,14 @@
 #   review            optional instructions for /review-queue, started as a
 #                     plain chats › new launch in august named "Review queue
 #                     <date>"; in the background by default, ctrl+s opens it.
+#   debug             a required first prompt for an Abulafia session (pi on
+#                     Bedrock, read-only AWS) in august, named from the
+#                     prompt's first words. ctrl+b runs it in the background
+#                     and notifies if abulafia is waiting for an MFA code.
 # The popup closes as soon as you submit; the launch continues detached.
 #
 #   herdr-new-thread [--agents] [--view SECTION] [--project P]   # interactive
-#     SECTION: agents | chats | resume | features | sidebar | review
+#     SECTION: agents | chats | resume | features | sidebar | review | debug
 #     P: august | moi | dotfiles (or HERDR_NEW_THREAD_PROJECT, which
 #     `herdr plugin pane open --env` can set; see herdr/plugins/new-thread)
 #   herdr-new-thread --run-job ID     # detached runner for a queued job
@@ -52,11 +56,12 @@
 #
 # Each stage of a run appends a line to <id>.events (claimed, prompt-saved,
 # workspace, tab-created, claude-started, acked, done; feature runs add
-# bootstrapping and up-exited), so `--jobs` can say where anything stopped and
-# `--retry` can run it again. Nothing is silent: a detach that fails, a runner
-# that never claims its job (--watch), a stage that dies, a stalled job
-# (--sweep) and a failed feature bootstrap (herdr-job-up) all raise a
-# notification naming the job, its prompt file and the retry command.
+# bootstrapping and up-exited; debug runs end tab-created, pi-started, done),
+# so `--jobs` can say where anything stopped and `--retry` can run it again.
+# Nothing is silent: a detach that fails, a runner that never claims its job
+# (--watch), a stage that dies, a stalled job (--sweep) and a failed feature
+# bootstrap (herdr-job-up) all raise a notification naming the job, its prompt
+# file and the retry command.
 #
 # The new tab's shell gets HERDR_THREAD=1 so zsh/configs/herdr.zsh exits the
 # shell when claude does, which closes the pane and the tab, and AUGIE_SCRATCH
@@ -66,8 +71,9 @@
 # Both the new-session and resume launches go through claude-launch, which
 # starts claude, delivers the first prompt from a file, and confirms it landed
 # in claude's transcript before reporting success. Prompts are also written to
-# chat-prompts/ and feature-prompts/, which is what the failure notices name;
-# every component logs to ~/.cache/herdr-threads/launch.log tagged job=<id>.
+# chat-prompts/, feature-prompts/ and debug-prompts/, which is what the failure
+# notices name; every component logs to ~/.cache/herdr-threads/launch.log
+# tagged job=<id>.
 
 set -e
 
@@ -357,6 +363,89 @@ launch() {
   claude-launch "${launch_args[@]}"
 }
 
+# A debug job: an Abulafia session (pi on Bedrock) in august, in front or in
+# the background; abulafia may stop for an MFA code. herdr-abulafia-launch reads the
+# prompt from its file inside the pane, so it can span lines. herdr only
+# lists the pane as a pi agent once pi itself runs, which can wait on that
+# MFA code; the sidebar tokens go on after that.
+launch_debug() {
+  local form name mode prompt slug root ws scratch pane cmd perr agent i left wait=240 focus=--focus
+  form=$(cat)
+  name=$(printf '%s' "$form" | jq -r .name)
+  mode=$(printf '%s' "$form" | jq -r '.mode // "open"')
+  prompt=$(printf '%s' "$form" | jq -r '.prompt // ""')
+  tlog "debug \"$name\" ($mode, prompt ${#prompt} chars)"
+  [ "$mode" = bg ] && focus=--no-focus
+  [ -z "$prompt" ] && { echo "debug job has no prompt" >&2; return 1; }
+
+  slug=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+  [ -z "$slug" ] && slug="debug"
+  local pdir="$threads/debug-prompts"
+  mkdir -p "$pdir"
+  pfile="$pdir/$slug-$(date +%Y%m%d-%H%M%S).md"
+  printf '%s\n' "$prompt" > "$pfile"
+  tlog "debug prompt saved to $pfile"
+  event prompt-saved "$pfile"
+
+  root=$(august_root)
+  ws=$(ensure_ws august "$root")
+  tlog "workspace $ws ($root)"
+  event workspace "$ws"
+
+  scratch="$root/scratch/$slug"
+  mkdir -p "$scratch"
+  local -a envs=(--env HERDR_THREAD=1 --env AUGIE_SCRATCH="$scratch")
+  [ -n "${HERDR_DEBUG_CMD:-}" ] && envs+=(--env HERDR_DEBUG_CMD="$HERDR_DEBUG_CMD")
+  pane=$(herdr tab create --workspace "$ws" --cwd "$root" --label "$name" "${envs[@]}" $focus | first_pane)
+  [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
+  tlog "tab created, pane $pane"
+  event tab-created "$pane"
+
+  cmd="${(q)self_dir}/herdr-abulafia-launch ${(q)pfile} ${(q)name}"
+  local ran=0
+  perr=""
+  for i in {1..40}; do
+    if perr=$(herdr pane run "$pane" "$cmd" 2>&1); then
+      ran=1
+      break
+    fi
+    sleep 0.25
+  done
+  if (( ! ran )); then
+    tlog "pane run kept failing: $perr"
+    echo "pane $pane never accepted the abulafia command: $perr" >&2
+    return 1
+  fi
+  tlog "abulafia starting in $pane"
+
+  # abulafia-session ensure logs in again under 10 minutes left, which means
+  # an MFA prompt in the tab: say so for a background launch, and give the
+  # code up to 15 minutes to arrive instead of failing at 2.
+  left=$(abulafia-session status 2>/dev/null | jq -r '.secondsLeft // -1' 2>/dev/null)
+  if (( ${left:--1} < 600 )); then
+    wait=1800
+    tlog "abulafia session has ${left:-?}s left; MFA code needed in $pane"
+    [ "$mode" = bg ] && notify "Abulafia needs an MFA code" "\"$name\" is waiting in its august tab"
+  fi
+
+  job_stage="pi-started"
+  agent=""
+  for (( i = 0; i < wait; i++ )); do
+    agent=$(herdr agent get "$pane" 2>/dev/null | jq -r '.result.agent.agent // ""')
+    [ "$agent" = pi ] && break
+    sleep 0.5
+  done
+  if [ "$agent" != pi ]; then
+    echo "pi never started in pane $pane within $(( wait / 2 ))s (MFA not entered, or abulafia failed; see the tab)" >&2
+    return 1
+  fi
+  event pi-started "$pane"
+  herdr pane report-metadata "$pane" --source dotfiles-sidebar \
+    --token debug=debug --token "name=$name" \
+    --clear-token review --clear-token feature --clear-token chat --clear-token project >/dev/null
+  tlog "pi running in $pane; sidebar labelled"
+}
+
 # The runner for one job. mkdir is the claim: a second runner (a retry racing
 # the watchdog, say) finds the directory there and leaves without doing
 # anything. The spec is the form's, so the prompt survives everything below.
@@ -388,6 +477,12 @@ run_job() {
       launch_feature < "$spec"
       ;;
     open|bg|resume|resume-bg)
+      if [ "$(jq -r '.kind // ""' "$spec")" = debug ]; then
+        launch_debug < "$spec"
+        event done ""
+        tlog "done"
+        return 0
+      fi
       sid=$(jq -r '.session_id // ""' "$spec")
       lmode=open
       case "$mode" in bg|resume-bg) lmode=bg ;; esac
@@ -700,7 +795,7 @@ if [ -z "$id" ] || [ ! -f "$jobs_dir/$id.json" ]; then
   id="$(date +%Y%m%d-%H%M%S)-${slug:0:40}-$(printf '%04x' $RANDOM)"
   mkdir -p "$jobs_dir"
   printf '%s' "$result" | jq -c --arg id "$id" --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{
-    id: $id, created_at: $at, mode: .mode, project: (.project // ""),
+    id: $id, created_at: $at, mode: .mode, kind: (.kind // ""), project: (.project // ""),
     name: (.name // ""), branch: (.branch // ""), prompt: (.prompt // ""),
     attachments: (.attachments // []), session_id: (.session_id // "")
   }' >"$jobs_dir/$id.json.tmp"

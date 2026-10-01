@@ -1,5 +1,5 @@
-// herdr-new-session-form: the popup behind prefix+ctrl+t. Four sections on
-// ctrl+1..4, two of them with subtabs (ctrl+t, or the section's own key
+// herdr-new-session-form: the popup behind prefix+ctrl+t. Five sections on
+// ctrl+1..5, two of them with subtabs (ctrl+t, or the section's own key
 // again, cycles):
 //
 //	1 agents            (also prefix+k via --view agents) a fuzzy finder over
@@ -11,6 +11,8 @@
 //	                    with J/K or a mouse drag
 //	4 review            an optional-instructions box that starts /review-queue
 //	                    in august, in the background by default
+//	5 debug             a required first prompt that starts an Abulafia (pi)
+//	                    debugging session in august, in front or in the background
 //
 // Ctrl+digits need the kitty keyboard protocol (see kitty.go); ctrl+r/f/a
 // jump straight to resume/feature/agents as legacy fallbacks (except in the
@@ -32,6 +34,7 @@
 // load it back into the form.
 //
 //	{"mode":"open"|"bg", "project","name","prompt","attachments","job_id"}   new session (attachments: png paths); review emits the same
+//	{"mode":"open", "kind":"debug", "project","name","prompt","job_id"}      Abulafia debugging session
 //	{"mode":"resume"|"resume-bg", "project","session_id","name","job_id"}    resume a past session
 //	{"mode":"focus", "tab_id","name"}                               session is live already
 //	{"mode":"feature"|"feature-bg", "project","branch","name","prompt","job_id"}  bootstrap a feature worktree
@@ -40,7 +43,7 @@
 //	{"mode":"retry", "job_id"}                                      run a stranded job again
 //
 //	herdr-new-session-form [--theme NAME] [--view agents]
-//	herdr-new-session-form --demo NAME fresh|filled|menu|resume|agents|sidebar|review[:text]   # print one frame (ANSI)
+//	herdr-new-session-form --demo NAME fresh|filled|menu|resume|agents|sidebar|review[:text]|debug[:text]   # print one frame (ANSI)
 package main
 
 import (
@@ -61,6 +64,7 @@ import (
 
 type result struct {
 	Mode      string   `json:"mode"`
+	Kind      string   `json:"kind,omitempty"`
 	Project   string   `json:"project,omitempty"`
 	Name      string   `json:"name,omitempty"`
 	Branch    string   `json:"branch,omitempty"`
@@ -82,6 +86,7 @@ const (
 	viewFeature
 	viewSidebar
 	viewReview
+	viewDebug
 )
 
 // explicitView records a --view flag. Without one, a restored draft with
@@ -97,9 +102,10 @@ var startViews = map[string]view{
 	"features": viewFeature,
 	"sidebar":  viewSidebar,
 	"review":   viewReview,
+	"debug":    viewDebug,
 }
 
-// sections are the ctrl+1..4 tabs; a section with several views shows them
+// sections are the ctrl+1..5 tabs; a section with several views shows them
 // as subtabs.
 var sections = []struct {
 	label string
@@ -110,9 +116,10 @@ var sections = []struct {
 	{"chats", []view{viewNew, viewResume}, []string{"new", "resume"}},
 	{"features", []view{viewFeature, viewSidebar}, []string{"new", "sidebar"}},
 	{"review", []view{viewReview}, nil},
+	{"debug", []view{viewDebug}, nil},
 }
 
-const tabsHelp = "ctrl+1..4 section · ctrl+t subtab"
+const tabsHelp = "ctrl+1..5 section · ctrl+t subtab"
 
 func sectionOf(v view) int {
 	for i, s := range sections {
@@ -183,6 +190,11 @@ type model struct {
 	reviewPrompt textarea.Model
 	reviewFocus  int
 	reviewOpen   bool // false = run in the background
+
+	// Debug view; see debug.go.
+	debugTitle  textinput.Model
+	debugPrompt textarea.Model
+	debugFocus  int
 
 	// Slash completion over both prompts; see skills.go.
 	skillCache    map[string][]skill
@@ -275,6 +287,10 @@ func newModel(themeName string, start view, project string) model {
 			start = viewReview
 			m.view = start
 		}
+		if d.debugOnly() && !explicitView && start == viewNew {
+			start = viewDebug
+			m.view = start
+		}
 	}
 	m.stranded = strandedJobs(time.Now())
 	m.jobNotice = strandedNotice(m.stranded)
@@ -298,6 +314,9 @@ func newModel(themeName string, start view, project string) model {
 	}
 	m.initReview(m.styles)
 	m.reviewPrompt.SetValue(restored.ReviewPrompt)
+	m.initDebug(m.styles)
+	m.debugTitle.SetValue(restored.DebugTitle)
+	m.debugPrompt.SetValue(restored.DebugPrompt)
 	m.agentFilter = newAgentFilter(m.styles)
 	m.mru = loadAgentMRU()
 	m.loading = true
@@ -409,6 +428,8 @@ func (m *model) switchView(v view) tea.Cmd {
 		m.blurFeature()
 	case viewReview:
 		m.blurReview()
+	case viewDebug:
+		m.blurDebug()
 	case viewNew:
 		m.blurChat()
 	}
@@ -427,6 +448,8 @@ func (m *model) switchView(v view) tea.Cmd {
 		return m.enterSidebar()
 	case viewReview:
 		return m.focusReview(revPrompt)
+	case viewDebug:
+		return m.focusDebug()
 	default:
 		return m.focusChat(m.chatFocus)
 	}
@@ -452,7 +475,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if nm.mode == "" && !nm.discard {
 		d := draft{Project: projects[nm.chatProject], Name: nm.chatName.Value(), Prompt: nm.chatPrompt.Value(),
 			Branch: nm.feature.Value(), FeatureName: nm.featureName.Value(), FeaturePrompt: nm.featurePrompt.Value(),
-			NameEdited: nm.nameEdited, PromptEdited: nm.promptEdited, ReviewPrompt: nm.reviewPrompt.Value()}
+			NameEdited: nm.nameEdited, PromptEdited: nm.promptEdited, ReviewPrompt: nm.reviewPrompt.Value(),
+			DebugTitle: nm.debugTitle.Value(), DebugPrompt: nm.debugPrompt.Value()}
 		if !d.same(nm.saved) {
 			if err := saveDraft(d); err != nil {
 				nm.err = "could not save draft: " + err.Error()
@@ -466,17 +490,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // unsent is typed prompt text that quitting would throw away.
 func (m model) unsent() bool {
-	if strings.TrimSpace(m.chatPrompt.Value()) != "" || strings.TrimSpace(m.reviewPrompt.Value()) != "" {
+	if strings.TrimSpace(m.chatPrompt.Value()) != "" || strings.TrimSpace(m.reviewPrompt.Value()) != "" ||
+		strings.TrimSpace(m.debugPrompt.Value()) != "" {
 		return true
 	}
 	return m.promptEdited && strings.TrimSpace(m.featurePrompt.Value()) != ""
 }
 
-// inPrompt: the chat or review prompt has focus, where ctrl+a/f are line
-// editing keys rather than view shortcuts.
+// inPrompt: the chat, review or debug prompt has focus, where ctrl+a/f are
+// line editing keys rather than view shortcuts.
 func (m model) inPrompt() bool {
 	return (m.view == viewNew && m.chatFocus == chatPromptField) ||
-		(m.view == viewReview && m.reviewFocus == revPrompt)
+		(m.view == viewReview && m.reviewFocus == revPrompt) ||
+		(m.view == viewDebug && m.debugFocus == dbgPrompt)
 }
 
 // resultFor is what this submit prints, built from whichever view owns the
@@ -486,6 +512,9 @@ func (m model) resultFor(mode string) result {
 	case "open", "bg":
 		if m.view == viewReview {
 			return result{Mode: mode, Project: "august", Name: m.picked.Title, Prompt: reviewPromptFor(m.reviewPrompt.Value())}
+		}
+		if m.view == viewDebug {
+			return result{Mode: mode, Kind: "debug", Project: "august", Name: m.picked.Title, Prompt: strings.TrimSpace(m.debugPrompt.Value())}
 		}
 		return result{Mode: mode, Project: projects[m.chatProject], Name: strings.TrimSpace(m.chatName.Value()), Prompt: strings.TrimSpace(m.chatPrompt.Value()), Attach: m.attachments}
 	case "feature", "feature-bg":
@@ -540,6 +569,11 @@ func (m model) editStranded() (tea.Model, tea.Cmd) {
 		m.setFeature(j.Branch, j.Name, j.Prompt)
 		m.nameEdited, m.promptEdited = j.Name != "", j.Prompt != ""
 		return m, m.switchView(viewFeature)
+	}
+	if j.Kind == "debug" {
+		m.debugTitle.SetValue(j.Name)
+		m.debugPrompt.SetValue(j.Prompt)
+		return m, m.switchView(viewDebug)
 	}
 	m.setChat(j.Name, j.Prompt)
 	cmd := m.switchView(viewNew)
@@ -664,6 +698,8 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateSidebar(msg)
 	case viewReview:
 		return m.updateReview(msg)
+	case viewDebug:
+		return m.updateDebug(msg)
 	}
 	return m.updateChat(msg)
 }
@@ -890,6 +926,8 @@ func (m model) View() string {
 		body = m.sidebarView()
 	case viewReview:
 		body = m.reviewView()
+	case viewDebug:
+		body = m.debugView()
 	default:
 		body = m.chatView()
 	}
@@ -1353,6 +1391,17 @@ func demo(themeName, state string) {
 			m = drive(next, c)
 		}
 	}
+	if text, ok := strings.CutPrefix(state, "debug:"); ok || state == "debug" {
+		if !ok {
+			text = ""
+		}
+		next, c := m.Update(ctrlDigitMsg(5))
+		m = drive(next, c)
+		for _, r := range text {
+			next, c := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
+			m = drive(next, c)
+		}
+	}
 	if state == "project" {
 		next, c := m.Update(tea.KeyMsg{Type: tea.KeyShiftTab})
 		m = drive(next, c)
@@ -1449,7 +1498,7 @@ func main() {
 	}
 	res := m.resultFor(m.mode)
 	res.JobID = m.jobID
-	if m.view == viewReview || (m.mode != "open" && m.mode != "bg") {
+	if m.view == viewReview || m.view == viewDebug || (m.mode != "open" && m.mode != "bg") {
 		m.cleanupAttachments()
 	}
 	formLog("submitted %s %q (prompt %d chars) job=%s", m.mode, res.Name, len(res.Prompt), m.jobID)
