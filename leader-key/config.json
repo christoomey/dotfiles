@@ -352,6 +352,18 @@
           "value" : "herdr-popup sidebar"
         },
         {
+          "key" : "d",
+          "label" : "[D]ebug (Abulafia)",
+          "type" : "command",
+          "value" : "herdr-popup debug"
+        },
+        {
+          "key" : "v",
+          "label" : "Re[v]iew queue",
+          "type" : "command",
+          "value" : "herdr-popup review"
+        },
+        {
           "actions" : [
             {
               "key" : "c",
@@ -422,8 +434,8 @@
               "value" : "herdr-popup features"
             }
           ],
-          "key" : "d",
-          "label" : "[D]otfiles",
+          "key" : ".",
+          "label" : "[.] Dotfiles",
           "type" : "group"
         }
       ],

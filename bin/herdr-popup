@@ -3,7 +3,7 @@
 # session — the hook for hotkeys that live outside herdr (Leader Key `h ...`).
 #
 #   herdr-popup SECTION [PROJECT]
-#     SECTION: agents | chats | resume | features | sidebar
+#     SECTION: agents | chats | resume | features | sidebar | review | debug
 #     PROJECT: august | moi | dotfiles — preselects the project picker
 set -e
 section="${1:?usage: herdr-popup SECTION [PROJECT]}"

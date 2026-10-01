@@ -44,3 +44,19 @@ placement = "popup"
 width = 86
 height = 33
 command = ["herdr-new-thread", "--view", "sidebar"]
+
+[[panes]]
+id = "review"
+title = "Review Queue"
+placement = "popup"
+width = 86
+height = 33
+command = ["herdr-new-thread", "--view", "review"]
+
+[[panes]]
+id = "debug"
+title = "Debug Session"
+placement = "popup"
+width = 86
+height = 33
+command = ["herdr-new-thread", "--view", "debug"]
