@@ -1343,6 +1343,9 @@ func demo(themeName, state string) {
 		m = drive(next, c)
 	}
 	if text, ok := strings.CutPrefix(state, "review:"); ok || state == "review" {
+		if !ok {
+			text = ""
+		}
 		next, c := m.Update(ctrlDigitMsg(4))
 		m = drive(next, c)
 		for _, r := range text {
