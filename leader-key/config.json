@@ -173,6 +173,12 @@
           "label" : "Cloud[W]atch logs",
           "type" : "url",
           "value" : "https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#logsV2:logs-insights$3FqueryDetail$3D~(end~0~start~-3600~timeType~'RELATIVE~unit~'seconds~editorString~'~isLiveTail~false~queryId~'~source~(~'*2faws*2feks*2fprod*2fapplication))"
+        },
+        {
+          "key" : "t",
+          "label" : "Session [t]oken",
+          "type" : "command",
+          "value" : "/Users/christoomey/code/work/august/august-workspace/tools/bin/august-session-token"
         }
       ],
       "iconPath" : "briefcase",
