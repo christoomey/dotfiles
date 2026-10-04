@@ -157,12 +157,12 @@ case "$tag" in
     notes)
         # bin/up handles symlink + file provisioning at feature creation. If
         # the file is missing here (e.g. an older feature created before this
-        # rewire), just touch it through whichever layout already resolved.
+        # rewire), note-seed creates it through whichever layout already
+        # resolved, paired with its <note>-claude.md.
         # Unlike tmux (no nested popups), herdr runs this whole script inside
         # one popup, so we can just exec the editor here — it takes over the
         # popup and closes it on quit.
-        mkdir -p "$(dirname "$NOTES_FILE")" 2>/dev/null || true
-        [[ -e "$NOTES_FILE" ]] || touch "$NOTES_FILE"
+        note-seed "$NOTES_FILE" 2>/dev/null || true
         exec "${EDITOR:-vim}" "$NOTES_FILE"
         ;;
 esac

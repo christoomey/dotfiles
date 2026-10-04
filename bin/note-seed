@@ -1,0 +1,53 @@
+#!/bin/zsh
+
+# note-seed <note.md> — set up a feature note pair. <note>.md is mine;
+# <note>-claude.md beside it is where Claude keeps its working notes. A new
+# (or still empty) note starts with a human title (the feature name minus any
+# date / user / Linear ID prefix, title-cased) and a markdown link to the
+# Claude note, written as ./<file> so `gf` on it jumps there: vim resolves
+# that relative to the note's own directory, whatever the cwd. A note that
+# already has content is left untouched.
+
+set -e
+
+note="$1"
+if [[ -z "$note" || "$note" != *.md || "$note" == *-claude.md ]]; then
+  print -u2 "usage: note-seed <note.md>"
+  exit 1
+fi
+
+claude_note="${note%.md}-claude.md"
+
+# 2025-01-15-user-team-123-fix-login-bug -> Fix Login Bug
+# TEAM-123-team-123-short-description -> Short Description
+title_for() {
+  local slug="$1"
+  if [[ "$slug" =~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$' ]]; then
+    slug="$match[1]"
+  fi
+  if [[ "$slug" =~ '^[a-z]+-([A-Za-z]+-[0-9]+-.+)$' ]]; then
+    slug="$match[1]"
+  fi
+  while [[ "$slug" =~ '^[A-Za-z]+-[0-9]+-(.+)$' ]]; do
+    slug="$match[1]"
+  done
+
+  local -a small=(a an and as at by for in of on or the to vs)
+  local -a words
+  local word
+  for word in ${(s:-:)slug}; do
+    if (( ${#words} && ${small[(Ie)$word]} )); then
+      words+=("$word")
+    else
+      words+=("${(C)word}")
+    fi
+  done
+  print -- "${words[*]}"
+}
+
+mkdir -p "${note:h}"
+[[ -e "$claude_note" ]] || touch "$claude_note"
+if [[ ! -s "$note" ]]; then
+  title=$(title_for "${note:t:r}")
+  print -l -- "$title" "${(l:${#title}::=:):-}" "" "[Claude's notes](./${claude_note:t})" > "$note"
+fi

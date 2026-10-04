@@ -138,8 +138,7 @@ case "$tag" in
         (cd "$BACKEND_LOQUAT" && idea .)
         ;;
     notes)
-        mkdir -p "$(dirname "$NOTES_FILE")" 2>/dev/null || true
-        [[ -e "$NOTES_FILE" ]] || touch "$NOTES_FILE"
+        note-seed "$NOTES_FILE" 2>/dev/null || true
         # Terminal is already restored by the picker's renderer.destroy(), so we
         # can hand the popup straight to the editor.
         exec "${EDITOR:-vim}" "$NOTES_FILE"

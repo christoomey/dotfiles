@@ -7,8 +7,9 @@
 #       the existing Chrome tab if one is on this port, else opens one)
 #   n — nvim on this branch/worktree's note in the shared .notes/ dir (newest
 #       match on the worktree name; created as .notes/<iso-date>-<name>.md if
-#       missing, mirroring the august per-feature note). Falls back to the
-#       .notes dir when there's no feature name to match (e.g. main).
+#       missing, mirroring the august per-feature note). The note is mine;
+#       note-seed pairs it with a <note>-claude.md for Claude. Falls back to
+#       the .notes dir when there's no feature name to match (e.g. main).
 # Any other key dismisses. Everywhere else it falls through to the augie
 # feature panel (af ui), the previous sole occupant of prefix+o.
 
@@ -55,15 +56,20 @@ open_notes() {
     fi
   fi
 
+  # Newest match wins, and Claude's <note>-claude.md counts: when Claude wrote
+  # a plan before I ever opened the note, mine is created beside it under the
+  # same date prefix so the two stay paired.
   local -a matches
   matches=(.notes/*"$name"*.md(N.om))
+  local note
   if (( ${#matches} )); then
-    exec nvim "${matches[1]}"
+    note="${matches[1]%-claude.md}"
+    note="${note%.md}.md"
   else
-    local note=".notes/$(date +%F)-$name.md"
-    touch "$note"
-    exec nvim "$note"
+    note=".notes/$(date +%F)-$name.md"
   fi
+  note-seed "$note"
+  exec nvim "$note"
 }
 
 print
