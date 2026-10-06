@@ -387,6 +387,20 @@ launch_debug() {
   tlog "debug prompt saved to $pfile"
   event prompt-saved "$pfile"
 
+  # Refresh an expiring session here, before the tab exists: the 1Password
+  # Touch ID dialog shows over whatever app is in front, so a background
+  # launch stays in the background. With no TTY abulafia-session fails
+  # instead of prompting, and the tab's own MFA prompt takes over below.
+  left=$(abulafia-session status 2>/dev/null | jq -r '.secondsLeft // -1' 2>/dev/null)
+  if (( ${left:--1} < 600 )); then
+    tlog "abulafia session has ${left:-?}s left; refreshing before the tab opens"
+    if abulafia-session ensure </dev/null 2>>"$threads/launch.log"; then
+      tlog "abulafia session refreshed"
+    else
+      tlog "abulafia session refresh failed; the tab will prompt"
+    fi
+  fi
+
   root=$(august_root)
   ws=$(ensure_ws august "$root")
   tlog "workspace $ws ($root)"
@@ -418,9 +432,9 @@ launch_debug() {
   fi
   tlog "abulafia starting in $pane"
 
-  # abulafia-session ensure logs in again under 10 minutes left, which means
-  # an MFA prompt in the tab: say so for a background launch, and give the
-  # code up to 15 minutes to arrive instead of failing at 2.
+  # Still expiring means the refresh above failed and the tab is prompting:
+  # say so for a background launch, and give the code up to 15 minutes to
+  # arrive instead of failing at 2.
   left=$(abulafia-session status 2>/dev/null | jq -r '.secondsLeft // -1' 2>/dev/null)
   if (( ${left:--1} < 600 )); then
     wait=1800
