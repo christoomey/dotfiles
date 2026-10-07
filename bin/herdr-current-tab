@@ -1,0 +1,16 @@
+#!/bin/zsh
+# Print the tab this herdr pane is in right now.
+#
+#   herdr-current-tab [PANE_ID]
+#
+# HERDR_TAB_ID is fixed when the pane's shell starts, so it goes stale once
+# the pane is promoted into its own tab (prefix+shift+m, `herdr pane move
+# --new-tab`). The pane id survives the move, so ask herdr where it lives now,
+# and fall back to the env var only when herdr can't say. Prints nothing and
+# exits 1 outside herdr.
+pane="${1:-${HERDR_PANE_ID:-}}"
+tab=""
+[ -n "$pane" ] && tab=$(herdr pane get "$pane" </dev/null 2>/dev/null | jq -r '.result.pane.tab_id // empty')
+[ -z "$tab" ] && tab="${HERDR_TAB_ID:-}"
+[ -z "$tab" ] && exit 1
+print -r -- "$tab"

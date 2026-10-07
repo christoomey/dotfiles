@@ -193,10 +193,7 @@ input=$(cat 2>/dev/null || true)
 cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)
 [[ -n "$cwd" ]] || cwd="$PWD"
 cwd=$(real "$cwd")
-# The pane's current tab, not HERDR_TAB_ID: a pane promoted into its own tab
-# (prefix+M) keeps the stale env var.
-tab=$(herdr pane get "$HERDR_PANE_ID" 2>/dev/null | jq -r '.result.pane.tab_id // empty')
-[[ -n "$tab" ]] || tab="${HERDR_TAB_ID:-}"
+tab=$(herdr-current-tab) || tab=""
 label=""
 [[ -n "$tab" ]] && label=$(tab_label "$tab")
 report "$HERDR_PANE_ID" "$cwd" "$label"

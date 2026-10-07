@@ -20,7 +20,7 @@
 # this holds whether features sit inside the root or beside it.
 set -e
 
-tab="${1:-${HERDR_TAB_ID:-}}"
+tab="${1:-$(herdr-current-tab)}"
 cwd="${2:-$PWD}"
 [ -z "$tab" ] && exit 1
 

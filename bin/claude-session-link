@@ -30,8 +30,8 @@
 #     --title TITLE   use TITLE instead of the transcript's (chat only)
 #     --close         after copying, close the herdr tab this runs in (or the
 #                     whole workspace with --feature), a few seconds later so
-#                     the caller can finish printing. Needs HERDR_TAB_ID /
-#                     HERDR_WORKSPACE_ID, i.e. run from inside herdr. Refused
+#                     the caller can finish printing. Needs to run from
+#                     inside herdr (see herdr-current-tab). Refused
 #                     on a project's root tab (see herdr-close-guard).
 set -e
 
@@ -67,12 +67,15 @@ close_after_copy() {
     [ -z "${HERDR_WORKSPACE_ID:-}" ] && { echo "--close: not inside a herdr workspace" >&2; return 1; }
     nohup zsh -c "sleep 5; herdr workspace close ${(q)HERDR_WORKSPACE_ID}" >/dev/null 2>&1 &!
   else
-    [ -z "${HERDR_TAB_ID:-}" ] && { echo "--close: not inside a herdr tab" >&2; return 1; }
-    if reason=$(herdr-close-guard "$HERDR_TAB_ID" "$cwd" 2>/dev/null); then
-      echo "--close refused: $reason. Close it deliberately with \`herdr tab close $HERDR_TAB_ID\`." >&2
+    local tab
+    tab=$(herdr-current-tab) || { echo "--close: not inside a herdr tab" >&2; return 1; }
+    if reason=$(herdr-close-guard "$tab" "$cwd" 2>/dev/null); then
+      echo "--close refused: $reason. Close it deliberately with \`herdr tab close $tab\`." >&2
       return 1
     fi
-    nohup zsh -c "sleep 5; herdr tab close ${(q)HERDR_TAB_ID}" >/dev/null 2>&1 &!
+    # Nobody is left to read a failure by then, so it surfaces as a notification.
+    nohup zsh -c "sleep 5; herdr tab close ${(q)tab} >/dev/null 2>&1 ||
+      osascript -e 'display notification \"${tab} is still open\" with title \"Tab close failed\"'" >/dev/null 2>&1 &!
   fi
 }
 
