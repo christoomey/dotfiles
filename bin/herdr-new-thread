@@ -328,10 +328,15 @@ launch() {
     event prompt-saved "$pfile"
   fi
 
+  # /review-queue publishes a report artifact per PR for Perspective; Claude
+  # Code would otherwise open each one in the browser as it lands.
+  local -a envs=(--env HERDR_THREAD=1 --env AUGIE_SCRATCH="$scratch")
+  [[ "$prompt" == /review-queue* ]] && envs+=(--env CLAUDE_CODE_ARTIFACT_AUTO_OPEN=0)
+
   local pane
   pane=$(
     herdr tab create --workspace "$ws" --cwd "$root" --label "$name" \
-      --env HERDR_THREAD=1 --env AUGIE_SCRATCH="$scratch" $focus | first_pane
+      "${envs[@]}" $focus | first_pane
   )
   [ -z "$pane" ] && { echo "tab create returned no pane" >&2; return 1; }
   tlog "tab created, pane $pane"
