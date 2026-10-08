@@ -234,7 +234,7 @@
         },
         {
           "key" : "f",
-          "label" : "[M]iddle",
+          "label" : "[F]ull screen",
           "type" : "url",
           "value" : "raycast://extensions/raycast/window-management/maximize"
         },
@@ -243,6 +243,18 @@
           "label" : "[N]ext screen",
           "type" : "url",
           "value" : "raycast://extensions/raycast/window-management/next-display"
+        },
+        {
+          "key" : "0",
+          "label" : "[0] Middle on big screen",
+          "type" : "url",
+          "value" : "hammerspoon://desk-middle"
+        },
+        {
+          "key" : "1",
+          "label" : "[1] Full on laptop",
+          "type" : "url",
+          "value" : "hammerspoon://laptop-full"
         }
       ],
       "iconPath" : "uiwindow.split.2x1",

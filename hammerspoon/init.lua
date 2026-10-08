@@ -1,3 +1,5 @@
+require("windows")
+
 -- local fn = require("fn")
 -- local hyper = require("hyper")
 
