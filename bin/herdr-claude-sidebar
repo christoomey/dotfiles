@@ -19,10 +19,10 @@
 #            dashes and underscores read as spaces
 #   project  august / august.fe / august.be / moi / dotfiles / repo basename
 #
-# pi panes are Abulafia debugging sessions and only take part in --all: they
-# get debug + name (the tab label) and no project. herdr-new-thread labels the
-# ones it starts; --all brings the labels back after a herdr restart and
-# catches an abulafia started by hand.
+# pi panes are Abulafia debugging sessions: they get debug + name (the tab
+# label) and no project. pi/extensions/herdr-sidebar.ts runs --pi at every pi
+# session_start, so one started by hand is labelled too; --all brings the
+# labels back after a herdr restart.
 #
 # Only the matching kind token is set (the others are cleared), so the sidebar
 # can give each kind a fixed color without per-token rules.
@@ -33,16 +33,18 @@
 #
 # Usage:
 #   herdr-claude-sidebar            # hook mode: JSON on stdin, HERDR_PANE_ID set
+#   herdr-claude-sidebar --pi       # pi hook mode: label $HERDR_PANE_ID as debug
 #   herdr-claude-sidebar --all      # re-label every live claude and pi pane
 #   herdr-claude-sidebar --dry-run [--all]   # print what would be reported
 
 set -uo pipefail
 
 SOURCE="dotfiles-sidebar"
-dry_run=0 all=0
+dry_run=0 all=0 pi=0
 for arg in "$@"; do
   case "$arg" in
     --all) all=1 ;;
+    --pi) pi=1 ;;
     --dry-run) dry_run=1 ;;
     *) echo "herdr-claude-sidebar: unknown argument: $arg" >&2; exit 2 ;;
   esac
@@ -189,12 +191,16 @@ fi
 
 # Hook mode: only inside a herdr pane.
 [[ "${HERDR_ENV:-}" == "1" && -n "${HERDR_PANE_ID:-}" ]] || exit 0
+tab=$(herdr-current-tab) || tab=""
+label=""
+[[ -n "$tab" ]] && label=$(tab_label "$tab")
+if (( pi )); then
+  report_debug "$HERDR_PANE_ID" "$label"
+  exit 0
+fi
 input=$(cat 2>/dev/null || true)
 cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)
 [[ -n "$cwd" ]] || cwd="$PWD"
 cwd=$(real "$cwd")
-tab=$(herdr-current-tab) || tab=""
-label=""
-[[ -n "$tab" ]] && label=$(tab_label "$tab")
 report "$HERDR_PANE_ID" "$cwd" "$label"
 exit 0
