@@ -150,6 +150,7 @@ project_root() {
     august)   august_root ;;
     moi)      echo "$HOME/code/moi" ;;
     dotfiles) echo "$HOME/code/dotfiles" ;;
+    abulafia) echo "$HOME/code/work/august/abulafia" ;;
     *) echo "unknown project: $1" >&2; return 1 ;;
   esac
 }

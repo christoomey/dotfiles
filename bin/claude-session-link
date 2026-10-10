@@ -105,9 +105,10 @@ project_for() {
   case "$dir" in
     "$HOME/code/moi"|"$HOME/code/moi/"*|"$HOME/code/moi__worktrees/"*) echo moi ;;
     "$HOME/code/dotfiles"|"$HOME/code/dotfiles/"*) echo dotfiles ;;
+    "$HOME/code/work/august/abulafia"|"$HOME/code/work/august/abulafia/"*) echo abulafia ;;
     "$august"|"$august/"*) echo august ;;
     "$august_wt"|"$august_wt/"*) echo august ;;
-    *) echo "$dir is not inside a known project (moi, august, dotfiles)" >&2; return 1 ;;
+    *) echo "$dir is not inside a known project (moi, august, dotfiles, abulafia)" >&2; return 1 ;;
   esac
 }
 

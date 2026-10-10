@@ -1,5 +1,6 @@
 #!/bin/zsh
-# Refuse to close the root tab of a project workspace (moi, august, dotfiles).
+# Refuse to close the root tab of a project workspace (moi, august, dotfiles,
+# abulafia).
 #
 #   herdr-close-guard [TAB_ID [CWD]]
 #
@@ -39,6 +40,8 @@ elif [ "$top" = "$(resolve ~/code/dotfiles)" ]; then
   project=dotfiles
 elif [ -n "$august" ] && [ "$top" = "$august" ]; then
   project=august
+elif [ "$top" = "$(resolve ~/code/work/august/abulafia)" ]; then
+  project=abulafia
 else
   exit 1
 fi

@@ -11,7 +11,7 @@
 # the caller can surface that instead of a tab that opens and vanishes.
 #
 #   herdr-open-chat PROJECT SESSION_ID [NAME]
-#     PROJECT: august | moi | dotfiles
+#     PROJECT: august | moi | dotfiles | abulafia
 #     NAME:    tab label for a resumed session when the transcript carries no
 #              title of its own (default: the session id). A link's slug is a
 #              lowercased, de-dashed copy of the title, which would turn a
@@ -27,6 +27,7 @@ project_root() {
     august)   augie-path root ;;
     moi)      echo "$HOME/code/moi" ;;
     dotfiles) echo "$HOME/code/dotfiles" ;;
+    abulafia) echo "$HOME/code/work/august/abulafia" ;;
     *) echo "unknown project: $1" >&2; return 2 ;;
   esac
 }
