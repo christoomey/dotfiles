@@ -1,0 +1,49 @@
+#!/bin/zsh
+# Preview a markdown draft beside the current herdr pane, re-rendering on
+# every call. The preview pane id is kept next to the draft, so one draft owns
+# one pane across iterations.
+#
+#   draft-preview FILE            glow in a right split (reused if still open)
+#   draft-preview --marked FILE   Marked 2 (images/videos, or outside herdr)
+#   draft-preview --close FILE    close the preview pane
+#
+# glow needs -s when piped (it falls back to notty otherwise), and -t renders
+# blank in herdr, hence the pager.
+set -eu
+
+mode=glow
+case "${1:-}" in
+  --marked) mode=marked; shift ;;
+  --close) mode=close; shift ;;
+esac
+file=${1:?usage: draft-preview [--marked|--close] FILE}
+file=${file:A}
+state="${file:h}/.${file:t}.pane"
+
+if [ "$mode" = marked ] || [ -z "${HERDR_PANE_ID:-}" ]; then
+  open -a "Marked 2" "$file"
+  exit
+fi
+
+pane=""
+[ -f "$state" ] && pane=$(<"$state")
+if [ -n "$pane" ] && ! herdr pane get "$pane" >/dev/null 2>&1; then
+  pane=""
+fi
+
+if [ "$mode" = close ]; then
+  [ -n "$pane" ] && herdr pane close "$pane" >/dev/null
+  rm -f "$state"
+  exit
+fi
+
+if [ -z "$pane" ]; then
+  pane=$(herdr pane split --current --direction right --no-focus | jq -r '.result.pane.pane_id // .result.pane_id // empty')
+  [ -n "$pane" ] || { echo "draft-preview: could not split" >&2; exit 1; }
+  print -r -- "$pane" >"$state"
+else
+  herdr pane send-keys "$pane" q >/dev/null 2>&1 || true
+fi
+
+herdr pane run "$pane" "glow -w 88 -s ~/.config/glow/muted.json ${(q)file} | less -R"
+echo "$pane"

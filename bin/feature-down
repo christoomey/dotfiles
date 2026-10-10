@@ -1,0 +1,82 @@
+#!/bin/zsh
+# Tear down the feature worktree this shell is in, then close its herdr
+# workspace. Shared by /land and /tidy so the teardown lives in one place.
+#
+#   feature-down [--merged] [--as land|tidy]
+#
+#     --merged   the PR is merged: moi runs bin/down (also pulls main and sweeps
+#                every other merged worktree). Without it moi runs
+#                bin/rm-worktree <dir>, which trashes this one regardless.
+#     --as       label for notifications and the log (default: feature-down)
+#
+# Runs detached and returns at once: the caller's pane dies with the
+# workspace, so the caller sends its last reply right after this exits. The
+# detached run waits a few seconds for that reply to land, Ctrl-C's every
+# other pane in the workspace, tears down, and only closes the workspace when
+# the feature dir is really gone. Otherwise the workspace stays open and a
+# herdr notification points at the log.
+#
+# August: `af down <dir>` from the workspace root. af down skips the caller's
+# own workspace, which is why the close happens here.
+# moi: bin/down or bin/rm-worktree from the main checkout. Their env-var
+# prompt cannot be answered detached; that shows up as a surviving dir.
+set -eu
+
+merged="" as=feature-down
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --merged) merged=1; shift ;;
+    --as) as="$2"; shift 2 ;;
+    *) echo "usage: feature-down [--merged] [--as land|tidy]" >&2; exit 2 ;;
+  esac
+done
+
+cwd=$(pwd -P)
+august_wt=$(augie-path worktrees 2>/dev/null) || august_wt=""
+case "$cwd" in
+  "$HOME/code/moi__worktrees/"*)
+    project=moi; wt="$HOME/code/moi__worktrees"; main="$HOME/code/moi" ;;
+  "$august_wt/"*)
+    project=august; wt="$august_wt"; main=$(augie-path root) ;;
+  *)
+    echo "feature-down: $cwd is not inside a moi or august feature worktree" >&2; exit 1 ;;
+esac
+dir=${${cwd#$wt/}%%/*}
+fdir="$wt/$dir"
+
+case "$project" in
+  august) teardown="af down ${(q)dir}" ;;
+  moi)
+    if [ -n "$merged" ]; then teardown="bin/down"
+    else teardown="printf 'y\n' | bin/rm-worktree ${(q)dir}"; fi ;;
+esac
+
+ws="${HERDR_WORKSPACE_ID:-}"
+self="${HERDR_PANE_ID:-}"
+log_dir="$HOME/.local/state/feature-down"
+mkdir -p "$log_dir"
+log="$log_dir/$dir.log"
+
+script="
+sleep 5
+if [ -n ${(q)ws} ]; then
+  for p in \$(herdr pane list --workspace ${(q)ws} | jq -r '.result.panes[].pane_id'); do
+    [ \"\$p\" = ${(q)self} ] || herdr pane send-keys \"\$p\" C-c >/dev/null 2>&1
+  done
+  sleep 3
+fi
+echo \"== \$(date) $as: $teardown\"
+cd ${(q)main} && $teardown
+status=\$?
+if [ -e ${(q)fdir} ]; then
+  echo \"FAILED: exit \$status, ${fdir} still here\"
+  herdr notification show \"$as: teardown left $dir behind\" --body \"log: $log\" --sound request ||
+    osascript -e 'display notification \"see $log\" with title \"$as: teardown failed\"'
+else
+  herdr notification show \"$as: $dir torn down\" --sound done >/dev/null 2>&1 || true
+  [ -n ${(q)ws} ] && herdr workspace close ${(q)ws} >/dev/null 2>&1 || true
+fi
+"
+
+nohup zsh -c "$script" </dev/null >>"$log" 2>&1 &!
+echo "feature-down: $project/$dir teardown starts in 5s; log $log"
