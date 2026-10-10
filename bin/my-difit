@@ -3,7 +3,8 @@
 #/ Launch a difit code review UI with the right target based on git state.
 #/
 #/ If there are uncommitted changes (including untracked files), reviews the
-#/ working tree. Otherwise reviews the current branch against master.
+#/ working tree. Otherwise reviews the current branch against the merge base
+#/ with origin's default branch, freshly fetched, like a GitHub PR diff.
 #/
 #/ Always runs with --clean (drop stale comments) and --include-untracked.
 
@@ -12,5 +13,7 @@ set -euo pipefail
 if [[ -n "$(git status --porcelain)" ]]; then
   exec npx difit working --clean --include-untracked
 else
-  exec npx difit @ master --merge-base --clean --include-untracked
+  default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/master)"
+  git fetch --quiet origin "${default_branch#origin/}"
+  exec npx difit @ "$default_branch" --merge-base --clean --include-untracked
 fi
