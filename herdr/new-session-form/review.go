@@ -21,7 +21,7 @@ const (
 )
 
 func (m *model) initReview(s styles) {
-	m.reviewPrompt = newPromptArea(s, "just Nick's one in the Now list", 3)
+	m.reviewPrompt = newPromptArea(s, "just Nick's one in the Now list", 6)
 }
 
 func reviewName(now time.Time) string {

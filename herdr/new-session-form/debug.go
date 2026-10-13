@@ -23,7 +23,7 @@ const (
 
 func (m *model) initDebug(s styles) {
 	m.debugTitle = newInput(s, "nightly export failures")
-	m.debugPrompt = newPromptArea(s, "why did the nightly export job fail last night?", 4)
+	m.debugPrompt = newPromptArea(s, "why did the nightly export job fail last night?", 8)
 }
 
 // debugName is the first few words of the prompt's first line, else a

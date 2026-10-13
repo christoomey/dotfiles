@@ -163,7 +163,7 @@ func newPromptArea(s styles, placeholder string, height int) textarea.Model {
 func (m *model) initFeature(s styles) {
 	m.feature = newInput(s, "christoomey/meds-1234-short-description")
 	m.featureName = newInput(s, "short-description")
-	m.featurePrompt = newPromptArea(s, "/linear-review MEDS-1234", 3)
+	m.featurePrompt = newPromptArea(s, "/linear-review MEDS-1234", 6)
 }
 
 // setFeature fills the three inputs from a draft or a job. SetValue keeps the

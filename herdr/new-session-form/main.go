@@ -743,7 +743,7 @@ const (
 
 func (m *model) initChat(s styles) {
 	m.chatName = newInput(s, "dose unit case bug")
-	m.chatPrompt = newPromptArea(s, "go look into…", 4)
+	m.chatPrompt = newPromptArea(s, "go look into…", 8)
 }
 
 // setChat fills the two fields from a draft or a job; SetValue keeps the old
