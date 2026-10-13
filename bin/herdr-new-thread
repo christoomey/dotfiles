@@ -16,9 +16,10 @@
 #   chats › resume    fuzzy list of past sessions in a project root: enter
 #                     resumes one in a new tab (ctrl+b in the background); a
 #                     session that is already live just gets focused.
-#   features › new    takes a Linear branch (plus a feature name and a first
-#                     prompt that follow it, default `/linear-review <ID>`)
-#                     and runs the project's worktree bootstrap (af up / moi
+#   features › new    takes a branch (plus a feature name and a first
+#                     prompt that follow it, default `/linear-review <ID>`;
+#                     a branch without a Linear id, or a bare feature name,
+#                     needs the project picked: august or moi) and runs the project's worktree bootstrap (af up / moi
 #                     bin/up) in a new tab, non-interactively; claude starts
 #                     on the prompt. ctrl+b does it all without taking focus.
 #   features › sidebar herdr's spaces as the sidebar draws them; J/K or a

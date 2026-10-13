@@ -185,6 +185,7 @@ type model struct {
 	promptEdited   bool
 	branch         string
 	featureProject string
+	featurePicked  string // project picked by hand for a branch without a Linear id
 
 	// Review view; see review.go.
 	reviewPrompt textarea.Model
@@ -311,6 +312,7 @@ func newModel(themeName string, start view, project string) model {
 	if !restored.featureEmpty() {
 		m.setFeature(restored.Branch, restored.FeatureName, restored.FeaturePrompt)
 		m.nameEdited, m.promptEdited = restored.NameEdited, restored.PromptEdited
+		m.featurePicked = restored.FeatureProject
 	}
 	m.initReview(m.styles)
 	m.reviewPrompt.SetValue(restored.ReviewPrompt)
@@ -475,7 +477,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if nm.mode == "" && !nm.discard {
 		d := draft{Project: projects[nm.chatProject], Name: nm.chatName.Value(), Prompt: nm.chatPrompt.Value(),
 			Branch: nm.feature.Value(), FeatureName: nm.featureName.Value(), FeaturePrompt: nm.featurePrompt.Value(),
-			NameEdited: nm.nameEdited, PromptEdited: nm.promptEdited, ReviewPrompt: nm.reviewPrompt.Value(),
+			NameEdited: nm.nameEdited, PromptEdited: nm.promptEdited, FeatureProject: nm.featurePicked, ReviewPrompt: nm.reviewPrompt.Value(),
 			DebugTitle: nm.debugTitle.Value(), DebugPrompt: nm.debugPrompt.Value()}
 		if !d.same(nm.saved) {
 			if err := saveDraft(d); err != nil {
@@ -568,6 +570,7 @@ func (m model) editStranded() (tea.Model, tea.Cmd) {
 	if j.Mode == "feature" || j.Mode == "feature-bg" {
 		m.setFeature(j.Branch, j.Name, j.Prompt)
 		m.nameEdited, m.promptEdited = j.Name != "", j.Prompt != ""
+		m.featurePicked = j.Project
 		return m, m.switchView(viewFeature)
 	}
 	if j.Kind == "debug" {
@@ -714,6 +717,10 @@ func (m model) pickProject(i int) (tea.Model, tea.Cmd) {
 		return m, m.setResumeProject(i)
 	case viewAgents:
 		m.setAgentProject(i + 1)
+	case viewFeature:
+		if _, inferred := m.featureTarget(); !inferred && i < len(featureProjects) {
+			return m.pickFeatureProject(i)
+		}
 	}
 	return m, nil
 }

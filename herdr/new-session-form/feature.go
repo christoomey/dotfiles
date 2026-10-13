@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -13,16 +16,20 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Feature view (features › new): paste a Linear branch and the project is
-// inferred from the team key. The feature name and the first prompt follow
-// the branch as you type (the name the way `af up` derives it, the prompt
-// `/linear-review <ID>`) until you edit them yourself; clearing one hands
-// it back to the branch. ctrl+s runs the project's worktree bootstrap
-// (`af up` for august, `bin/up` for moi) in a new tab with claude started
-// on the prompt; ctrl+b does the same without taking focus. Dotfiles has
-// no feature flow, so only branches with a Linear id are accepted.
+// Feature view (features › new): paste a branch. One with a Linear id picks
+// the project from its team key; any other branch, or a bare feature name
+// (which becomes $USER/<name>), needs the project picked by hand. The
+// feature name and the first prompt follow the branch as you type (the name
+// the way `af up` derives it, the prompt `/linear-review <ID>` when there is
+// an id) until you edit them yourself; clearing one hands it back to the
+// branch. ctrl+s runs the project's worktree bootstrap (`af up` for august,
+// `bin/up` for moi) in a new tab with claude started on the prompt; ctrl+b
+// does the same without taking focus. Dotfiles has no feature flow.
 
 var projects = []string{"august", "moi", "dotfiles"}
+
+// featureProjects are the projects with a worktree flow, in picker order.
+var featureProjects = projects[:2]
 
 const (
 	projectMoi      = 1
@@ -81,6 +88,30 @@ func featureNameFor(branch string) string {
 	return strings.Trim(name, "-")
 }
 
+// featureBranch is the branch a submit checks out: the input as typed, or a
+// bare feature name kebab-cased under the user's prefix.
+func featureBranch(input string) (string, error) {
+	input = strings.TrimSpace(input)
+	switch {
+	case input == "":
+		return "", errors.New("branch or feature name is required")
+	case strings.Contains(input, "/"):
+		if strings.ContainsAny(input, " \t") {
+			return "", errors.New("a branch cannot contain spaces")
+		}
+		return input, nil
+	}
+	name := featureNameFor(input)
+	if name == "" {
+		return "", errors.New("no usable feature name in " + strconv.Quote(input))
+	}
+	user := os.Getenv("USER")
+	if user == "" {
+		user = "christoomey"
+	}
+	return user + "/" + name, nil
+}
+
 func defaultPrompt(branch string) string {
 	if id := linearID(branch); id != "" {
 		return "/linear-review " + id
@@ -90,6 +121,7 @@ func defaultPrompt(branch string) string {
 
 const (
 	featBranch = iota
+	featProject
 	featName
 	featPrompt
 	featFields
@@ -144,17 +176,64 @@ func (m *model) setFeature(branch, name, prompt string) {
 	m.featurePrompt.SetValue(prompt)
 }
 
+// featureTarget is the project a submit bootstraps: the branch's team key
+// when it has a Linear id, else the one picked by hand ("" until then).
+func (m model) featureTarget() (project string, inferred bool) {
+	if p, _, ok := detectProject(m.feature.Value()); ok {
+		return p, true
+	}
+	return m.featurePicked, false
+}
+
+// focusFeature moves to field i. The project picker only takes focus when
+// the branch leaves the project open; otherwise focus steps over it.
 func (m *model) focusFeature(i int) tea.Cmd {
+	i = (i + featFields) % featFields
+	if _, inferred := m.featureTarget(); i == featProject && inferred {
+		if m.featureFocus == featName {
+			i = featBranch
+		} else {
+			i = featName
+		}
+	}
 	m.blurFeature()
-	m.featureFocus = (i + featFields) % featFields
+	m.featureFocus = i
 	switch m.featureFocus {
 	case featBranch:
 		return m.feature.Focus()
+	case featProject:
+		return nil
 	case featName:
 		return m.featureName.Focus()
 	default:
 		return m.featurePrompt.Focus()
 	}
+}
+
+// pickFeatureProject sets the hand-picked project; i indexes projects and
+// wraps over the ones with a feature flow.
+func (m model) pickFeatureProject(i int) (tea.Model, tea.Cmd) {
+	n := len(featureProjects)
+	m.featurePicked = featureProjects[(i%n+n)%n]
+	m.err = ""
+	return m, nil
+}
+
+func (m model) updateFeatureProject(k tea.KeyMsg) (tea.Model, tea.Cmd) {
+	if i, ok := projectByInitial(k.String()); ok && i < len(featureProjects) {
+		return m.pickFeatureProject(i)
+	}
+	cur := slices.Index(featureProjects, m.featurePicked)
+	switch k.String() {
+	case "left", "h", "up", "k":
+		if cur < 0 {
+			cur = 0
+		}
+		return m.pickFeatureProject(cur - 1)
+	case "right", "l", "down", "j", " ":
+		return m.pickFeatureProject(cur + 1)
+	}
+	return m, nil
 }
 
 func (m *model) blurFeature() {
@@ -175,6 +254,11 @@ func (m *model) syncFeature() {
 	if !m.promptEdited {
 		m.featurePrompt.SetValue(defaultPrompt(branch))
 	}
+	if strings.TrimSpace(branch) != "" && linearID(branch) == "" {
+		m.featurePrompt.Placeholder = "what to work on…"
+	} else {
+		m.featurePrompt.Placeholder = "/linear-review MEDS-1234"
+	}
 }
 
 func (m model) updateFeature(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -190,6 +274,9 @@ func (m model) updateFeature(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "ctrl+s", "ctrl+b":
 			return m.submitFeature(k.String() == "ctrl+b")
+		}
+		if m.featureFocus == featProject {
+			return m.updateFeatureProject(k)
 		}
 	}
 	var cmd tea.Cmd
@@ -217,11 +304,15 @@ func (m model) updateFeature(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) submitFeature(background bool) (tea.Model, tea.Cmd) {
-	branch := strings.TrimSpace(m.feature.Value())
-	project, _, ok := detectProject(branch)
-	if !ok {
-		m.err = "need a Linear branch like user/team-123-description"
+	branch, err := featureBranch(m.feature.Value())
+	if err != nil {
+		m.err = err.Error()
 		return m, nil
+	}
+	project, _ := m.featureTarget()
+	if project == "" {
+		m.err = "no Linear id in the branch: pick a project (a august · m moi)"
+		return m, m.focusFeature(featProject)
 	}
 	name := strings.TrimSpace(m.featureName.Value())
 	if name == "" {
@@ -246,26 +337,46 @@ func (m model) submitFeature(background bool) (tea.Model, tea.Cmd) {
 	return m.submit(mode)
 }
 
+func featureRunner(project string) string {
+	if project == "moi" {
+		return "runs bin/up in ~/code/moi"
+	}
+	return "runs af up"
+}
+
 func (m model) featureView() string {
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
 	accent := lipgloss.NewStyle().Foreground(m.styles.accent).Bold(true)
 
-	branch := strings.TrimSpace(m.feature.Value())
+	input := strings.TrimSpace(m.feature.Value())
 	var hint string
-	switch project, key, ok := detectProject(branch); {
-	case branch == "":
-		hint = dim.Render("paste a branch; the team key picks the project (toom → moi, else august)")
-	case !ok:
-		hint = dim.Render("no Linear id found yet")
-	case project == "moi":
-		hint = dim.Render(key+" → ") + accent.Render("moi") + dim.Render("   runs bin/up in ~/code/moi")
+	switch project, key, ok := detectProject(input); {
+	case input == "":
+		hint = dim.Render("a Linear branch picks the project by team key (toom → moi, else august)")
+	case ok:
+		hint = dim.Render(key+" → ") + accent.Render(project) + dim.Render("   "+featureRunner(project))
 	default:
-		hint = dim.Render(key+" → ") + accent.Render("august") + dim.Render("   runs af up")
+		hint = dim.Render("no Linear id · pick the project below")
+		if branch, err := featureBranch(input); err == nil && branch != input {
+			hint += dim.Render(" · branch ") + accent.Render(branch)
+		}
+	}
+
+	project, inferred := m.featureTarget()
+	var picker string
+	switch {
+	case inferred:
+		picker = project + dim.Render("  from the branch")
+	case project == "":
+		picker = dim.Render("none · a august · m moi")
+	default:
+		picker = project + dim.Render("  "+featureRunner(project))
 	}
 
 	var b strings.Builder
 	b.WriteString(m.tabsView() + "\n\n")
-	b.WriteString(m.inputField(m.featureFocus == featBranch, "Linear branch", "", m.feature.View()) + "\n  " + hint + "\n\n")
+	b.WriteString(m.inputField(m.featureFocus == featBranch, "Branch", dim.Render("Linear branch, any branch, or a feature name"), m.feature.View()) + "\n  " + hint + "\n\n")
+	b.WriteString(m.projectPicker(picker, m.featureFocus == featProject) + "\n\n")
 	b.WriteString(m.inputField(m.featureFocus == featName, "Feature name", "", m.featureName.View()) + "\n\n")
 	b.WriteString(m.inputField(m.featureFocus == featPrompt, "Initial prompt", dim.Render("optional · enter for a new line"), m.featurePrompt.View()) + "\n")
 	rows := m.menuRows()

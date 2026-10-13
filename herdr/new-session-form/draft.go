@@ -20,11 +20,12 @@ type draft struct {
 	Name    string `json:"name"`
 	Prompt  string `json:"prompt"`
 
-	Branch        string `json:"branch,omitempty"`
-	FeatureName   string `json:"feature_name,omitempty"`
-	FeaturePrompt string `json:"feature_prompt,omitempty"`
-	NameEdited    bool   `json:"feature_name_edited,omitempty"`
-	PromptEdited  bool   `json:"feature_prompt_edited,omitempty"`
+	Branch         string `json:"branch,omitempty"`
+	FeatureName    string `json:"feature_name,omitempty"`
+	FeaturePrompt  string `json:"feature_prompt,omitempty"`
+	NameEdited     bool   `json:"feature_name_edited,omitempty"`
+	PromptEdited   bool   `json:"feature_prompt_edited,omitempty"`
+	FeatureProject string `json:"feature_project,omitempty"`
 
 	ReviewPrompt string `json:"review_prompt,omitempty"`
 	DebugTitle   string `json:"debug_title,omitempty"`
@@ -71,7 +72,8 @@ func (d draft) debugOnly() bool {
 func (d draft) same(o draft) bool {
 	return d.Project == o.Project && d.Name == o.Name && d.Prompt == o.Prompt &&
 		d.Branch == o.Branch && d.FeatureName == o.FeatureName && d.FeaturePrompt == o.FeaturePrompt &&
-		d.NameEdited == o.NameEdited && d.PromptEdited == o.PromptEdited && d.ReviewPrompt == o.ReviewPrompt &&
+		d.NameEdited == o.NameEdited && d.PromptEdited == o.PromptEdited && d.FeatureProject == o.FeatureProject &&
+		d.ReviewPrompt == o.ReviewPrompt &&
 		d.DebugTitle == o.DebugTitle && d.DebugPrompt == o.DebugPrompt
 }
 

@@ -117,3 +117,100 @@ func TestAgentsProjectScope(t *testing.T) {
 		t.Errorf("wrapped back to all: %v (project %d)", got, m.(model).agentProject)
 	}
 }
+
+func TestFeatureBranch(t *testing.T) {
+	t.Setenv("USER", "someone")
+	for _, c := range []struct{ in, branch string }{
+		{"christoomey/meds-3241-expose-data", "christoomey/meds-3241-expose-data"},
+		{"christoomey/just-words", "christoomey/just-words"},
+		{"medpass-hyphen-filter", "someone/medpass-hyphen-filter"},
+		{"  Medpass Hyphen_Filter ", "someone/medpass-hyphen-filter"},
+		{"", ""},
+		{"christoomey/has space", ""},
+		{"---", ""},
+	} {
+		got, err := featureBranch(c.in)
+		if c.branch == "" {
+			if err == nil {
+				t.Errorf("%q: want an error, got %q", c.in, got)
+			}
+		} else if err != nil || got != c.branch {
+			t.Errorf("%q: %q %v, want %q", c.in, got, err, c.branch)
+		}
+	}
+}
+
+// Without a Linear id the project has to be picked: submit refuses and moves
+// to the picker, a/m or ctrl+m pick, and the bare name gets the user prefix.
+func TestFeatureWithoutLinearIDNeedsAProject(t *testing.T) {
+	t.Setenv("USER", "someone")
+	var m tea.Model = newModel("minimal", viewNew, projects[0])
+	m = drive(m, m.Init())
+	send := func(msg tea.Msg) {
+		next, cmd := m.Update(msg)
+		m = drive(next, cmd)
+	}
+	typeText := func(s string) {
+		for _, r := range s {
+			send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
+		}
+	}
+
+	send(tea.KeyMsg{Type: tea.KeyCtrlF})
+	typeText("hyphen-filter")
+	if mm := m.(model); mm.featureName.Value() != "hyphen-filter" || mm.featurePrompt.Value() != "" {
+		t.Fatalf("derived %q %q", mm.featureName.Value(), mm.featurePrompt.Value())
+	}
+	send(tea.KeyMsg{Type: tea.KeyCtrlS})
+	mm := m.(model)
+	if mm.mode != "" || mm.err == "" || mm.featureFocus != featProject {
+		t.Fatalf("submit without a project: mode %q err %q focus %d", mm.mode, mm.err, mm.featureFocus)
+	}
+	typeText("m")
+	if p, _ := m.(model).featureTarget(); p != "moi" {
+		t.Errorf("m should pick moi: %q", p)
+	}
+	send(tea.KeyMsg{Type: tea.KeyRight})
+	if p, _ := m.(model).featureTarget(); p != "august" {
+		t.Errorf("right should wrap to august: %q", p)
+	}
+	send(tea.KeyMsg{Type: tea.KeyShiftTab})
+	send(ctrlMMsg{})
+	if p, _ := m.(model).featureTarget(); p != "moi" {
+		t.Errorf("ctrl+m should pick moi from the branch field: %q", p)
+	}
+
+	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	mm = m.(model)
+	if mm.mode != "feature-bg" || mm.featureProject != "moi" || mm.branch != "someone/hyphen-filter" || mm.picked.Title != "hyphen-filter" {
+		t.Errorf("submit: mode %q project %q branch %q name %q", mm.mode, mm.featureProject, mm.branch, mm.picked.Title)
+	}
+}
+
+// A Linear branch decides the project, so tab steps over the picker and a
+// hand pick cannot override it.
+func TestFeatureLinearBranchSkipsThePicker(t *testing.T) {
+	var m tea.Model = newModel("minimal", viewNew, projects[0])
+	m = drive(m, m.Init())
+	send := func(msg tea.Msg) {
+		next, cmd := m.Update(msg)
+		m = drive(next, cmd)
+	}
+	send(tea.KeyMsg{Type: tea.KeyCtrlF})
+	for _, r := range "christoomey/meds-1-thing" {
+		send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
+	}
+	send(ctrlMMsg{})
+	send(tea.KeyMsg{Type: tea.KeyTab})
+	mm := m.(model)
+	if mm.featureFocus != featName {
+		t.Errorf("tab should skip the picker: focus %d", mm.featureFocus)
+	}
+	if p, inferred := mm.featureTarget(); p != "august" || !inferred {
+		t.Errorf("target %q inferred %v", p, inferred)
+	}
+	send(tea.KeyMsg{Type: tea.KeyShiftTab})
+	if f := m.(model).featureFocus; f != featBranch {
+		t.Errorf("shift+tab should skip the picker back: focus %d", f)
+	}
+}
