@@ -67,9 +67,9 @@ if [ -n ${(q)ws} ]; then
 fi
 echo \"== \$(date) $as: $teardown\"
 cd ${(q)main} && $teardown
-status=\$?
+rc=\$?
 if [ -e ${(q)fdir} ]; then
-  echo \"FAILED: exit \$status, ${fdir} still here\"
+  echo \"FAILED: exit \$rc, ${fdir} still here\"
   herdr notification show \"$as: teardown left $dir behind\" --body \"log: $log\" --sound request ||
     osascript -e 'display notification \"see $log\" with title \"$as: teardown failed\"'
 else
