@@ -43,7 +43,7 @@ var jobModes = map[string]bool{
 // Keys for the stranded-launch notice, free in every view (and not readline
 // keys inside the inputs, unlike ctrl+a/e/k/u/w).
 const (
-	retryKey = "ctrl+g"
+	retryKey = "ctrl+y"
 	editKey  = "ctrl+o"
 )
 

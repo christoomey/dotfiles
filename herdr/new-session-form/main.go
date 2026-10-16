@@ -27,10 +27,11 @@
 // (see skills.go). Both the chat and the feature fields autosave as a draft
 // that the next popup restores until the launcher has the prompt on disk; esc
 // over an unsent prompt only warns, and a second esc discards it (see
-// draft.go).
+// draft.go). ctrl+g or ctrl+x ctrl+e opens the focused prompt in
+// $VISUAL/$EDITOR (see editor.go).
 // Every launch is written to jobs/<id>.json before the popup closes and the
 // id travels with the result (see job.go); a launch that never started shows
-// up in the next popup as a notice, with ctrl+g to retry it and ctrl+o to
+// up in the next popup as a notice, with ctrl+y to retry it and ctrl+o to
 // load it back into the form.
 //
 //	{"mode":"open"|"bg", "project","name","prompt","attachments","job_id"}   new session (attachments: png paths); review emits the same
@@ -169,6 +170,7 @@ type model struct {
 	saved   draft     // last draft written; see draft.go
 	notice  string    // shown under the form, e.g. that a draft was restored
 	escAt   time.Time // first esc over an unsent prompt; a second one soon after discards it
+	ctrlX   bool      // ctrl+x pressed, waiting for ctrl+e or backspace
 	discard bool      // quit on that second esc, so the draft goes too
 
 	// Launches that never started; see job.go.
@@ -593,6 +595,8 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.switchSection(int(msg) - 1)
 	case ctrlMMsg:
 		return m.pickProject(projectMoi)
+	case ctrlEnterMsg:
+		return m.submitBackground()
 	case tea.WindowSizeMsg:
 		// sections(1) + subtabs(1) + blank + project(2) + blank + filter + blank + list + blank + help, inside the frame.
 		m.listRows = max(3, msg.Height-2-11)
@@ -631,6 +635,8 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.live = msg.live
 		m.decorateLive()
 		return m, nil
+	case editorDoneMsg:
+		return m.onEditorDone(msg)
 	case attachMsg:
 		switch {
 		case msg.err == errNoImage:
@@ -653,7 +659,28 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if out, cmd, taken := m.menuKey(k); taken {
 			return out, cmd
 		}
+		if m.ctrlX {
+			m.ctrlX = false
+			if m.err == ctrlXPending {
+				m.err = ""
+			}
+			switch k.String() {
+			case "ctrl+e":
+				return m.openEditor()
+			case "backspace":
+				if m.view == viewNew {
+					m.dropLastAttachment()
+				}
+				return m, nil
+			}
+		}
 		switch ks := k.String(); ks {
+		case "ctrl+x":
+			m.ctrlX = true
+			m.err = ctrlXPending
+			return m, nil
+		case editorKey:
+			return m.openEditor()
 		case "esc", "ctrl+c":
 			formLog("%s in view %d (prompt %d chars, feature prompt %d chars)", ks, m.view, len(m.chatPrompt.Value()), len(m.featurePrompt.Value()))
 			if m.unsent() && time.Since(m.escAt) > 2*time.Second {
@@ -783,15 +810,8 @@ func (m model) updateChat(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "ctrl+v":
 		m.err = ""
 		return m, m.attachClipboardCmd()
-	case "ctrl+x":
-		m.dropLastAttachment()
-		return m, nil
-	case "ctrl+s", "ctrl+b":
-		mode := "open"
-		if k.String() == "ctrl+b" {
-			mode = "bg"
-		}
-		return m.submitChat(mode)
+	case "ctrl+s":
+		return m.submitChat("open")
 	}
 	switch m.chatFocus {
 	case chatProjectField:
@@ -856,6 +876,40 @@ func (m model) submitChat(mode string) (tea.Model, tea.Cmd) {
 	return m.submit(mode)
 }
 
+// submitBackground is ctrl+enter: the active view's launch without taking
+// focus.
+func (m model) submitBackground() (tea.Model, tea.Cmd) {
+	switch m.view {
+	case viewNew:
+		return m.submitChat("bg")
+	case viewResume:
+		return m.submitResume(true)
+	case viewFeature:
+		return m.submitFeature(true)
+	case viewReview:
+		return m.submitReview("bg")
+	case viewDebug:
+		return m.submitDebug("bg")
+	}
+	return m, nil
+}
+
+func (m model) submitResume(bg bool) (tea.Model, tea.Cmd) {
+	if len(m.matches) == 0 {
+		m.err = "no matching session"
+		return m, nil
+	}
+	m.picked = m.matches[m.cursor]
+	switch {
+	case m.picked.LiveTab != "":
+		return m.submit("focus")
+	case bg:
+		return m.submit("resume-bg")
+	default:
+		return m.submit("resume")
+	}
+}
+
 func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 	k, ok := msg.(tea.KeyMsg)
 	if !ok {
@@ -894,20 +948,8 @@ func (m model) updateResume(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "down", "ctrl+j", "ctrl+n":
 		m.cursor = min(m.cursor+1, max(0, len(m.matches)-1))
 		return m, nil
-	case "enter", "ctrl+s", "ctrl+b":
-		if len(m.matches) == 0 {
-			m.err = "no matching session"
-			return m, nil
-		}
-		m.picked = m.matches[m.cursor]
-		switch {
-		case m.picked.LiveTab != "":
-			return m.submit("focus")
-		case k.String() == "ctrl+b":
-			return m.submit("resume-bg")
-		default:
-			return m.submit("resume")
-		}
+	case "enter", "ctrl+s":
+		return m.submitResume(false)
 	}
 	var cmd tea.Cmd
 	m.filter, cmd = m.filter.Update(msg)
@@ -1108,7 +1150,7 @@ func (m model) chatView() string {
 		b.WriteString("\n" + a + "\n")
 	}
 
-	help := "ctrl+s open now · ctrl+b in background · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + m.strandedHelp() + " · esc cancel"
+	help := "ctrl+s open now · ctrl+enter in background · ctrl+g editor · ctrl+v attach image · ctrl+m/d moi/dotfiles · " + tabsHelp + m.strandedHelp() + " · esc cancel"
 	if len(rows) > 0 {
 		help = menuHelp(m.menuProject())
 	}
@@ -1134,7 +1176,7 @@ func (m model) resumeView() string {
 		b.WriteString(m.listView())
 	}
 
-	help := "enter resume · ctrl+b in background · ↑/↓ move · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
+	help := "enter resume · ctrl+enter in background · ↑/↓ move · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }

@@ -41,6 +41,7 @@ func TestTranslateKitty(t *testing.T) {
 		{"\x1b[97;5u", "ctrl+a"},
 		{"\x1b[109;5u", "ctrl+m"},
 		{"\x1b[13u", "enter"},
+		{"\x1b[13;5u", "ctrl+enter"},
 		{"\x1b[32;5u", "ctrl+@"},
 		{"\x1b[49u", "1"},
 		{"\x1b[49:33;129u", "1"},
@@ -53,6 +54,8 @@ func TestTranslateKitty(t *testing.T) {
 			s = "ctrl+" + string(rune('0'+g))
 		case ctrlMMsg:
 			s = "ctrl+m"
+		case ctrlEnterMsg:
+			s = "ctrl+enter"
 		case tea.KeyMsg:
 			s = g.String()
 		default:

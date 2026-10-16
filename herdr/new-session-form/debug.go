@@ -11,7 +11,7 @@ import (
 // Debug view: an optional title over a required prompt that starts an
 // Abulafia session (pi on
 // Bedrock, read-only AWS) in august, in front (ctrl+s) or in the background
-// (ctrl+b). The result is a chats › new launch with kind "debug", which the
+// (ctrl+enter). The result is a chats › new launch with kind "debug", which the
 // launcher routes to launch_debug; that notifies when a background session
 // is waiting on an MFA code.
 
@@ -61,8 +61,6 @@ func (m model) updateDebug(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch k.String() {
 		case "ctrl+s":
 			return m.submitDebug("open")
-		case "ctrl+b":
-			return m.submitDebug("bg")
 		case "tab", "shift+tab":
 			m.debugFocus = (m.debugFocus + 1) % dbgFields
 			return m, m.focusDebug()
@@ -107,7 +105,7 @@ func (m model) debugView() string {
 	b.WriteString(m.inputField(m.debugFocus == dbgPrompt, "First prompt", dim.Render("required · enter for a new line"), m.debugPrompt.View()) + "\n")
 	b.WriteString(m.noticesView())
 
-	help := "ctrl+b in background · ctrl+s open now · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
+	help := "ctrl+enter in background · ctrl+g editor · ctrl+s open now · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }

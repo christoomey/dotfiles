@@ -25,7 +25,7 @@ func TestReviewSubmitsABackgroundReviewQueueJob(t *testing.T) {
 	get, send := newFormModel(t)
 	send(ctrlDigitMsg(4))
 	typeText(send, "just nick's")
-	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	send(ctrlEnterMsg{})
 
 	m := get()
 	if m.mode != "bg" {

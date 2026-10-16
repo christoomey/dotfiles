@@ -73,7 +73,7 @@ func TestDebugTitleNamesTheSession(t *testing.T) {
 	typeText(send, "export failures")
 	send(tea.KeyMsg{Type: tea.KeyEnter})
 	typeText(send, "take a look at this")
-	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	send(ctrlEnterMsg{})
 
 	m := get()
 	res := m.resultFor(m.mode)
@@ -88,7 +88,7 @@ func TestDebugCtrlBSubmitsABackgroundDebugJob(t *testing.T) {
 	send(ctrlDigitMsg(5))
 	send(tea.KeyMsg{Type: tea.KeyTab})
 	typeText(send, "why did the export fail")
-	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	send(ctrlEnterMsg{})
 
 	m := get()
 	if m.mode != "bg" {

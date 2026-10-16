@@ -7,21 +7,21 @@
 #                     first); enter focuses the pane. `--agents` (bound to
 #                     prefix+k) opens straight into it.
 #   chats › new       huh form: name (required), project, optional first
-#                     prompt, open-vs-background. ctrl+s opens now, ctrl+b
+#                     prompt, open-vs-background. ctrl+s opens now, ctrl+enter
 #                     runs in the background, from any field. ctrl+v
 #                     attaches the clipboard image (what CleanShot leaves
 #                     after a capture); the launcher moves attachments into
 #                     the session's scratch dir and lists their paths in the
 #                     first prompt.
 #   chats › resume    fuzzy list of past sessions in a project root: enter
-#                     resumes one in a new tab (ctrl+b in the background); a
+#                     resumes one in a new tab (ctrl+enter in the background); a
 #                     session that is already live just gets focused.
 #   features › new    takes a branch (plus a feature name and a first
 #                     prompt that follow it, default `/linear-review <ID>`;
 #                     a branch without a Linear id, or a bare feature name,
 #                     needs the project picked: august or moi) and runs the project's worktree bootstrap (af up / moi
 #                     bin/up) in a new tab, non-interactively; claude starts
-#                     on the prompt. ctrl+b does it all without taking focus.
+#                     on the prompt. ctrl+enter does it all without taking focus.
 #   features › sidebar herdr's spaces as the sidebar draws them; J/K or a
 #                     mouse drag reorder them live (a worktree among its
 #                     siblings, a primary with its whole space), which the
@@ -31,8 +31,9 @@
 #                     <date>"; in the background by default, ctrl+s opens it.
 #   debug             a required first prompt for an Abulafia session (pi on
 #                     Bedrock, read-only AWS) in august, named from the
-#                     prompt's first words. ctrl+b runs it in the background
+#                     prompt's first words. ctrl+enter runs it in the background
 #                     and notifies if abulafia is waiting for an MFA code.
+# In any prompt box, ctrl+g or ctrl+x ctrl+e edits it in $VISUAL/$EDITOR.
 # The popup closes as soon as you submit; the launch continues detached.
 #
 #   herdr-new-thread [--agents] [--view SECTION] [--project P]   # interactive

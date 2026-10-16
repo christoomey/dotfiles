@@ -212,7 +212,7 @@ func TestRetryReportsTheStrandedJob(t *testing.T) {
 	if n := get().jobNotice; !strings.Contains(n, "never started") {
 		t.Fatalf("no notice: %q", n)
 	}
-	send(tea.KeyMsg{Type: tea.KeyCtrlG})
+	send(tea.KeyMsg{Type: tea.KeyCtrlY})
 	m := get()
 	if m.mode != "retry" || m.jobID != id {
 		t.Fatalf("retry: mode %q job %q", m.mode, m.jobID)
@@ -243,7 +243,7 @@ func TestEditingAStrandedFeatureJobSupersedesIt(t *testing.T) {
 		t.Error("notice should go once the job is being edited")
 	}
 
-	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	send(ctrlEnterMsg{})
 	m = get()
 	if m.mode != "feature-bg" || m.jobID == "" || m.jobID == id {
 		t.Fatalf("resubmit: mode %q job %q", m.mode, m.jobID)

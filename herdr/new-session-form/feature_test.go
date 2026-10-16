@@ -68,7 +68,7 @@ func TestFeatureFieldsFollowBranchUntilEdited(t *testing.T) {
 		t.Errorf("cleared prompt should follow the branch again: %q", p)
 	}
 
-	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	send(ctrlEnterMsg{})
 	mm := m.(model)
 	if mm.mode != "feature-bg" || mm.featureProject != "moi" || mm.picked.Title != "fix-thing-more" {
 		t.Errorf("submit: mode %q project %q name %q", mm.mode, mm.featureProject, mm.picked.Title)
@@ -180,7 +180,7 @@ func TestFeatureWithoutLinearIDNeedsAProject(t *testing.T) {
 		t.Errorf("ctrl+m should pick moi from the branch field: %q", p)
 	}
 
-	send(tea.KeyMsg{Type: tea.KeyCtrlB})
+	send(ctrlEnterMsg{})
 	mm = m.(model)
 	if mm.mode != "feature-bg" || mm.featureProject != "moi" || mm.branch != "someone/hyphen-filter" || mm.picked.Title != "hyphen-filter" {
 		t.Errorf("submit: mode %q project %q branch %q name %q", mm.mode, mm.featureProject, mm.branch, mm.picked.Title)

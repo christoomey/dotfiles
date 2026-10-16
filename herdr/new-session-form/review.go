@@ -56,8 +56,6 @@ func (m model) updateReview(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch k.String() {
 	case "ctrl+s":
 		return m.submitReview("open")
-	case "ctrl+b":
-		return m.submitReview("bg")
 	}
 	if m.reviewFocus == revStart {
 		switch k.String() {
@@ -106,7 +104,7 @@ func (m model) reviewView() string {
 	b.WriteString(m.startField(m.reviewFocus == revStart, m.reviewOpen) + "\n")
 	b.WriteString(m.noticesView())
 
-	help := "ctrl+b in background · ctrl+s open now · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
+	help := "ctrl+enter in background · ctrl+g editor · ctrl+s open now · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
 	b.WriteString("\n" + m.styles.help.Render(help))
 	return b.String()
 }

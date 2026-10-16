@@ -23,7 +23,7 @@ import (
 // the way `af up` derives it, the prompt `/linear-review <ID>` when there is
 // an id) until you edit them yourself; clearing one hands it back to the
 // branch. ctrl+s runs the project's worktree bootstrap (`af up` for august,
-// `bin/up` for moi) in a new tab with claude started on the prompt; ctrl+b
+// `bin/up` for moi) in a new tab with claude started on the prompt; ctrl+enter
 // does the same without taking focus. Dotfiles has no feature flow.
 
 var projects = []string{"august", "moi", "dotfiles"}
@@ -272,8 +272,8 @@ func (m model) updateFeature(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.featureFocus != featPrompt {
 				return m, m.focusFeature(m.featureFocus + 1)
 			}
-		case "ctrl+s", "ctrl+b":
-			return m.submitFeature(k.String() == "ctrl+b")
+		case "ctrl+s":
+			return m.submitFeature(false)
 		}
 		if m.featureFocus == featProject {
 			return m.updateFeatureProject(k)
@@ -383,7 +383,7 @@ func (m model) featureView() string {
 	b.WriteString(m.menuView(rows))
 	b.WriteString(m.noticesView())
 
-	help := "ctrl+s start feature · ctrl+b in background · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
+	help := "ctrl+s start feature · ctrl+enter in background · ctrl+g editor · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
 	if len(rows) > 0 {
 		help = menuHelp(m.menuProject())
 	}

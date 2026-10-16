@@ -25,6 +25,10 @@ type ctrlDigitMsg int
 // KeyEnter).
 type ctrlMMsg struct{}
 
+// ctrlEnterMsg is ctrl+enter, the background launch; legacy encoding sends
+// plain enter for it.
+type ctrlEnterMsg struct{}
+
 var csiURe = regexp.MustCompile(`^\x1b\[(\d+)(?::[\d:]*)?(?:;(\d+)(?::\d+)?)?u$`)
 
 func translateKitty(msg tea.Msg) tea.Msg {
@@ -49,6 +53,8 @@ func translateKitty(msg tea.Msg) tea.Msg {
 		return ctrlDigitMsg(code - '0')
 	case ctrl && !shift && code == 'm':
 		return ctrlMMsg{}
+	case ctrl && !shift && code == 13:
+		return ctrlEnterMsg{}
 	case ctrl && code >= 'a' && code <= 'z':
 		return tea.KeyMsg{Type: tea.KeyCtrlA + tea.KeyType(code-'a'), Alt: alt}
 	case ctrl && code >= 'A' && code <= 'Z':
