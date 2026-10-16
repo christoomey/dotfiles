@@ -19,3 +19,8 @@ export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH
 # non-interactive contexts (herdr/tmux-spawned jobs) don't fall back to
 # homebrew node. Completions stay in .zshrc.
 . $HOME/.asdf/asdf.sh
+
+# herdr sets TERM_PROGRAM=herdr, which Claude Code doesn't recognize, so it
+# prints links as "text (url)". herdr renders OSC 8 fine (ctrl-click opens).
+# https://github.com/herdrdev/herdr/issues/4748
+[ "$TERM_PROGRAM" = herdr ] && export FORCE_HYPERLINK=1
