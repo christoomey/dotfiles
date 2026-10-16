@@ -11,3 +11,8 @@ macos-non-native-fullscreen = padded-notch
 # transparency
 background-opacity = 0.92
 background-blur-radius = 8
+
+# Free Cmd+Shift+Up/Down for herdr's column layout wider/narrower bindings
+# (herdr/config.toml); Ghostty uses them for jump_to_prompt by default.
+keybind = super+shift+arrow_up=unbind
+keybind = super+shift+arrow_down=unbind

@@ -345,6 +345,28 @@ description = "New Session"
 width = 86
 height = 33
 
+# Column layout (coryfklein.herdr-layout plugin): spacer panes around the
+# focused pane so it reads at a fixed width. Claude sessions alone in a tab
+# enter it automatically (bin/herdr-claude-layout hooks). Cmd+Shift+Up/Down
+# reach herdr only because ghostty/config unbinds Ghostty's jump_to_prompt.
+[[keys.command]]
+key = "cmd+shift+l"
+type = "plugin_action"
+command = "coryfklein.herdr-layout.toggle"
+description = "toggle column layout"
+
+[[keys.command]]
+key = "cmd+shift+up"
+type = "plugin_action"
+command = "coryfklein.herdr-layout.wider"
+description = "widen column layout"
+
+[[keys.command]]
+key = "cmd+shift+down"
+type = "plugin_action"
+command = "coryfklein.herdr-layout.narrower"
+description = "narrow column layout"
+
 # [[keys.command]]
 # key = "prefix+alt+g"
 # type = "pane"

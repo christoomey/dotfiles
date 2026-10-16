@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# herdr-claude-layout: give a Claude pane a readable column width via the
+# coryfklein.herdr-layout plugin (spacer panes either side, default 90 cols).
+#
+# Runs as Claude Code hooks, so every launch path gets it (typed `claude`,
+# `herdr agent start -- claude`, herdr-new-thread, resumes):
+#
+#   SessionStart  herdr-claude-layout start   enter, only if the pane is alone
+#                                             in its tab (a split stays as is)
+#   SessionEnd    herdr-claude-layout end     leave, except on /clear
+#
+# Leave runs synchronously so the spacers are gone before claude exits; a
+# HERDR_THREAD tab would otherwise survive its shell on the leftover spacers.
+# HERDR_CLAUDE_LAYOUT=0 opts a session out.
+
+set -uo pipefail
+
+[[ ${HERDR_ENV-} == 1 && -n ${HERDR_SOCKET_PATH-} && -n ${HERDR_PANE_ID-} ]] || exit 0
+[[ ${HERDR_CLAUDE_LAYOUT-1} != 0 ]] || exit 0
+command -v jq >/dev/null 2>&1 || exit 0
+
+layout_bin=$(ls -t "$HOME"/.config/herdr/plugins/github-installations/coryfklein.herdr-layout-*/*/checkout/bin/herdr-layout 2>/dev/null | head -1)
+[[ -x $layout_bin ]] || exit 0
+
+input=$(cat)
+
+case "${1-}" in
+  start)
+    panes=$(herdr pane layout --pane "$HERDR_PANE_ID" 2>/dev/null | jq '.result.layout.panes | length')
+    [[ $panes == 1 ]] || exit 0
+    focused_tab=$(herdr tab list 2>/dev/null | jq -r '.result.tabs[] | select(.focused) | .tab_id')
+    own_tab=$(herdr pane get "$HERDR_PANE_ID" 2>/dev/null | jq -r '.result.pane.tab_id')
+    "$layout_bin" enter >/dev/null 2>&1
+    # enter's pane swap focuses this tab; a background launch must not steal
+    # focus, or the next popup opens over a tab nobody is looking at.
+    if [[ -n $focused_tab && $focused_tab != "$own_tab" ]]; then
+      herdr tab focus "$focused_tab" >/dev/null 2>&1
+    fi
+    ;;
+  end)
+    [[ $(jq -r '.reason // ""' <<<"$input") != clear ]] || exit 0
+    "$layout_bin" leave >/dev/null 2>&1
+    ;;
+  *)
+    echo "usage: herdr-claude-layout start|end" >&2
+    exit 2
+    ;;
+esac
+exit 0
