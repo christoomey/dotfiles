@@ -22,7 +22,9 @@
 # pi panes are Abulafia debugging sessions: they get debug + name (the tab
 # label) and no project. pi/extensions/herdr-sidebar.ts runs --pi at every pi
 # session_start, so one started by hand is labelled too; --all brings the
-# labels back after a herdr restart.
+# labels back after a herdr restart. abulafia runs pi with its own
+# PI_CODING_AGENT_DIR, so the extension is symlinked into both
+# ~/.pi/agent/extensions and ~/.pi/abulafia-agent/extensions.
 #
 # Only the matching kind token is set (the others are cleared), so the sidebar
 # can give each kind a fixed color without per-token rules.
