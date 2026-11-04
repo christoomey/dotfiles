@@ -62,6 +62,53 @@ export async function artistListeners(name: string): Promise<number | undefined>
   return toCount(data.artist?.stats?.listeners);
 }
 
+export type Profile = {
+  tags: Array<string>;
+  bio?: string;
+  similar: Array<string>;
+  url?: string;
+};
+
+const IGNORED_TAGS = new Set(["seen live", "favorites", "favourites", "favorite", "albums i own"]);
+const BIO_SENTENCES = 3;
+
+function cleanBio(summary: string | undefined): string | undefined {
+  const text = (summary ?? "")
+    .replace(/<a [^>]*>Read more on Last\.fm<\/a>\.?/i, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [text];
+  const short = sentences.slice(0, BIO_SENTENCES).join("").trim();
+
+  if (short.length > 0) {
+    return short;
+  } else {
+    return undefined;
+  }
+}
+
+export async function artistProfile(name: string): Promise<Profile> {
+  const data = await call<{
+    artist?: {
+      url?: string;
+      tags?: { tag?: Array<{ name: string }> };
+      similar?: { artist?: Array<{ name: string }> };
+      bio?: { summary?: string };
+    };
+  }>({ method: "artist.getinfo", artist: name, autocorrect: "1" });
+
+  return {
+    tags: (data.artist?.tags?.tag ?? []).map((tag) => tag.name.toLowerCase()).filter((tag) => !IGNORED_TAGS.has(tag)),
+    bio: cleanBio(data.artist?.bio?.summary),
+    similar: (data.artist?.similar?.artist ?? []).map((artist) => artist.name),
+    url: data.artist?.url,
+  };
+}
+
 export function formatListeners(listeners: number | undefined): string {
   if (listeners === undefined) {
     return "unknown";
