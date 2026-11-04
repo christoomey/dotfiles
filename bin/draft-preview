@@ -1,11 +1,12 @@
 #!/bin/zsh
 # Preview a markdown draft beside the current herdr pane, re-rendering on
-# every call. The preview pane id is kept next to the draft, so one draft owns
-# one pane across iterations.
+# every call. The preview pane belongs to the calling pane, not the draft, so
+# a conversation has one preview split however many draft files it shows:
+# a second file replaces the first in the same pane.
 #
 #   draft-preview FILE            glow in a right split (reused if still open)
 #   draft-preview --marked FILE   Marked 2 (images/videos, or outside herdr)
-#   draft-preview --close FILE    close the preview pane
+#   draft-preview --close [FILE]  close the preview pane (and re-enter layout)
 #
 # glow needs -s when piped (it falls back to notty otherwise), and -t renders
 # blank in herdr, hence the pager.
@@ -16,15 +17,24 @@ case "${1:-}" in
   --marked) mode=marked; shift ;;
   --close) mode=close; shift ;;
 esac
-file=${1:?usage: draft-preview [--marked|--close] FILE}
-file=${file:A}
-state="${file:h}/.${file:t}.pane"
+if [ "$mode" = close ]; then
+  file=${1:-}
+else
+  file=${1:?usage: draft-preview [--marked|--close] FILE}
+  [ -f "$file" ] || { echo "usage: draft-preview [--marked|--close] FILE (no file: $file)" >&2; exit 2; }
+  file=${file:A}
+fi
+state_dir="${TMPDIR:-/tmp}/draft-preview/${${HERDR_PANE_ID:-none}//[^A-Za-z0-9]/_}"
+state="$state_dir/pane"
+layout_state="$state_dir/layout"
+layout_bin=( ~/.config/herdr/plugins/github-installations/coryfklein.herdr-layout-*/*/checkout/bin/herdr-layout(N) )
 
 if [ "$mode" = marked ] || [ -z "${HERDR_PANE_ID:-}" ]; then
   open -a "Marked 2" "$file"
   exit
 fi
 
+mkdir -p "$state_dir"
 pane=""
 [ -f "$state" ] && pane=$(<"$state")
 if [ -n "$pane" ] && ! herdr pane get "$pane" >/dev/null 2>&1; then
@@ -34,10 +44,28 @@ fi
 if [ "$mode" = close ]; then
   [ -n "$pane" ] && herdr pane close "$pane" >/dev/null
   rm -f "$state"
+  if [ -f "$layout_state" ]; then
+    layout_pane=$(<"$layout_state")
+    if [ ${#layout_bin} -eq 0 ] || ! HERDR_PANE_ID=$layout_pane "${layout_bin[1]}" enter; then
+      echo "draft-preview: could not re-enter herdr-layout" >&2
+    fi
+    rm -f "$layout_state"
+  fi
   exit
 fi
 
 if [ -z "$pane" ]; then
+  # herdr-layout margin panes squeeze the split; leave layout mode first.
+  tab=$(herdr pane get "$HERDR_PANE_ID" | jq -r '.result.pane.tab_id // .result.tab_id // empty')
+  if herdr pane list | jq -e --arg t "$tab" 'any(.result.panes[]; .tab_id == $t and .label == "Layout spacer")' >/dev/null; then
+    if [ ${#layout_bin} -gt 0 ]; then
+      if "${layout_bin[1]}" leave; then
+        print -r -- "$HERDR_PANE_ID" >"$layout_state"
+      else
+        echo "draft-preview: could not leave herdr-layout" >&2
+      fi
+    fi
+  fi
   pane=$(herdr pane split --current --direction right --no-focus | jq -r '.result.pane.pane_id // .result.pane_id // empty')
   [ -n "$pane" ] || { echo "draft-preview: could not split" >&2; exit 1; }
   print -r -- "$pane" >"$state"
