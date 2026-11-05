@@ -249,8 +249,8 @@ key = "prefix+k"
 type = "popup"
 command = "herdr-new-thread --agents"
 description = "Agents"
-width = 99
-height = 33
+width = 138
+height = 48
 
 # prefix+o routes through herdr-open-palette (~/bin): in moi checkouts and
 # moi__worktrees/* it shows a small moi palette (open in browser / open notes);
@@ -342,8 +342,8 @@ key = "prefix+ctrl+t"
 type = "popup"
 command = "herdr-new-thread"
 description = "New Session"
-width = 86
-height = 33
+width = 138
+height = 48
 
 # Column layout (coryfklein.herdr-layout plugin): spacer panes around the
 # focused pane so it reads at a fixed width. Claude sessions alone in a tab
@@ -475,6 +475,17 @@ claude = [
 pi = [
   ["state_icon", { token = "$debug", fg = "#f38ba8" }],
   [{ token = "$name", fg = "#cdd6f4", bold = true }],
+]
+
+# Space rows are herdr's defaults plus a third, `$jobs`: the background-jobs
+# registry (~/code/claude-config/jobs, `job status --oneline`) reports it onto
+# the "august" workspace after every run. It has a 90m TTL, so it disappears
+# when jobs stop running, and the row vanishes on every other workspace.
+[ui.sidebar.spaces]
+rows = [
+  ["state_icon", "workspace"],
+  ["branch", "git_status"],
+  [{ token = "$jobs", fg = "#a6adc8", rules = [{ contains = "err", fg = "#f38ba8" }, { contains = "broken", fg = "#f38ba8" }, { contains = "late", fg = "#f9e2af" }, { contains = "waiting", fg = "#fab387" }] }],
 ]
 
 [ui.toast]

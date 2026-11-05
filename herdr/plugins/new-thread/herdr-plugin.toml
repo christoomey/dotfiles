@@ -9,54 +9,62 @@ description = "The herdr-new-thread popup (prefix+ctrl+t / prefix+k) as plugin p
 id = "agents"
 title = "Agents"
 placement = "popup"
-width = 99
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "agents"]
 
 [[panes]]
 id = "chats"
 title = "New Session"
 placement = "popup"
-width = 86
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "chats"]
 
 [[panes]]
 id = "resume"
 title = "Resume Session"
 placement = "popup"
-width = 86
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "resume"]
 
 [[panes]]
 id = "features"
 title = "New Feature"
 placement = "popup"
-width = 86
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "features"]
 
 [[panes]]
 id = "sidebar"
 title = "Sidebar"
 placement = "popup"
-width = 86
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "sidebar"]
 
 [[panes]]
 id = "review"
 title = "Review Queue"
 placement = "popup"
-width = 86
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "review"]
 
 [[panes]]
 id = "debug"
 title = "Debug Session"
 placement = "popup"
-width = 86
-height = 33
+width = 138
+height = 48
 command = ["herdr-new-thread", "--view", "debug"]
+
+[[panes]]
+id = "jobs"
+title = "Jobs"
+placement = "popup"
+width = 138
+height = 48
+command = ["herdr-new-thread", "--view", "jobs"]

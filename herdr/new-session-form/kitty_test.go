@@ -114,7 +114,7 @@ func TestClickingTabsSwitchesViews(t *testing.T) {
 		m, _ = m.Update(tea.MouseMsg{X: x, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
 	}
 	_, secs, subs := m.(model).tabsLayout()
-	if len(secs) != 5 || len(subs) != 2 {
+	if len(secs) != 6 || len(subs) != 2 {
 		t.Fatalf("layout: %d sections, %d subtabs", len(secs), len(subs))
 	}
 	click(subs[1].x0, subtabsRow)
@@ -145,6 +145,10 @@ func TestClickingTabsSwitchesViews(t *testing.T) {
 	click(secs[4].x0, tabsRow)
 	if got := m.(model).view; got != viewDebug {
 		t.Errorf("debug section click: view %d", got)
+	}
+	click(secs[5].x0, tabsRow)
+	if got := m.(model).view; got != viewJobs {
+		t.Errorf("jobs section click: view %d", got)
 	}
 }
 

@@ -1,5 +1,5 @@
-// herdr-new-session-form: the popup behind prefix+ctrl+t. Five sections on
-// ctrl+1..5, two of them with subtabs (ctrl+t, or the section's own key
+// herdr-new-session-form: the popup behind prefix+ctrl+t. Six sections on
+// ctrl+1..6, two of them with subtabs (ctrl+t, or the section's own key
 // again, cycles):
 //
 //	1 agents            (also prefix+k via --view agents) a fuzzy finder over
@@ -13,6 +13,8 @@
 //	                    in august, in the background by default
 //	5 debug             a required first prompt that starts an Abulafia (pi)
 //	                    debugging session in august, in front or in the background
+//	6 jobs              the background jobs registry (`job ls`): run, pause,
+//	                    flip dry-run/live, follow a log, resume a run's session
 //
 // Ctrl+digits need the kitty keyboard protocol (see kitty.go); ctrl+r/f/a
 // jump straight to resume/feature/agents as legacy fallbacks (except in the
@@ -44,7 +46,7 @@
 //	{"mode":"retry", "job_id"}                                      run a stranded job again
 //
 //	herdr-new-session-form [--theme NAME] [--view agents]
-//	herdr-new-session-form --demo NAME fresh|filled|menu|resume|agents|sidebar|review[:text]|debug[:text]   # print one frame (ANSI)
+//	herdr-new-session-form --demo NAME fresh|filled|menu|resume|agents|sidebar|review[:text]|debug[:text]|jobs   # print one frame (ANSI)
 package main
 
 import (
@@ -88,6 +90,7 @@ const (
 	viewSidebar
 	viewReview
 	viewDebug
+	viewJobs
 )
 
 // explicitView records a --view flag. Without one, a restored draft with
@@ -104,9 +107,10 @@ var startViews = map[string]view{
 	"sidebar":  viewSidebar,
 	"review":   viewReview,
 	"debug":    viewDebug,
+	"jobs":     viewJobs,
 }
 
-// sections are the ctrl+1..5 tabs; a section with several views shows them
+// sections are the ctrl+1..6 tabs; a section with several views shows them
 // as subtabs.
 var sections = []struct {
 	label string
@@ -118,9 +122,10 @@ var sections = []struct {
 	{"features", []view{viewFeature, viewSidebar}, []string{"new", "sidebar"}},
 	{"review", []view{viewReview}, nil},
 	{"debug", []view{viewDebug}, nil},
+	{"jobs", []view{viewJobs}, nil},
 }
 
-const tabsHelp = "ctrl+1..5 section · ctrl+t subtab"
+const tabsHelp = "ctrl+1..6 section · ctrl+t subtab"
 
 func sectionOf(v view) int {
 	for i, s := range sections {
@@ -253,6 +258,18 @@ type model struct {
 	wsPicked  wsRow
 	wsBranch  map[string]string // primary branch by workspace id, read once
 	wsDrag    bool              // mouse button held on a row
+
+	// Jobs view; see jobs.go.
+	bgJobs      []bgJob
+	bgCursor    int
+	bgFollow    string // job name the cursor sticks to across refreshes
+	bgLoading   bool
+	bgErr       string
+	bgGen       int // poll generation; older replies and ticks are dropped
+	bgStatus    string
+	bgStatusErr bool
+	bgStatusSeq int
+	bgConfirm   string // job waiting on y/n before going live
 }
 
 type styles struct {
@@ -426,6 +443,8 @@ func (m *model) switchView(v view) tea.Cmd {
 		m.leaveAgents()
 	case viewSidebar:
 		m.leaveSidebar()
+	case viewJobs:
+		m.leaveJobs()
 	case viewResume:
 		m.filter.Blur()
 	case viewFeature:
@@ -450,6 +469,8 @@ func (m *model) switchView(v view) tea.Cmd {
 		return m.enterAgents()
 	case viewSidebar:
 		return m.enterSidebar()
+	case viewJobs:
+		return m.enterJobs()
 	case viewReview:
 		return m.focusReview(revPrompt)
 	case viewDebug:
@@ -611,6 +632,20 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, loadWorkspacesCmd(m.wsGen, m.branchCache())
+	case bgJobsMsg:
+		return m.onBgJobsMsg(msg)
+	case bgJobsPollMsg:
+		if msg.gen != m.bgGen || m.view != viewJobs {
+			return m, nil
+		}
+		return m, loadBgJobsCmd(m.bgGen)
+	case bgJobDoneMsg:
+		return m.onBgJobDone(msg)
+	case bgStatusClearMsg:
+		if msg.seq == m.bgStatusSeq {
+			m.bgStatus = ""
+		}
+		return m, nil
 	case agentsPollMsg:
 		if msg.gen != m.agentGen || m.view != viewAgents {
 			return m, nil
@@ -682,6 +717,11 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case editorKey:
 			return m.openEditor()
 		case "esc", "ctrl+c":
+			if ks == "esc" && m.view == viewJobs && m.bgConfirm != "" {
+				name := m.bgConfirm
+				m.bgConfirm = ""
+				return m, m.bgNote(name+" stays on dry-run", false)
+			}
 			formLog("%s in view %d (prompt %d chars, feature prompt %d chars)", ks, m.view, len(m.chatPrompt.Value()), len(m.featurePrompt.Value()))
 			if m.unsent() && time.Since(m.escAt) > 2*time.Second {
 				m.escAt = time.Now()
@@ -730,6 +770,8 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateReview(msg)
 	case viewDebug:
 		return m.updateDebug(msg)
+	case viewJobs:
+		return m.updateJobs(msg)
 	}
 	return m.updateChat(msg)
 }
@@ -977,6 +1019,8 @@ func (m model) View() string {
 		body = m.reviewView()
 	case viewDebug:
 		body = m.debugView()
+	case viewJobs:
+		body = m.jobsView()
 	default:
 		body = m.chatView()
 	}
@@ -1450,6 +1494,21 @@ func demo(themeName, state string) {
 			next, c := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
 			m = drive(next, c)
 		}
+	}
+	if state == "jobs" {
+		next, c := m.Update(tea.WindowSizeMsg{Width: 90, Height: 33})
+		m = drive(next, c)
+		next, c = m.Update(ctrlDigitMsg(6))
+		m = drive(next, c)
+		// job ls is slower than drive's budget; fetch inline.
+		mm2 := m.(model)
+		out, err := bgExec("job", "ls", "--json")
+		var jobs []bgJob
+		if err == nil {
+			jobs, err = parseBgJobs(out)
+		}
+		next, c = mm2.Update(bgJobsMsg{gen: mm2.bgGen, jobs: jobs, err: err})
+		m = drive(next, c)
 	}
 	if state == "project" {
 		next, c := m.Update(tea.KeyMsg{Type: tea.KeyShiftTab})
