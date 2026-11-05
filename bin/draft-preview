@@ -7,6 +7,8 @@
 #   draft-preview FILE            glow in a right split (reused if still open)
 #   draft-preview --marked FILE   Marked 2 (images/videos, or outside herdr)
 #   draft-preview --close [FILE]  close the preview pane (and re-enter layout)
+#                                 and FILE's Marked window (all Marked previews
+#                                 this pane opened, without FILE)
 #
 # glow needs -s when piped (it falls back to notty otherwise), and -t renders
 # blank in herdr, hence the pager.
@@ -27,14 +29,52 @@ fi
 state_dir="${TMPDIR:-/tmp}/draft-preview/${${HERDR_PANE_ID:-none}//[^A-Za-z0-9]/_}"
 state="$state_dir/pane"
 layout_state="$state_dir/layout"
+marked_state="$state_dir/marked"
 layout_bin=( ~/.config/herdr/plugins/github-installations/coryfklein.herdr-layout-*/*/checkout/bin/herdr-layout(N) )
 
-if [ "$mode" = marked ] || [ -z "${HERDR_PANE_ID:-}" ]; then
+close_marked() {
+  pgrep -xq "Marked 2" || return 0
+  osascript - "$@" <<'APPLESCRIPT' >/dev/null
+on run argv
+  tell application "Marked 2"
+    repeat with p in argv
+      repeat with d in (documents whose path is (p as text))
+        close d
+      end repeat
+    end repeat
+  end tell
+end run
+APPLESCRIPT
+}
+
+mkdir -p "$state_dir"
+
+if [ "$mode" = marked ] || { [ "$mode" = glow ] && [ -z "${HERDR_PANE_ID:-}" ]; }; then
   open -a "Marked 2" "$file"
+  grep -qxF -- "$file" "$marked_state" 2>/dev/null || print -r -- "$file" >>"$marked_state"
   exit
 fi
 
-mkdir -p "$state_dir"
+if [ "$mode" = close ]; then
+  if [ -n "$file" ]; then
+    marked_files=( ${file:A} )
+  elif [ -f "$marked_state" ]; then
+    marked_files=( ${(f)"$(<"$marked_state")"} )
+  else
+    marked_files=()
+  fi
+  [ ${#marked_files} -gt 0 ] && close_marked "${marked_files[@]}"
+  if [ -f "$marked_state" ]; then
+    remaining=( ${(f)"$(grep -vxF -f <(print -rl -- "${marked_files[@]}") "$marked_state" || true)"} )
+    if [ ${#remaining} -gt 0 ]; then
+      print -rl -- "${remaining[@]}" >"$marked_state"
+    else
+      rm -f "$marked_state"
+    fi
+  fi
+  [ -z "${HERDR_PANE_ID:-}" ] && exit
+fi
+
 pane=""
 [ -f "$state" ] && pane=$(<"$state")
 if [ -n "$pane" ] && ! herdr pane get "$pane" >/dev/null 2>&1; then
