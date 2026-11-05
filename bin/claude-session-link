@@ -94,7 +94,11 @@ if [ $# -ge 1 ]; then
 else
   session_id="${CLAUDE_CODE_SESSION_ID:-}"
 fi
-cwd=$(cd "${2:-$PWD}" && pwd -P)
+# The session's own directory beats the live one: a `cd` inside the session
+# (into notes/, say) would otherwise make a feature look like a chat.
+cwd="${2:-}"
+[ -n "$session_id" ] && launch=$(claude-session-cwd "$session_id") && cwd="$launch"
+cwd=$(cd "${cwd:-$PWD}" && pwd -P)
 
 project_for() {
   local dir="$1" august august_wt
@@ -205,7 +209,13 @@ if [ "$kind" = feature ]; then
   exit 0
 fi
 
-project=$(project_for "$cwd")
+# No project means no link, but --close still owes the caller a closed tab.
+if ! project=$(project_for "$cwd"); then
+  if [ -n "$close" ] && close_after_copy; then
+    echo "--close: closing this tab anyway" >&2
+  fi
+  exit 1
+fi
 if [ -z "$session_id" ]; then
   transcript=$(latest_transcript "$cwd")
   [ -z "$transcript" ] && { echo "no session id (CLAUDE_CODE_SESSION_ID) and no transcripts under $cwd" >&2; exit 1; }

@@ -31,8 +31,19 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-cwd=$(pwd -P)
 august_wt=$(augie-path worktrees 2>/dev/null) || august_wt=""
+in_feature() {
+  case "$1" in
+    "$HOME/code/moi__worktrees/"*|"$august_wt/"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+# A session that has cd'd out of its feature (into notes/, say) still means
+# the feature it was started in.
+cwd=$(pwd -P)
+if ! in_feature "$cwd" && launch=$(claude-session-cwd 2>/dev/null); then
+  cwd=$(cd "$launch" && pwd -P)
+fi
 case "$cwd" in
   "$HOME/code/moi__worktrees/"*)
     project=moi; wt="$HOME/code/moi__worktrees"; main="$HOME/code/moi" ;;

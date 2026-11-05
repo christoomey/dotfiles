@@ -1,0 +1,17 @@
+#!/bin/zsh
+# Print the directory a Claude Code session was started in.
+#
+#   claude-session-cwd [SESSION_ID]     (default: $CLAUDE_CODE_SESSION_ID)
+#
+# A session's live cwd drifts: a `cd` into a working directory persists
+# between Bash calls, so a feature session that once ran `cd notes/` reports
+# the shared .notes store as its cwd. The first cwd its transcript recorded is
+# the pane's real home (the feature or project it belongs to). Exits 1 when
+# the session or its transcript is unknown.
+id="${1:-${CLAUDE_CODE_SESSION_ID:-}}"
+[ -z "$id" ] && exit 1
+transcripts=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/projects/*/"$id.jsonl"(N))
+[ ${#transcripts} -eq 0 ] && exit 1
+dir=$(grep -m1 -o '"cwd":"[^"]*"' "${transcripts[1]}" | sed -E 's/^"cwd":"(.*)"$/\1/')
+[ -n "$dir" ] && [ -d "$dir" ] || exit 1
+print -r -- "$dir"

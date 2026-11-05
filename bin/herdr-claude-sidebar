@@ -176,15 +176,22 @@ report_debug() {
     --clear-token review --clear-token feature --clear-token chat --clear-token project >/dev/null 2>&1
 }
 
+# A session's live cwd drifts (a `cd notes/` files it under the workspace
+# root); the first cwd its transcript recorded is where it belongs.
+start_dir() {
+  claude-session-cwd "$1" 2>/dev/null || printf "%s\n" "$2"
+}
+
 if (( all )); then
   herdr agent list 2>/dev/null |
-    jq -r '.result.agents[] | select(.agent == "claude" or .agent == "pi") | [.agent, .pane_id, .tab_id, (.foreground_cwd // .cwd // "")] | @tsv' |
-    while IFS=$'\t' read -r agent pane tab cwd; do
+    jq -r '.result.agents[] | select(.agent == "claude" or .agent == "pi") | [.agent, .pane_id, .tab_id, (.foreground_cwd // .cwd // ""), (.agent_session.value // "")] | @tsv' |
+    while IFS=$'\t' read -r agent pane tab cwd session; do
       [[ -n "$pane" ]] || continue
       if [[ "$agent" == pi ]]; then
         report_debug "$pane" "$(tab_label "$tab")"
         continue
       fi
+      [[ -n "$session" ]] && cwd=$(start_dir "$session" "$cwd")
       [[ -n "$cwd" ]] || continue
       report "$pane" "$(real "$cwd")" "$(tab_label "$tab")"
     done
@@ -203,6 +210,8 @@ fi
 input=$(cat 2>/dev/null || true)
 cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)
 [[ -n "$cwd" ]] || cwd="$PWD"
+session=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
+[[ -n "$session" ]] && cwd=$(start_dir "$session" "$cwd")
 cwd=$(real "$cwd")
 report "$HERDR_PANE_ID" "$cwd" "$label"
 exit 0
