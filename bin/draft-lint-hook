@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+"""PreToolUse hook: run draft-lint --post on text about to be published.
+
+Bash: gh pr create/edit/comment/review, gh issue comment, gh api graphql
+review mutations, linear issue create/update/comment. Slack MCP: the message.
+Exits 2 with the violations on stderr; anything it can't parse passes.
+"""
+import json
+import os
+import re
+import shlex
+import subprocess
+import sys
+
+LINT = os.path.join(os.path.dirname(os.path.realpath(__file__)), "draft-lint")
+SLACK_TOOLS = re.compile(r"slack_(send_message|send_message_draft|schedule_message)$")
+REVIEW_MUTATION = re.compile(
+    r"\badd(PullRequestReviewComment|PullRequestReviewThreadReply|PullRequestReviewThread|PullRequestReview)\b"
+)
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n(.*?)\n[ \t]*\2[ \t]*(?=\n|$|\))", re.S)
+CONTROL = {";", "&&", "||", "|", "&", "(", ")", "\n"}
+
+TEXT_FLAGS = {
+    "pr": {"--title", "-t", "--body", "-b"},
+    "reply": {"--body", "-b"},
+    "linear": {"--title", "-t", "--description", "-d"},
+}
+FILE_FLAGS = {
+    "pr": {"--body-file", "-F"},
+    "reply": {"--body-file", "-F"},
+    "linear": {"--description-file"},
+}
+
+
+def segments(command):
+    """Split into simple commands, swapping heredoc bodies for placeholders."""
+    docs = []
+
+    def stash(m):
+        docs.append(m.group(3))
+        return f"__HEREDOC{len(docs) - 1}__"
+
+    command = HEREDOC.sub(stash, command)
+    lex = shlex.shlex(command, posix=True, punctuation_chars=";&|()")
+    lex.whitespace_split = True
+    lex.commenters = ""
+    words, seg = [], []
+    for tok in lex:
+        if tok in CONTROL:
+            if seg:
+                words.append(seg)
+            seg = []
+        else:
+            seg.append(tok)
+    if seg:
+        words.append(seg)
+    return words, docs
+
+
+def resolve(value, docs, cwd, is_file):
+    m = re.search(r"__HEREDOC(\d+)__", value)
+    if m:
+        return docs[int(m.group(1))]
+    if is_file:
+        if value == "-":
+            return docs[0] if docs else None
+        path = os.path.join(cwd, os.path.expanduser(value))
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    if "$" in value:
+        return None
+    return value
+
+
+def flag_values(args, flags):
+    out = []
+    for i, a in enumerate(args):
+        name, eq, val = a.partition("=")
+        if name in flags:
+            if eq:
+                out.append(val)
+            elif i + 1 < len(args):
+                out.append(args[i + 1])
+    return out
+
+
+def classify(seg):
+    s = " ".join(seg[:4])
+    if re.match(r"gh pr (create|edit)\b", s):
+        return "pr"
+    if re.match(r"gh (pr (comment|review)|issue comment)\b", s):
+        return "reply"
+    if re.match(r"linear issue (create|update)\b", s):
+        return "linear"
+    if re.match(r"linear issue comment (add|update)\b", s):
+        return "reply"
+    if re.match(r"gh api graphql\b", s):
+        return "graphql"
+    return None
+
+
+def graphql_texts(seg, docs, cwd):
+    fields = {}
+    query = ""
+    for i, a in enumerate(seg):
+        if a in ("-f", "-F", "--field", "--raw-field") and i + 1 < len(seg):
+            key, _, val = seg[i + 1].partition("=")
+            if key == "query":
+                query = resolve(val, docs, cwd, val.startswith("@")) if val.startswith("@") else val
+            else:
+                fields[key] = (val, a in ("-F", "--field"))
+    if not REVIEW_MUTATION.search(query or ""):
+        return []
+    texts = [m.group(1).encode().decode("unicode_escape") for m in re.finditer(r'\bbody\s*:\s*"((?:[^"\\]|\\.)*)"', query)]
+    for var in re.findall(r"\bbody\s*:\s*\$(\w+)", query):
+        if var in fields:
+            val, typed = fields[var]
+            if typed and val.startswith("@"):
+                texts.append(resolve(val[1:], docs, cwd, True))
+            else:
+                texts.append(resolve(val, docs, cwd, False))
+    return texts
+
+
+def texts_for(command, cwd):
+    found = []
+    words, docs = segments(command)
+    for seg in words:
+        while seg and re.match(r"^\w+=", seg[0]):
+            seg = seg[1:]
+        medium = classify(seg)
+        if medium is None:
+            continue
+        if medium == "graphql":
+            found += [("reply", t) for t in graphql_texts(seg, docs, cwd)]
+            continue
+        parts = [resolve(v, docs, cwd, False) for v in flag_values(seg, TEXT_FLAGS[medium])]
+        parts += [resolve(v, docs, cwd, True) for v in flag_values(seg, FILE_FLAGS[medium])]
+        parts = [p for p in parts if p]
+        if parts:
+            found.append((medium, "\n\n".join(parts)))
+    return found
+
+
+def main():
+    payload = json.load(sys.stdin)
+    tool = payload.get("tool_name", "")
+    tool_input = payload.get("tool_input") or {}
+    if SLACK_TOOLS.search(tool):
+        targets = [("slack", tool_input.get("message") or "")]
+    elif tool == "Bash":
+        command = tool_input.get("command") or ""
+        if not re.search(r"\b(gh|linear)\b", command):
+            return 0
+        targets = texts_for(command, payload.get("cwd") or os.getcwd())
+    else:
+        return 0
+    problems = []
+    for medium, text in targets:
+        if not text or not text.strip():
+            continue
+        r = subprocess.run([LINT, "-", "--medium", medium, "--post"], input=text,
+                           capture_output=True, text=True, timeout=10)
+        if r.returncode == 1:
+            problems += [l for l in r.stdout.splitlines() if l.startswith("line ")]
+    if problems:
+        print("draft-lint blocked this post (fix the text and retry; line numbers are in the "
+              "text being posted):\n" + "\n".join(problems), file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception:
+        sys.exit(0)

@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+"""Lint a /draft or /reply draft against Chris's voice rules and word budget.
+
+  draft-lint FILE|- --medium pr|linear|slack|commit|reply [--post]
+
+Prints `line N: <rule>: <excerpt>` per violation (`warn: ...` for soft ones)
+and always ends with `words: N (budget B, hard|soft)`. Exits 1 on any hard
+violation. --post lints text about to be published (the PreToolUse hook): no
+title/header stripping and no budget.
+"""
+import argparse
+import re
+import sys
+
+# round(1.5 x median words), measured 2026-11-04 over approved scratch drafts
+# plus, for pr/commit/reply, the last 40 merged PRs per repo (bodies, commit
+# messages with a body, review comments).
+BUDGETS = {"pr": 160, "linear": 134, "slack": 140, "commit": 99, "reply": 64}
+HARD_BUDGET = {"slack", "reply"}
+
+BANNED = [
+    "yep", "yeah", "good catch", "nice catch", "great catch",
+    "does that seem reasonable", "does that sound reasonable",
+    "generated with", "claude", "happy to", "let me know if",
+]
+BANNED_RE = re.compile(r"\b(" + "|".join(re.escape(p) for p in BANNED) + r")\b", re.I)
+PIVOT_RE = re.compile(
+    r"\bbut (narrow|minor|rare|unlikely)\b|\btakes care of (it|this)\b"
+    r"|\brather than\b|\b(real|valid|fair|plausible) but\b",
+    re.I,
+)
+COMMA_RE = re.compile(r",\s+(since|because)\b", re.I)
+DASH_RE = re.compile(r"—|(?<=\w) -- (?=\w)")
+ARROW_RE = re.compile(r"[→←⇒]")
+FIRST_PERSON_RE = re.compile(r"\bI\b(['’](ve|m|d|ll))?")
+FOOTER_RE = re.compile(r"^\s*co-authored-by:|\U0001F916", re.I)
+
+NOT_TICKETS = {
+    "UTF", "ISO", "SHA", "RFC", "TLS", "SSL", "ES", "AES", "RSA", "MD", "HMAC",
+    "COVID", "CVE", "GPT", "IPV", "PDF", "NDC", "NOC",
+    "MSH", "PID", "ORC", "RXE", "RXO", "RXR", "OBX", "NTE", "TQ",
+}
+TICKET_RE = re.compile(r"(?<![\w/#-])([A-Z]{2,6})-(\d+)\b")
+HASH_RE = re.compile(r"(?<![\w&/])#\d{3,}\b")
+PR_NUM_RE = re.compile(r"\bPR\s+#?\d+\b")
+LINK_RE = re.compile(r"(!?)\[([^\]]*)\]\(([^)\s]*)[^)]*\)")
+URL_RE = re.compile(r"<?https?://[^\s>)]+>?")
+CODE_RE = re.compile(r"`[^`]*`")
+WORD_RE = re.compile(r"[A-Za-z0-9]")
+
+
+def bare_refs(text):
+    hits = [m.group(0) for m in TICKET_RE.finditer(text) if m.group(1) not in NOT_TICKETS]
+    return hits + HASH_RE.findall(text) + PR_NUM_RE.findall(text)
+
+
+def link_text_ok(text):
+    if text.lstrip().startswith("#"):
+        return False
+    rest = PR_NUM_RE.sub(" ", HASH_RE.sub(" ", TICKET_RE.sub(" ", text)))
+    return re.search(r"[A-Za-z]{3,}", rest) is not None
+
+
+def mask(line):
+    """Return (prose, ref_problems): prose with code, URLs and link targets
+    blanked; ref_problems lists link texts that are bare ids."""
+    problems = []
+    line = CODE_RE.sub(" ", line)
+
+    def link(m):
+        image, text = m.group(1), m.group(2)
+        if image:
+            return " "
+        if bare_refs(text) and not link_text_ok(text):
+            problems.append(f"[{text}]")
+            return " "
+        return " " + TICKET_RE.sub(" ", HASH_RE.sub(" ", PR_NUM_RE.sub(" ", text))) + " "
+
+    line = LINK_RE.sub(link, line)
+    line = URL_RE.sub(" ", line)
+    line = re.sub(r"<[^>]+>", " ", line)
+    return line, problems
+
+
+def strip_header(lines):
+    """Number the lines and drop the `# title` and `_header_` lines.
+    Returns (title, body) as lists of (lineno, text)."""
+    numbered = list(enumerate(lines, 1))
+    title = []
+    if numbered and numbered[0][1].startswith("# "):
+        title = [(numbered[0][0], numbered[0][1][2:])]
+        numbered = numbered[1:]
+    for i, (_, text) in enumerate(numbered):
+        if not text.strip():
+            continue
+        if re.match(r"^_.*_\s*$", text.strip()):
+            numbered = numbered[:i] + numbered[i + 1:]
+        break
+    return title, numbered
+
+
+def prose_lines(body):
+    """Skip fenced code, blockquotes (someone else's words) and front matter."""
+    fenced = False
+    for n, text in body:
+        if text.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or text.lstrip().startswith(">"):
+            continue
+        yield n, text
+
+
+def count_words(text):
+    text, _ = mask(text)
+    return sum(1 for tok in text.split() if WORD_RE.search(tok))
+
+
+def entries(medium, body):
+    """Reply files hold one reply per `---` / `##` section: budget each one."""
+    if medium != "reply":
+        return [body]
+    out, cur = [], []
+    for n, text in body:
+        if text.strip() == "---" or text.startswith("## "):
+            out.append(cur)
+            cur = []
+        elif re.fullmatch(r"\s*`[^`]+`\s*", text):
+            continue
+        else:
+            cur.append((n, text))
+    out.append(cur)
+    return [e for e in out if any(t.strip() for _, t in e)]
+
+
+def check_line(n, text, medium, is_title=False):
+    out = []
+    if medium == "commit" and FOOTER_RE.search(text):
+        return out
+    if medium != "commit" and FOOTER_RE.search(text):
+        out.append((n, "attribution footer", text.strip()))
+        return out
+    prose, link_problems = mask(text)
+    for p in link_problems:
+        out.append((n, "bare ref (link text needs a title, no leading #)", p))
+    for ref in bare_refs(prose):
+        out.append((n, "bare ref", ref))
+    for rule, rx in [("em dash", DASH_RE), ("unicode arrow", ARROW_RE)]:
+        for m in rx.finditer(prose):
+            out.append((n, rule, excerpt(prose, m)))
+    for m in BANNED_RE.finditer(prose):
+        out.append((n, "banned phrase", m.group(0)))
+    if is_title:
+        return out
+    for m in PIVOT_RE.finditer(prose):
+        out.append((n, "verdict-then-pivot", excerpt(prose, m)))
+    for m in COMMA_RE.finditer(prose):
+        out.append((n, "comma before since/because", excerpt(prose, m)))
+    if medium == "pr":
+        for m in FIRST_PERSON_RE.finditer(prose):
+            out.append((n, "first person in PR body", excerpt(prose, m)))
+    return out
+
+
+def excerpt(text, m, pad=25):
+    s = text[max(0, m.start() - pad):m.end() + pad]
+    return " ".join(s.split())
+
+
+def lint(text, medium, post):
+    lines = text.splitlines()
+    if post:
+        title, body = [], list(enumerate(lines, 1))
+    else:
+        title, body = strip_header(lines)
+    hard, soft = [], []
+    if medium != "reply":
+        for n, t in title:
+            hard += check_line(n, t, medium, is_title=True)
+    for n, t in prose_lines(body):
+        if not (medium == "reply" and not post and t.startswith("## ")):
+            hard += check_line(n, t, medium)
+
+    budget = BUDGETS[medium]
+    kind = "hard" if medium in HARD_BUDGET else "soft"
+    counts = []
+    for e in entries(medium, body):
+        words = sum(count_words(t) for n, t in prose_lines(e)
+                    if not (medium == "commit" and FOOTER_RE.search(t)))
+        start = e[0][0] if e else 1
+        counts.append(words)
+        if not post and words > budget:
+            label = "entry" if medium == "reply" else "body"
+            v = (start, "over budget", f"{label} has {words} words (budget {budget})")
+            (hard if kind == "hard" else soft).append(v)
+    words = max(counts) if counts else 0
+    if post:
+        kind = "skipped"
+    return hard, soft, words, budget, kind
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("file")
+    ap.add_argument("--medium", required=True, choices=sorted(BUDGETS))
+    ap.add_argument("--post", action="store_true")
+    args = ap.parse_args()
+    text = sys.stdin.read() if args.file == "-" else open(args.file, encoding="utf-8").read()
+    hard, soft, words, budget, kind = lint(text, args.medium, args.post)
+    for n, rule, ex in sorted(hard):
+        print(f"line {n}: {rule}: {ex}")
+    for n, rule, ex in sorted(soft):
+        print(f"warn: line {n}: {rule}: {ex}")
+    print(f"words: {words} (budget {budget}, {kind})")
+    sys.exit(1 if hard else 0)
+
+
+if __name__ == "__main__":
+    main()

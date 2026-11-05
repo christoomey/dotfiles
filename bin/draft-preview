@@ -106,7 +106,7 @@ if [ -z "$pane" ]; then
       fi
     fi
   fi
-  pane=$(herdr pane split --current --direction right --no-focus | jq -r '.result.pane.pane_id // .result.pane_id // empty')
+  pane=$(herdr pane split "$HERDR_PANE_ID" --direction right --no-focus | jq -r '.result.pane.pane_id // .result.pane_id // empty')
   [ -n "$pane" ] || { echo "draft-preview: could not split" >&2; exit 1; }
   print -r -- "$pane" >"$state"
 else

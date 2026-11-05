@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""What Chris cuts: compare each draft's first write (<medium>.v1.md) with the
+approved final beside it, across the august-workspace scratch dirs.
+
+  draft-retro [--since 7d] [--top 30] [--root DIR]
+
+Prints per-draft word counts (v1 -> final) and the removed or replaced
+phrases aggregated across drafts, most frequent first.
+"""
+import argparse
+import collections
+import difflib
+import importlib.machinery
+import importlib.util
+import os
+import pathlib
+import re
+import time
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+_loader = importlib.machinery.SourceFileLoader("draft_lint", os.path.join(HERE, "draft-lint"))
+_spec = importlib.util.spec_from_loader("draft_lint", _loader)
+lint = importlib.util.module_from_spec(_spec)
+_loader.exec_module(lint)
+
+MEDIA = ("pr", "linear", "slack", "commit", "reply")
+
+
+def parse_since(value):
+    m = re.fullmatch(r"(\d+)([hdw])", value)
+    if not m:
+        raise argparse.ArgumentTypeError("use e.g. 12h, 7d, 2w")
+    return int(m.group(1)) * {"h": 3600, "d": 86400, "w": 604800}[m.group(2)]
+
+
+def medium_of(name):
+    base = re.split(r"[-.]", name, maxsplit=1)[0]
+    if base == "replies" or name.startswith(("pr-comment", "linear-comment")):
+        return "reply"
+    return base if base in MEDIA else "pr"
+
+
+def body_words(path):
+    _, body = lint.strip_header(path.read_text(encoding="utf-8").splitlines())
+    text = "\n".join(t for _, t in lint.prose_lines(body) if not lint.FOOTER_RE.search(t))
+    return lint.mask(text)[0].split()
+
+
+def phrase(tokens):
+    words = [re.sub(r"^\W+|\W+$", "", t.lower()) for t in tokens]
+    words = [w for w in words if w]
+    if not words or len(words) > 8:
+        return None
+    return " ".join(words)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--since", type=parse_since)
+    ap.add_argument("--top", type=int, default=30)
+    ap.add_argument("--root", default=os.path.expanduser(
+        "~/code/work/august/august-workspace/scratch"))
+    args = ap.parse_args()
+
+    cutoff = time.time() - args.since if args.since else 0
+    removed, replaced = collections.Counter(), collections.Counter()
+    rows = []
+    for v1 in sorted(pathlib.Path(args.root).rglob("*.v1.md")):
+        final = v1.with_name(v1.name[: -len(".v1.md")] + ".md")
+        if not final.exists() or v1.stat().st_mtime < cutoff:
+            continue
+        medium = medium_of(final.name)
+        a, b = body_words(v1), body_words(final)
+        rows.append((v1.parent.name + "/" + final.name, medium, len(a), len(b)))
+        seen = set()
+        for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+            p = phrase(a[i1:i2]) if op in ("delete", "replace") else None
+            if not p or (op, p) in seen:
+                continue
+            seen.add((op, p))
+            if op == "delete":
+                removed[p] += 1
+            else:
+                new = phrase(b[j1:j2]) or "..."
+                replaced[f"{p} -> {new}"] += 1
+
+    if not rows:
+        print("no v1/final pairs found")
+        return
+    print(f"{'draft':50} {'medium':7} {'v1':>5} {'final':>6} {'delta':>6}")
+    for name, medium, n1, n2 in rows:
+        print(f"{name[:50]:50} {medium:7} {n1:5} {n2:6} {n2 - n1:+6}")
+    total1, total2 = sum(r[2] for r in rows), sum(r[3] for r in rows)
+    print(f"{'total (' + str(len(rows)) + ' drafts)':50} {'':7} {total1:5} {total2:6} {total2 - total1:+6}")
+    for label, counter in (("removed", removed), ("replaced", replaced)):
+        print(f"\n{label} (drafts it happened in, phrase):")
+        for p, n in counter.most_common(args.top):
+            print(f"  {n:3}  {p}")
+
+
+if __name__ == "__main__":
+    main()
