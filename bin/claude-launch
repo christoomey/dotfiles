@@ -20,12 +20,14 @@
 #      never started, and a nonzero exit
 #
 # Usage:
-#   claude-launch --pane P [--name N] [--agent-name A] [--prompt-file F] [--timeout S] [--job ID]
+#   claude-launch --pane P [--name N] [--agent-name A] [--agent TYPE] [--session-id ID] [--prompt-file F] [--timeout S] [--job ID]
 #   claude-launch --pane P --resume SESSION_ID [--agent-name A] [--prompt-file F] [--timeout S] [--job ID]
 #   claude-launch --check-prompt-file F    # print F's absolute path, or fail
 #
 # --name is claude's session title; --agent-name renames the herdr agent (herdr
 # caps names at 32 chars of ^[a-z][a-z0-9_-]*$, so the caller slugs it).
+# --agent starts claude as that agent type (claude --agent); --session-id lets
+# the caller pick the new session's id instead of a fresh uuid.
 #
 # --job (or HERDR_JOB_ID, which herdr-job-up exports around a feature
 # bootstrap) is a herdr-new-thread job: log lines are tagged job=<id> and the
@@ -68,12 +70,14 @@ if [[ "${1:-}" == "--check-prompt-file" ]]; then
   exit
 fi
 
-pane="" name="" agent_name="" prompt_file="" resume="" timeout=90
+pane="" name="" agent_name="" agent_type="" new_session_id="" prompt_file="" resume="" timeout=90
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --pane) pane="$2"; shift 2 ;;
     --name) name="$2"; shift 2 ;;
     --agent-name) agent_name="$2"; shift 2 ;;
+    --agent) agent_type="$2"; shift 2 ;;
+    --session-id) new_session_id="$2"; shift 2 ;;
     --prompt-file) prompt_file="$2"; shift 2 ;;
     --resume) resume="$2"; shift 2 ;;
     --timeout) timeout="$2"; shift 2 ;;
@@ -176,10 +180,11 @@ if [[ -n "$resume" ]]; then
   launch_marker="claude --resume $resume"
   launch_cmd="$(printf 'claude --resume %q' "$resume")"
 else
-  session_id="$(uuidgen | tr '[:upper:]' '[:lower:]')"
+  session_id="${new_session_id:-$(uuidgen | tr '[:upper:]' '[:lower:]')}"
   launch_marker="claude --session-id $session_id"
   launch_cmd="$(printf 'claude --session-id %q' "$session_id")"
   [[ -n "$name" ]] && launch_cmd+="$(printf ' --name %q' "$name")"
+  [[ -n "$agent_type" ]] && launch_cmd+="$(printf ' --agent %q' "$agent_type")"
   # After --, claude takes the prompt as a positional, so a prompt starting
   # with a dash is not parsed as a flag.
   [[ -n "$prompt_file" ]] && launch_cmd+="$(printf ' -- "$(cat %q)"' "$prompt_file")"
