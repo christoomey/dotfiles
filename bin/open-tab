@@ -1,120 +1,81 @@
-#!/usr/bin/env -S ruby --disable-gems -x
+#!/usr/bin/env bash
 
-require 'optparse'
-require 'open3'
+# Focus the first Chrome tab whose URL contains <tab-url>, or open it in a new
+# tab of the front window. Defaults to http://<current dir name>.dev.
 
-class TabOpener
-  TAB_NOT_FOUND = :tab_not_found
+set -u
 
-  def initialize(app_url, options)
-    @app_url = app_url
-    @options = options
-  end
+usage() {
+  cat <<EOF
+Usage: open-tab [options] [<tab-url>]
+    -r, --[no-]reload                Reload tab after activating
+    -d, --detached                   Detached -- do not focus chrome
+EOF
+}
 
-  def self.open_for(app_url, options)
-    new(app_url, options).open!
-  end
+reload=0
+detached=0
+url=""
 
-  def open!
-    if tab_exists?
-      log("Tab exists!")
-      activate(app_tab)
-      if options[:reload]
-        log("Reloading tab")
-        reload(app_tab)
-      end
-    else
-      log("Tab not found -- opening anew")
-      open_app_in_new_tab
-    end
-    unless options[:detached]
-      focus_chrome
-    end
-  end
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -r | --reload) reload=1 ;;
+    --no-reload) reload=0 ;;
+    -d | --detached) detached=1 ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      [[ -z "$url" && $# -gt 0 ]] && url="$1"
+      break
+      ;;
+    -*)
+      echo "open-tab: invalid option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *) [[ -z "$url" ]] && url="$1" ;;
+  esac
+  shift
+done
 
-  private
+url="${url:-http://$(basename "$PWD").dev}"
 
-  attr_reader :app_url, :options
-
-  def app_tab
-    @app_tab ||=
-      begin
-        output = `/opt/homebrew/bin/chrome-cli list links`.chomp
-        matching_line = output.lines.find { |line| line.include?(app_url) }
-        if matching_line && (match = matching_line.match(/\[(?:\d+:)?(\d+)\]/))
-          match[1]
-        else
-          TAB_NOT_FOUND
-        end
-      end
-  end
-
-  def open_app_in_new_tab
-    # try_system_cmd "/opt/homebrew/bin/chrome-cli open #{app_url} > /dev/null 2>&1"
-    try_system_cmd "/opt/homebrew/bin/chrome-cli open #{app_url}"
-  end
-
-  def tab_exists?
-    app_tab != TAB_NOT_FOUND
-  end
-
-  def activate(tab_id)
-    try_system_cmd "/opt/homebrew/bin/chrome-cli activate -t #{tab_id}"
-  end
-
-  def reload(tab_id)
-    try_system_cmd "/opt/homebrew/bin/chrome-cli reload -t #{tab_id}"
-  end
-
-  def focus_chrome
-    try_system_cmd "open -a 'Google Chrome'"
-  end
-
-  def try_system_cmd(cmd)
-    Open3.popen3(cmd) do |_, stdout, stderr, wait_thr|
-      output = stdout.read
-      error = stderr.read
-      exit_status = wait_thr.value
-
-      if exit_status != 0
-        log("Error: system command failed ['#{cmd}']")
-        log("  stdout: #{output}")
-        log("  stderr: #{error}")
-      end
-    end
-  end
-end
-
-def desired_app_url
-  if app_url = ARGV[0]
-    app_url
-  else
-    project_name = Dir.pwd.split("/").last
-    "http://#{project_name}.dev"
-  end
-end
-
-options = {}
-OptionParser.new do |opts|
-  opts.banner = "Usage: open-tab [options] [<tab-url>]"
-
-  opts.on("-r", "--[no-]reload", "Reload tab after activating") do |r|
-    options[:reload] = r
-  end
-
-  opts.on("-d", "--detached", "Detached -- do not focus chrome") do |d|
-    options[:detached] = d
-  end
-end.parse!
-
-def logging_enabled?
-  false
-end
-
-def log(message)
-  if logging_enabled?
-    puts message
-  end
-end
-
-TabOpener.open_for(desired_app_url, options)
+/usr/bin/osascript - "$url" "$reload" "$detached" >/dev/null 2>&1 <<'APPLESCRIPT'
+on run argv
+  set target to item 1 of argv
+  set doReload to (item 2 of argv is "1")
+  set doFocus to (item 3 of argv is "0")
+  tell application "Google Chrome"
+    set found to false
+    set windowUrls to URL of tabs of every window
+    considering case
+      repeat with w from 1 to count of windowUrls
+        set tabUrls to item w of windowUrls
+        repeat with t from 1 to count of tabUrls
+          if (item t of tabUrls) contains target then
+            set win to window w
+            set active tab index of win to t
+            set index of win to 1
+            if doReload then reload tab t of win
+            set found to true
+            exit repeat
+          end if
+        end repeat
+        if found then exit repeat
+      end repeat
+    end considering
+    if not found then
+      if (count of windows) is 0 then
+        make new window
+        set URL of active tab of front window to target
+      else
+        tell front window to make new tab with properties {URL:target}
+      end if
+    end if
+    if doFocus then activate
+  end tell
+end run
+APPLESCRIPT
