@@ -243,14 +243,13 @@ description = "Close pane (copy session link first)"
 # (blocked first, then most recently finished), everything else dimmed below;
 # ctrl+a widens to all agents (most recently visited first), ctrl+j/k move,
 # enter focuses the pane. Replaced herdr-bar on prefix+a (plugin still
-# installed, now unbound).
+# installed, now unbound). herdr-agents skips the popup and jumps straight
+# there when only one other agent exists.
 [[keys.command]]
 key = "prefix+k"
-type = "popup"
-command = "herdr-new-thread --agents"
+type = "shell"
+command = "herdr-agents"
 description = "Agents"
-width = 138
-height = 48
 
 # prefix+o routes through herdr-open-palette (~/bin): in moi checkouts and
 # moi__worktrees/* it shows a small moi palette (open in browser / open notes);

@@ -13,6 +13,15 @@ width = 138
 height = 48
 command = ["herdr-new-thread", "--view", "agents"]
 
+# prefix+k's finder (bin/herdr-agents), at the old keybinding's size.
+[[panes]]
+id = "finder"
+title = "Agents"
+placement = "popup"
+width = 117
+height = 41
+command = ["herdr-new-thread", "--agents"]
+
 [[panes]]
 id = "chats"
 title = "New Session"

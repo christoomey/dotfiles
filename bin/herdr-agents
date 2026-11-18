@@ -1,0 +1,13 @@
+#!/bin/zsh
+# prefix+k: with exactly one agent besides the pane you're in, jump straight
+# to it; otherwise open the agent finder (herdr-new-thread --agents).
+pane="${HERDR_ACTIVE_PANE_ID:-}"
+other=$(herdr agent list </dev/null | jq -r --arg p "$pane" '
+  [.result.agents[] | select(if $p == "" then .focused | not else .pane_id != $p end)]
+  | if length == 1 then "\(.[0].tab_id) \(.[0].pane_id)" else empty end')
+if [ -n "$other" ]; then
+  herdr tab focus "${other% *}" >/dev/null
+  exec herdr agent focus "${other#* }" >/dev/null
+fi
+exec herdr plugin pane open --plugin new-thread --entrypoint finder \
+  --env HERDR_ACTIVE_PANE_ID="$pane" --focus >/dev/null
