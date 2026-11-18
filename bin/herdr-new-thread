@@ -753,8 +753,8 @@ case "${1:-}" in
     ;;
 esac
 
-# Detached so it never delays the form.
-"$self_dir/herdr-detach" --log "$threads/sweep.log" -- "$self" --sweep >/dev/null 2>&1 || true
+# Backgrounded so the detach handshake (~30ms) never delays the form.
+{ "$self_dir/herdr-detach" --log "$threads/sweep.log" -- "$self" --sweep >/dev/null 2>&1 || true } &!
 
 # Self-building form binary (herdr/new-session-form, charmbracelet/bubbletea).
 form_src="${0:A:h}/../herdr/new-session-form"
