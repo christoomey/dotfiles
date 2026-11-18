@@ -1,0 +1,60 @@
+#!/bin/zsh
+# Close the loop on a background review from inside the review session itself:
+# link this session and its published report into the Perspective action's
+# notes, remove the review's test checkout, then close this tab.
+#
+# /my-review runs this as its last step when launched with `finalize` (by
+# /review-queue or the review-queue job), after publishing its HTML report as
+# an artifact. Run anywhere else, it would close whatever tab it runs in.
+#
+#   review-finalize [--keep-tab] LABEL REPORT_URL ACTION_ID[,ACTION_ID...] [WORKTREE...]
+#
+# LABEL is the tab label (REV-BE-7283-…), used as the chat link's title.
+# REPORT_URL is the artifact URL, or "-" when no report was written. Several
+# action ids (a combined FE+BE review) all get the same two lines. Notes are
+# merged, never overwritten, and an action that already links this session is
+# left alone, so a rerun is safe.
+set -euo pipefail
+
+keep_tab=""
+[ "${1:-}" = "--keep-tab" ] && { keep_tab=1; shift; }
+[ $# -lt 3 ] && { sed -n '10p' "$0" | sed 's/^# *//' >&2; exit 2; }
+label=$1 report=$2 actions=$3
+shift 3
+
+sid=${CLAUDE_CODE_SESSION_ID:?not inside a Claude session}
+chat=$(claude-session-link --chat --title "$label" "$sid" "$(augie-path root)")
+
+moi="${MOI_URL:-$(defaults read com.ctoomey.MoiMenubar apiUrl)}"
+auth="Authorization: Bearer $(defaults read com.ctoomey.MoiMenubar apiToken)"
+
+add="- Review session: $chat"
+if [ "$report" != "-" ]; then
+  num=$(print -r -- "$label" | grep -oE '[0-9]+' | head -1)
+  add+=$'\n'"- Review report: [Report: PR ${num:-review}]($report)"
+fi
+
+for aid in ${(s:,:)actions}; do
+  cur=$(curl -sf "$moi/api/agent/actions/$aid" -H "$auth" | jq -r '.action.notes // ""')
+  if [[ "$cur" == *"$sid"* ]]; then
+    echo "action $aid already links this session"
+    continue
+  fi
+  if [ -n "$cur" ]; then merged="$cur"$'\n\n'"$add"; else merged="$add"; fi
+  curl -sf -X PATCH "$moi/api/agent/actions/$aid" -H "$auth" \
+    -H 'Content-Type: application/json' -H 'X-Agent-Session: review-queue' \
+    -d "$(jq -nc --arg n "$merged" '{notes:$n}')" >/dev/null
+  echo "linked action $aid"
+done
+
+for work in "$@"; do
+  [ -d "$work" ] || continue
+  common=$(git -C "$work" rev-parse --path-format=absolute --git-common-dir)
+  git -C "${common:h}" worktree remove --force "$work"
+  echo "removed $work"
+done
+
+[ -n "$keep_tab" ] && exit 0
+tab=$(herdr-current-tab) || { echo "not in a herdr tab, leaving it"; exit 0; }
+nohup zsh -c "sleep 3; herdr tab close $tab" >/dev/null 2>&1 &!
+echo "closing tab $tab"

@@ -331,10 +331,11 @@ launch() {
     event prompt-saved "$pfile"
   fi
 
-  # /review-queue publishes a report artifact per PR for Perspective; Claude
-  # Code would otherwise open each one in the browser as it lands.
+  # A background review (/my-review … finalize) publishes its report artifact
+  # for Perspective; Claude Code would otherwise open it in the browser.
   local -a envs=(--env HERDR_THREAD=1 --env AUGIE_SCRATCH="$scratch")
-  [[ "$prompt" == /review-queue* ]] && envs+=(--env CLAUDE_CODE_ARTIFACT_AUTO_OPEN=0)
+  [[ "$prompt" == /review-queue* || "$prompt" == "/my-review "*" finalize "* ]] &&
+    envs+=(--env CLAUDE_CODE_ARTIFACT_AUTO_OPEN=0)
 
   local pane
   pane=$(
