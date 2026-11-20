@@ -514,6 +514,6 @@ func (m model) jobsView() string {
 	}
 
 	help := "enter log · r run · p pause · m mode · o session · " + tabsHelp + " · esc cancel"
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }

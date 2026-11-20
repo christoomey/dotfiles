@@ -99,12 +99,12 @@ func (m model) reviewView() string {
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
 	var b strings.Builder
 	b.WriteString(m.tabsView() + "\n\n")
-	b.WriteString(dim.Width(76).Render("Runs /review-queue in august: reviews every unreviewed PR on the Perspective board, links each session and report to its action, then closes itself.") + "\n\n")
+	b.WriteString(dim.Width(m.contentWidth()).Render("Runs /review-queue in august: reviews every unreviewed PR on the Perspective board, links each session and report to its action, then closes itself.") + "\n\n")
 	b.WriteString(m.inputField(m.reviewFocus == revPrompt, "Instructions", dim.Render("optional · which PRs, or how · enter for a new line"), m.reviewPrompt.View()) + "\n\n")
 	b.WriteString(m.startField(m.reviewFocus == revStart, m.reviewOpen) + "\n")
 	b.WriteString(m.noticesView())
 
 	help := "ctrl+enter in background · ctrl+g editor · ctrl+s open now · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }

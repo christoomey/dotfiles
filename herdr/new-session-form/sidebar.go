@@ -594,7 +594,7 @@ func (m model) sidebarView() string {
 	}
 
 	help := "enter focus · j/k move · J/K or drag to reorder · " + tabsHelp + " · esc cancel"
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }
 

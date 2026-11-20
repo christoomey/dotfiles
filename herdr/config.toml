@@ -341,8 +341,8 @@ key = "prefix+ctrl+t"
 type = "popup"
 command = "herdr-new-thread"
 description = "New Session"
-width = 138
-height = 48
+width = 117
+height = 41
 
 # Column layout (coryfklein.herdr-layout plugin): spacer panes around the
 # focused pane so it reads at a fixed width. Claude sessions alone in a tab

@@ -100,12 +100,12 @@ func (m model) debugView() string {
 	dim := lipgloss.NewStyle().Foreground(m.styles.dim)
 	var b strings.Builder
 	b.WriteString(m.tabsView() + "\n\n")
-	b.WriteString(dim.Width(76).Render("Starts an Abulafia read-only debugging session (pi on Bedrock) in august. If it needs an MFA code, a background launch notifies you.") + "\n\n")
+	b.WriteString(dim.Width(m.contentWidth()).Render("Starts an Abulafia read-only debugging session (pi on Bedrock) in august. If it needs an MFA code, a background launch notifies you.") + "\n\n")
 	b.WriteString(m.inputField(m.debugFocus == dbgTitle, "Title", dim.Render("optional · defaults to the prompt's first words"), m.debugTitle.View()) + "\n\n")
 	b.WriteString(m.inputField(m.debugFocus == dbgPrompt, "First prompt", dim.Render("required · enter for a new line"), m.debugPrompt.View()) + "\n")
 	b.WriteString(m.noticesView())
 
 	help := "ctrl+enter in background · ctrl+g editor · ctrl+s open now · tab next field · " + tabsHelp + m.strandedHelp() + " · esc cancel"
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }

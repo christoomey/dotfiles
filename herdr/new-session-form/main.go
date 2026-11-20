@@ -343,6 +343,7 @@ func newModel(themeName string, start view, project string) model {
 	m.loading = true
 	m.listRows = 12
 	m.width = 86
+	m.resizeFields()
 	m.loaded = map[string][]session{}
 	// The project picker sits above the chat fields; typing starts in the name.
 	m.chatFocus = chatNameField
@@ -622,6 +623,7 @@ func (m model) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// sections(1) + subtabs(1) + blank + project(2) + blank + filter + blank + list + blank + help, inside the frame.
 		m.listRows = max(3, msg.Height-2-11)
 		m.width = msg.Width
+		m.resizeFields()
 		return m, nil
 	case agentsMsg:
 		return m.onAgentsMsg(msg)
@@ -1160,8 +1162,28 @@ func (m model) inputField(focused bool, title, hint, body string) string {
 	if hint != "" {
 		head += "  " + hint
 	}
-	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(edge).Padding(0, 1).Width(74)
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(edge).Padding(0, 1).Width(m.boxWidth())
 	return head + "\n" + box.Render(body)
+}
+
+// contentWidth is the popup's width inside the frame's padding; boxWidth is
+// an inputField box's lipgloss width (padding in, border out) so the box spans
+// it.
+func (m model) contentWidth() int { return max(40, m.width-4) }
+func (m model) boxWidth() int     { return m.contentWidth() - 2 }
+
+func (m *model) resizeFields() {
+	text := m.boxWidth() - 2
+	for _, in := range []*textinput.Model{&m.chatName, &m.feature, &m.featureName, &m.debugTitle} {
+		in.Width = text - lipgloss.Width(in.Prompt)
+	}
+	for _, ta := range []*textarea.Model{&m.chatPrompt, &m.featurePrompt, &m.reviewPrompt, &m.debugPrompt} {
+		ta.SetWidth(text)
+	}
+}
+
+func (m model) helpView(help string) string {
+	return m.styles.help.Width(m.contentWidth()).Render(help)
 }
 
 // startField is the Open now / Run in background choice, drawn as huh's
@@ -1198,7 +1220,7 @@ func (m model) chatView() string {
 	if len(rows) > 0 {
 		help = menuHelp(m.menuProject())
 	}
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }
 
@@ -1221,7 +1243,7 @@ func (m model) resumeView() string {
 	}
 
 	help := "enter resume · ctrl+enter in background · ↑/↓ move · ctrl+m/d moi/dotfiles · " + tabsHelp + " · esc cancel"
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }
 

@@ -387,6 +387,6 @@ func (m model) featureView() string {
 	if len(rows) > 0 {
 		help = menuHelp(m.menuProject())
 	}
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }

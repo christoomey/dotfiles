@@ -615,7 +615,7 @@ func (m model) agentsView() string {
 		scope = "ctrl+a needs-you only"
 	}
 	help := "enter jump · ctrl+j/k move · " + scope + " · shift+tab project · " + tabsHelp + " · esc cancel"
-	b.WriteString("\n" + m.styles.help.Render(help))
+	b.WriteString("\n" + m.helpView(help))
 	return b.String()
 }
 
