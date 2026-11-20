@@ -122,7 +122,7 @@
           "key" : "p",
           "label" : "Pull requests",
           "type" : "url",
-          "value" : "https://github.com/pulls/inbox?filter=repo%3Aaugusthealth%2Faugust-backend+repo%3Aaugusthealth%2Faugust-frontend+repo%3Aaugusthealth%2Fjuly+repo%3Aaugusthealth%2Fts-proto+repo%3Aaugusthealth%2Fops+repo%3Aaugusthealth%2Fpizza&max_pr_age=1m"
+          "value" : "https://github.com/pulls/authored?q=is%3Apr+author%3A%40me+state%3Aopen+archived%3Afalse+sort%3Aupdated-desc+org%3Aaugusthealth"
         },
         {
           "key" : "s",
@@ -460,6 +460,30 @@
       "iconPath" : "terminal",
       "key" : "h",
       "label" : "[H]erdr",
+      "type" : "group"
+    },
+    {
+      "actions" : [
+        {
+          "key" : "z",
+          "label" : "History",
+          "type" : "url",
+          "value" : "cleanshot://open-history"
+        },
+        {
+          "key" : "a",
+          "label" : "(A)ll-in-one Capture",
+          "type" : "url",
+          "value" : "cleanshot://all-in-one"
+        },
+        {
+          "key" : "r",
+          "label" : "(R)egion Capture",
+          "type" : "url",
+          "value" : "cleanshot://capture-area"
+        }
+      ],
+      "key" : "c",
       "type" : "group"
     }
   ],
