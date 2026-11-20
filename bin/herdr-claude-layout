@@ -12,7 +12,8 @@
 #
 # Leave runs synchronously so the spacers are gone before claude exits; a
 # HERDR_THREAD tab would otherwise survive its shell on the leftover spacers.
-# HERDR_CLAUDE_LAYOUT=0 opts a session out.
+# HERDR_CLAUDE_LAYOUT=0 opts a session out. pi (Abulafia) sessions get the
+# same via pi/extensions/herdr-sidebar.ts: start on session_start, end on quit.
 
 set -uo pipefail
 

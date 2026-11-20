@@ -345,8 +345,8 @@ width = 117
 height = 41
 
 # Column layout (coryfklein.herdr-layout plugin): spacer panes around the
-# focused pane so it reads at a fixed width. Claude sessions alone in a tab
-# enter it automatically (bin/herdr-claude-layout hooks). Cmd+Shift+Up/Down
+# focused pane so it reads at a fixed width. Claude and pi sessions alone in a
+# tab enter it automatically (bin/herdr-claude-layout hooks). Cmd+Shift+Up/Down
 # reach herdr only because ghostty/config unbinds Ghostty's jump_to_prompt.
 [[keys.command]]
 key = "cmd+shift+l"
