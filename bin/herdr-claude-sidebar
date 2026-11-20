@@ -7,17 +7,18 @@
 # project a feature worktree belongs to. This reports display-only pane
 # metadata tokens instead, which herdr/config.toml renders as
 #
-#   ● review · august.fe         $review|$feature|$chat · $project
+#   ● review · august.val        $review|$feature|$chat · $project
 #     1234 tidy login form        $name
 #
-#   review   the tab is a /review-queue session (label REV-<FE|BE>-…, or
-#            another repo code before the PR number like REV-AB-3-…; any
+#   review   the tab is a /review-queue session (label REV-<code>-<number>-…,
+#            a short repo code like REV-VAL-8123-… for valinor or REV-AB-3-…
+#            for abulafia; older REV-FE-/REV-BE- labels still match; any
 #            case, dashes or spaces)
 #   feature  the cwd is a linked git worktree (an august or moi feature)
 #   chat     anything else (herdr-new-thread chats, ad-hoc splits)
 #   name     the review number + slug, the worktree dir, or the tab label,
 #            dashes and underscores read as spaces
-#   project  august / august.fe / august.be / moi / dotfiles / repo basename
+#   project  august / august.val / august.ab / moi / dotfiles / repo basename
 #
 # pi panes are Abulafia debugging sessions: they get debug + name (the tab
 # label) and no project. pi/extensions/herdr-sidebar.ts runs --pi at every pi

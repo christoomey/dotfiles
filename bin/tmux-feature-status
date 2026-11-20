@@ -1,11 +1,10 @@
 #!/bin/zsh
 # tmux-feature-status — dashboard for a fullstack feature directory
 #
-# Looks up from the current pane path for a dir containing `config`,
-# `august-backend/`, and `august-frontend/`, then prints a markdown-ish
-# popup summarizing:
-#   - the Linear issue(s) linked via branch names
-#   - frontend & backend PR status (merged, approved, changes, etc.)
+# Looks up from the current pane path for a dir containing `.feature/config`,
+# then prints a markdown-ish popup summarizing:
+#   - the Linear issue linked via the config or branch name
+#   - the valinor PR status (merged, approved, changes, etc.)
 #
 # Intended to be triggered from a tmux popup binding.
 
@@ -18,7 +17,7 @@ current_path="$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || pw
 feature_dir=""
 dir="$current_path"
 while [[ "$dir" != "/" && -n "$dir" ]]; do
-  if [[ -f "$dir/config" && -d "$dir/august-backend" && -d "$dir/august-frontend" ]]; then
+  if [[ -f "$dir/.feature/config" ]]; then
     feature_dir="$dir"
     break
   fi
@@ -27,17 +26,17 @@ done
 
 if [[ -z "$feature_dir" ]]; then
   print -- "tmux-feature-status: not inside a fullstack feature directory"
-  print -- "(need a parent with 'config', 'august-backend/', and 'august-frontend/')"
+  print -- "(need a parent with '.feature/config')"
   exit 1
 fi
 
 set -a
-source "$feature_dir/config"
+source "$feature_dir/.feature/config"
 set +a
 
 : "${FEATURE_NAME:=$(basename "$feature_dir")}"
-: "${FRONTEND_BRANCH:=}"
-: "${BACKEND_BRANCH:=}"
+: "${FULLSTACK_BRANCH:=}"
+: "${FULLSTACK_LINEAR_ID:=}"
 
 # --- rendering helpers ------------------------------------------------------
 
@@ -135,18 +134,11 @@ fetch_linear() {  # fetch_linear <MEDS-ID> <outfile>
   linear issue view "$id" --json --no-comments --no-pager 2>/dev/null > "$out" || true
 }
 
-fetch_pr augusthealth/august-frontend "$FRONTEND_BRANCH" "$tmpdir/fe.pr" &
-fetch_pr augusthealth/august-backend  "$BACKEND_BRANCH"  "$tmpdir/be.pr" &
+fetch_pr augusthealth/valinor "$FULLSTACK_BRANCH" "$tmpdir/pr" &
 
-fe_meds="$(extract_meds_id "$FRONTEND_BRANCH")"
-be_meds="$(extract_meds_id "$BACKEND_BRANCH")"
-
-typeset -A seen=()
-for id in $fe_meds $be_meds; do
-  [[ -z "$id" || -n "${seen[$id]-}" ]] && continue
-  seen[$id]=1
-  fetch_linear "$id" "$tmpdir/linear-$id.json" &
-done
+meds_id="${FULLSTACK_LINEAR_ID:u}"
+[[ -z "$meds_id" ]] && meds_id="$(extract_meds_id "$FULLSTACK_BRANCH")"
+fetch_linear "$meds_id" "$tmpdir/linear-$meds_id.json" &
 
 wait
 
@@ -155,40 +147,34 @@ wait
 render() {
   printf '%s\n\n' "$(bold "# $FEATURE_NAME")"
 
-  # Linear info — rendered inline under the title, one line per issue.
-  local ids=()
-  [[ -n "$fe_meds" ]] && ids+=("$fe_meds")
-  [[ -n "$be_meds" && "$be_meds" != "$fe_meds" ]] && ids+=("$be_meds")
-
-  if (( ${#ids} == 0 )); then
-    printf '%s\n\n' "$(dim '(no MEDS-xxxx id in branch names)')"
+  # Linear info, rendered inline under the title.
+  if [[ -z "$meds_id" ]]; then
+    printf '%s\n\n' "$(dim '(no MEDS-xxxx id in config or branch name)')"
   else
-    for id in $ids; do
-      local file="$tmpdir/linear-$id.json"
-      local url="https://linear.app/august-health/issue/$id"
-      if [[ -s "$file" ]] && jq -e . "$file" >/dev/null 2>&1; then
-        local title state iurl
-        title="$(jq -r '.title // ""' "$file")"
-        state="$(jq -r '.state.name // ""' "$file")"
-        iurl="$(jq -r '.url // ""' "$file")"
-        [[ -n "$iurl" ]] && url="$iurl"
-        printf '%s — %s  %s\n' \
-          "$(cyan "$(hlink "$url" "$id")")" \
-          "$title" \
-          "$(dim "· $state")"
-      else
-        printf '%s %s\n' \
-          "$(cyan "$(hlink "$url" "$id")")" \
-          "$(dim '(details unavailable)')"
-      fi
-    done
+    local id="$meds_id" file="$tmpdir/linear-$meds_id.json"
+    local url="https://linear.app/august-health/issue/$id"
+    if [[ -s "$file" ]] && jq -e . "$file" >/dev/null 2>&1; then
+      local title state iurl
+      title="$(jq -r '.title // ""' "$file")"
+      state="$(jq -r '.state.name // ""' "$file")"
+      iurl="$(jq -r '.url // ""' "$file")"
+      [[ -n "$iurl" ]] && url="$iurl"
+      printf '%s — %s  %s\n' \
+        "$(cyan "$(hlink "$url" "$id")")" \
+        "$title" \
+        "$(dim "· $state")"
+    else
+      printf '%s %s\n' \
+        "$(cyan "$(hlink "$url" "$id")")" \
+        "$(dim '(details unavailable)')"
+    fi
     printf '\n'
   fi
 
-  # PR sections
-  render_side() {  # render_side <label> <branch> <prfile>
-    local label="$1" branch="$2" file="$3"
-    printf '%s %s\n' "$(bold "## $label")" "$(dim "— $branch")"
+  # PR section
+  render_pr() {  # render_pr <branch> <prfile>
+    local branch="$1" file="$2"
+    printf '%s %s\n' "$(bold "## PR")" "$(dim "— $branch")"
     if [[ -z "$branch" ]]; then
       printf '  %s\n' "$(dim 'no branch configured')"
       return
@@ -209,9 +195,7 @@ render() {
       "$title"
   }
 
-  render_side "Frontend" "$FRONTEND_BRANCH" "$tmpdir/fe.pr"
-  printf '\n'
-  render_side "Backend"  "$BACKEND_BRANCH"  "$tmpdir/be.pr"
+  render_pr "$FULLSTACK_BRANCH" "$tmpdir/pr"
   printf '\n'
 
   printf '%s\n' "$(dim "feature dir: $feature_dir")"

@@ -23,7 +23,7 @@ usage() {
 af — augie feature commands (herdr-aware)
 
   af up <linear-branch>   create a feature worktree and open its tab
-  af review <pr-or-branch>...  create a review worktree (BE and/or FE PR) and open its tab
+  af review <pr-or-branch>  create a review worktree for a valinor PR and open its tab
   af open [feature]       open/switch to a feature's tab
   af close [feature]      close a feature's tab (keeps dir/branches/db)
   af down [feature]       tear a feature down (removes dir, branches, db)

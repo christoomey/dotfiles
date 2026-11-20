@@ -9,7 +9,7 @@
 #
 #   review-finalize [--keep-tab] LABEL REPORT_URL ACTION_ID[,ACTION_ID...] [WORKTREE...]
 #
-# LABEL is the tab label (REV-BE-7283-…), used as the chat link's title.
+# LABEL is the tab label (REV-VAL-7283-…), used as the chat link's title.
 # REPORT_URL is the artifact URL, or "-" when no report was written. Several
 # action ids (a combined FE+BE review) all get the same two lines. Notes are
 # merged, never overwritten, and an action that already links this session is

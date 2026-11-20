@@ -3,9 +3,8 @@
 # Opens a localhost URL for the current project.
 #
 # Resolution order:
-#   1. If we're inside an August fullstack feature directory (a parent with
-#      `config`, `august-backend/`, and `august-frontend/`), source its config
-#      and use $MAIN_PORT.
+#   1. If we're inside an August feature directory (a parent with
+#      `.feature/config`), source that config and use $MAIN_PORT.
 #   2. Else, if the given directory has a `.env` with `PORT=`, use that.
 #   3. Else, default to port 3000.
 #
@@ -18,14 +17,14 @@ dir="$(cd "$dir" 2>/dev/null && pwd)" || dir="${1:-$PWD}"
 
 port=""
 
-# 1. Walk up for a fullstack feature directory.
+# 1. Walk up for a feature directory.
 probe="$dir"
 while [[ -n "$probe" && "$probe" != "/" ]]; do
-  if [[ -f "$probe/config" && -d "$probe/august-backend" && -d "$probe/august-frontend" ]]; then
+  if [[ -f "$probe/.feature/config" ]]; then
     # shellcheck disable=SC1091
     main_port="$(
       set -a
-      source "$probe/config"
+      source "$probe/.feature/config"
       set +a
       printf '%s' "${MAIN_PORT:-}"
     )"

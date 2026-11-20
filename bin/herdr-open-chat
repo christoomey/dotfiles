@@ -15,7 +15,7 @@
 #     NAME:    tab label for a resumed session when the transcript carries no
 #              title of its own (default: the session id). A link's slug is a
 #              lowercased, de-dashed copy of the title, which would turn a
-#              REV-FE-… tab into "rev fe …" and lose its sidebar kind.
+#              REV-VAL-… tab into "rev val …" and lose its sidebar kind.
 set -e
 usage="usage: herdr-open-chat PROJECT SESSION_ID [NAME]"
 project="${1:?$usage}"

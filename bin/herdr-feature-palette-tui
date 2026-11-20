@@ -18,7 +18,7 @@ APP="${0:A:h}/../herdr/palette-tui/palette.ts"
 feature_dir=""
 dir="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
 while [[ "$dir" != "/" && -n "$dir" ]]; do
-    if [[ -f "$dir/config" && -d "$dir/august-backend" && -d "$dir/august-frontend" ]]; then
+    if [[ -f "$dir/.feature/config" ]]; then
         feature_dir="$dir"
         break
     fi
@@ -32,13 +32,13 @@ fi
 # ── load feature config + backend .env ──────────────────────────────────────
 
 set -a
-. "$feature_dir/config"
+. "$feature_dir/.feature/config"
 set +a
 
 FEATURE_NAME="${FEATURE_NAME:-$(basename "$feature_dir")}"
 
 DB_USERNAME=""; DB_PASSWORD=""; DB_DATABASE=""
-BE_ENV="$feature_dir/august-backend/.env"
+BE_ENV="$feature_dir/backend/.env"
 if [[ -f "$BE_ENV" ]]; then
     DB_USERNAME=$(grep -E '^DB_USERNAME=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
     DB_PASSWORD=$(grep -E '^DB_PASSWORD=' "$BE_ENV" | head -n1 | cut -d= -f2- | tr -d '"')
@@ -48,10 +48,10 @@ fi
 FRONTEND_URL="http://localhost:${MAIN_PORT:-3000}"
 SWAGGER_URL="http://localhost:${BACKEND_PORT:-9000}/docs/swagger-ui/index.html"
 TABLEPLUS_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@localhost:5432/${DB_DATABASE}"
-BACKEND_LOQUAT="$feature_dir/august-backend/loquat"
+BACKEND_LOQUAT="$feature_dir/backend/loquat"
 
 # Resolve the canonical note file (same logic as the fzf palette).
-LINEAR_ID="$(printf "%s" "${BACKEND_BRANCH:-${FRONTEND_BRANCH:-}}" \
+LINEAR_ID="$(printf "%s" "${FULLSTACK_BRANCH:-}" \
     | sed -E 's|^[^/]+/||' \
     | grep -oE '^[a-zA-Z]+-[0-9]+' \
     | tr '[:lower:]' '[:upper:]' || true)"
@@ -100,7 +100,7 @@ items = [
   {"tag":"frontend","key":"f","icon":e["I_FRONTEND"],"label":"Frontend","detail":e["FRONTEND_URL"]},
   {"tag":"swagger", "key":"s","icon":e["I_SWAGGER"], "label":"Swagger", "detail":e["SWAGGER_URL"]},
   {"tag":"db",      "key":"t","icon":e["I_DB"],      "label":"TablePlus","detail":e["DB_DATABASE"] or "<no DB_DATABASE>"},
-  {"tag":"idea",    "key":"i","icon":e["I_IDEA"],    "label":"IntelliJ", "detail":"august-backend/loquat"},
+  {"tag":"idea",    "key":"i","icon":e["I_IDEA"],    "label":"IntelliJ", "detail":"backend/loquat"},
   {"tag":"notes",   "key":"n","icon":e["I_NOTES"],   "label":"Notes",    "detail":e["NOTES_LABEL"]},
 ]
 print(json.dumps({"title":e["FEATURE_NAME"], "subtitle":e["LINEAR_ID"], "items":items}))

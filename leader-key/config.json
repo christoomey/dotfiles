@@ -38,7 +38,7 @@
               "key" : "p",
               "label" : "Pull requests",
               "type" : "url",
-              "value" : "https://github.com/augusthealth/august-backend/pulls"
+              "value" : "https://github.com/augusthealth/valinor/pulls"
             },
             {
               "key" : "s",
@@ -87,7 +87,7 @@
               "key" : "p",
               "label" : "Pull requests",
               "type" : "url",
-              "value" : "https://github.com/augusthealth/august-frontend/pulls"
+              "value" : "https://github.com/augusthealth/valinor/pulls"
             },
             {
               "key" : "u",

@@ -17,7 +17,7 @@ set -eo
 
 date_range="$(gdate --date='5 days ago' +%Y-%m-%d)..$(gdate +%Y-%m-%d)"
 
-open "https://github.com/augusthealth/august-backend/pulls?q=\
+open "https://github.com/augusthealth/valinor/pulls?q=\
   is:pr+is:open+\
   -is:draft+\
   -author:christoomey+\

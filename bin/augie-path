@@ -4,7 +4,7 @@
 #
 #   root       the august workspace checkout (tooling, notes, skills)
 #   worktrees  where feature dirs live
-#   repos      where august-backend / august-frontend are cloned
+#   repos      where the valinor monorepo is cloned
 #
 # `worktrees` falls back to the older `features` key, so callers work on either
 # side of the workspace split (where root and worktrees stopped being the same

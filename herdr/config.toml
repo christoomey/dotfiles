@@ -162,11 +162,9 @@ close_pane = ""
 # type = "shell" runs detached in the background.
 # type = "pane" opens a temporary pane and closes it when the command exits.
 # On Windows, command strings run through cmd.exe /d /c.
-# lazygit on prefix+g (mirrors your tmux `prefix g`). Feature-dir aware: in an
-# augie feature dir it auto-picks the dirty backend/frontend side, or shows a
-# single-key b/f chooser with dirty flags when both/neither are dirty (see
-# herdr-lazygit). This popup only ever hosts the chooser — sized in cells to
-# fit the menu — and lazygit opens in its own 95% popup right after, via the
+# lazygit on prefix+g (mirrors your tmux `prefix g`), on the active pane's repo
+# (see herdr-lazygit). This popup only hosts the launcher (and its "no git repo"
+# message), and lazygit opens in its own 95% popup right after, via the
 # augie-git plugin pane (herdr/plugins/augie-git, `herdr plugin link`ed).
 # (needs herdr >= 0.7.4 for type="popup")
 [[keys.command]]
