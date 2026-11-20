@@ -1,0 +1,5 @@
+{
+  "name": "dotfiles-mods",
+  "owner": { "name": "Chris Toomey" },
+  "plugins": [{ "name": "emphasis", "source": "./emphasis" }]
+}

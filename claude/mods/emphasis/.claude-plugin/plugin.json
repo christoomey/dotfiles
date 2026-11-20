@@ -1,0 +1,9 @@
+{
+  "name": "emphasis",
+  "version": "0.1.0",
+  "description": "Colored [[Pill]] labels, label icons and marks in Claude's replies. A Claude Code port of johnlindquist/pi-emphasis.",
+  "author": { "name": "Chris Toomey" },
+  "homepage": "https://github.com/johnlindquist/pi-emphasis",
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}
