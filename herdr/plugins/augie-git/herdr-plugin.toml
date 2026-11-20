@@ -13,3 +13,11 @@ height = "95%"
 command = ["lazygit"]
 
 
+
+[[panes]]
+id = "difftastic"
+title = "difftastic"
+placement = "popup"
+width = "90%"
+height = "90%"
+command = ["zsh", "-c", "GIT_EXTERNAL_DIFF=\"difft --color always --width $(tput cols)\" git diff --ext-diff | less -R"]
