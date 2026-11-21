@@ -18,67 +18,8 @@
         },
         "rules": [
           {
-            "description": "Caps: hold -> Control, tap -> Hex (Option+Space)",
+            "description": "Caps: hold -> Control, tap -> Hex start, or finish and submit",
             "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "identifiers": [
-                      {
-                        "product_id": 1296,
-                        "vendor_id": 1204
-                      }
-                    ],
-                    "type": "device_if"
-                  }
-                ],
-                "description": "Shift+Caps tap: finish Hex dictation and submit",
-                "from": {
-                  "key_code": "left_control",
-                  "modifiers": {
-                    "mandatory": ["shift"]
-                  }
-                },
-                "parameters": {
-                  "basic.to_if_alone_timeout_milliseconds": 250
-                },
-                "to": [
-                  {
-                    "key_code": "left_control",
-                    "modifiers": ["left_shift"]
-                  }
-                ],
-                "to_if_alone": [
-                  {
-                    "shell_command": "$HOME/bin/hex-dictate-send"
-                  }
-                ],
-                "type": "basic"
-              },
-              {
-                "description": "Shift+Caps tap: finish Hex dictation and submit",
-                "from": {
-                  "key_code": "caps_lock",
-                  "modifiers": {
-                    "mandatory": ["shift"]
-                  }
-                },
-                "parameters": {
-                  "basic.to_if_alone_timeout_milliseconds": 250
-                },
-                "to": [
-                  {
-                    "key_code": "right_control",
-                    "modifiers": ["left_shift"]
-                  }
-                ],
-                "to_if_alone": [
-                  {
-                    "shell_command": "$HOME/bin/hex-dictate-send"
-                  }
-                ],
-                "type": "basic"
-              },
               {
                 "conditions": [
                   {
@@ -107,9 +48,7 @@
                 ],
                 "to_if_alone": [
                   {
-                    "hold_down_milliseconds": 50,
-                    "key_code": "spacebar",
-                    "modifiers": ["left_option"]
+                    "shell_command": "$HOME/bin/hex-caps-tap"
                   }
                 ],
                 "type": "basic"
@@ -131,9 +70,26 @@
                 ],
                 "to_if_alone": [
                   {
-                    "hold_down_milliseconds": 50,
-                    "key_code": "spacebar",
-                    "modifiers": ["left_option"]
+                    "shell_command": "$HOME/bin/hex-caps-tap"
+                  }
+                ],
+                "type": "basic"
+              }
+            ]
+          },
+          {
+            "description": "Disable Option+Space (retrain to Caps for Hex)",
+            "manipulators": [
+              {
+                "from": {
+                  "key_code": "spacebar",
+                  "modifiers": {
+                    "mandatory": ["option"]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "vk_none"
                   }
                 ],
                 "type": "basic"

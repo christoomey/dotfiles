@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Caps tap: start a Hex dictation, or finish the one in progress.
+
+set -u
+PATH="$PATH:/opt/homebrew/bin:/Applications/Hex.app/Contents/MacOS"
+
+if [ "$(hex status --json | jq -r '.capture.recording')" = "dictation" ]; then
+  exec "$HOME/bin/hex-dictate-send"
+else
+  exec hex dictation start
+fi
