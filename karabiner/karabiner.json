@@ -32,6 +32,65 @@
                     "type": "device_if"
                   }
                 ],
+                "description": "Shift+Caps tap: finish Hex dictation and submit",
+                "from": {
+                  "key_code": "left_control",
+                  "modifiers": {
+                    "mandatory": ["shift"]
+                  }
+                },
+                "parameters": {
+                  "basic.to_if_alone_timeout_milliseconds": 250
+                },
+                "to": [
+                  {
+                    "key_code": "left_control",
+                    "modifiers": ["left_shift"]
+                  }
+                ],
+                "to_if_alone": [
+                  {
+                    "shell_command": "$HOME/bin/hex-dictate-send"
+                  }
+                ],
+                "type": "basic"
+              },
+              {
+                "description": "Shift+Caps tap: finish Hex dictation and submit",
+                "from": {
+                  "key_code": "caps_lock",
+                  "modifiers": {
+                    "mandatory": ["shift"]
+                  }
+                },
+                "parameters": {
+                  "basic.to_if_alone_timeout_milliseconds": 250
+                },
+                "to": [
+                  {
+                    "key_code": "right_control",
+                    "modifiers": ["left_shift"]
+                  }
+                ],
+                "to_if_alone": [
+                  {
+                    "shell_command": "$HOME/bin/hex-dictate-send"
+                  }
+                ],
+                "type": "basic"
+              },
+              {
+                "conditions": [
+                  {
+                    "identifiers": [
+                      {
+                        "product_id": 1296,
+                        "vendor_id": 1204
+                      }
+                    ],
+                    "type": "device_if"
+                  }
+                ],
                 "from": {
                   "key_code": "left_control",
                   "modifiers": {

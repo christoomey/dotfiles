@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Finish the Hex dictation and submit it to the focused Claude pane in herdr.
+# Anywhere else it finishes normally, pasting without Enter.
+
+set -u
+PATH="$PATH:/opt/homebrew/bin:/Applications/Hex.app/Contents/MacOS"
+
+front=$(lsappinfo info -only bundleid "$(lsappinfo front)" | sed -n 's/.*bundleID="\(.*\)".*/\1/p')
+
+pane=""
+if [ "$front" = "com.mitchellh.ghostty" ]; then
+  pane=$(herdr pane list | jq -r '(.result.panes // .panes)[] | select(.focused and .agent == "claude") | .pane_id' | head -n 1)
+fi
+
+if [ -z "$pane" ]; then
+  exec hex dictation stop
+fi
+
+text=$(hex dictation stop --print) || exit 0
+text=$(printf '%s' "$text" | tr '\r\n' '  ' | sed -e 's/^ *//' -e 's/ *$//')
+[ -n "$text" ] || exit 0
+
+if herdr pane send-text "$pane" "$text"; then
+  herdr pane send-keys "$pane" enter
+else
+  exec hex paste-last
+fi
