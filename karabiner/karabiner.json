@@ -78,6 +78,33 @@
             ]
           },
           {
+            "description": "Page Up on external keyboard -> Hex dictation (F18)",
+            "manipulators": [
+              {
+                "conditions": [
+                  {
+                    "identifiers": [
+                      {
+                        "product_id": 1296,
+                        "vendor_id": 1204
+                      }
+                    ],
+                    "type": "device_if"
+                  }
+                ],
+                "from": {
+                  "key_code": "page_up"
+                },
+                "to": [
+                  {
+                    "key_code": "f18"
+                  }
+                ],
+                "type": "basic"
+              }
+            ]
+          },
+          {
             "description": "Disable Option+Space (retrain to Caps for Hex)",
             "manipulators": [
               {

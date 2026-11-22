@@ -5,23 +5,51 @@
 set -u
 PATH="$PATH:/opt/homebrew/bin:/Applications/Hex.app/Contents/MacOS"
 
-front=$(lsappinfo info -only bundleid "$(lsappinfo front)" | sed -n 's/.*bundleID="\(.*\)".*/\1/p')
+# herdr's API doesn't expose popups, and the pane behind one still reports
+# focused. A popup is an extra terminal under the server that isn't a pane, so
+# any mismatch means "don't submit": a plain paste is the safe failure.
+popup_may_be_open() {
+  local panes_json="$1" processes server terminals
+  processes=$(ps -axo pid=,ppid=,tty=,command=)
+  server=$(printf '%s\n' "$processes" | awk 'NF == 5 && $4 ~ /\/herdr$/ && $5 == "server" { print $1 }')
+  if [ "$(printf '%s' "$server" | wc -w)" -ne 1 ]; then
+    return 0
+  fi
+  terminals=$(printf '%s\n' "$processes" | awk -v server="$server" '$2 == server && $3 != "??"' | wc -l)
+  [ "$terminals" -ne "$(printf '%s' "$panes_json" | jq '(.result.panes // .panes) | length')" ]
+}
 
-pane=""
-if [ "$front" = "com.mitchellh.ghostty" ]; then
-  pane=$(herdr pane list | jq -r '(.result.panes // .panes)[] | select(.focused and .agent == "claude") | .pane_id' | head -n 1)
-fi
+focused_claude_pane() {
+  local front panes_json
+  front=$(lsappinfo info -only bundleid "$(lsappinfo front)" | sed -n 's/.*bundleID="\(.*\)".*/\1/p')
+  if [ "$front" = "com.mitchellh.ghostty" ]; then
+    panes_json=$(herdr pane list)
+    if ! popup_may_be_open "$panes_json"; then
+      printf '%s' "$panes_json" | jq -r '(.result.panes // .panes)[] | select(.focused and .agent == "claude") | .pane_id' | head -n 1
+    fi
+  fi
+}
 
-if [ -z "$pane" ]; then
-  exec hex dictation stop
-fi
+pane_file=$(mktemp)
+trap 'rm -f "$pane_file"' EXIT
+
+# Routing runs alongside the stop so Hex's recording UI dismisses immediately.
+focused_claude_pane >"$pane_file" &
+routing=$!
 
 text=$(hex dictation stop --print) || exit 0
-text=$(printf '%s' "$text" | tr '\r\n' '  ' | sed -e 's/^ *//' -e 's/ *$//')
-[ -n "$text" ] || exit 0
+wait "$routing"
+pane=$(cat "$pane_file")
 
-if herdr pane send-text "$pane" "$text"; then
-  herdr pane send-keys "$pane" enter
+if [ -z "$pane" ]; then
+  hex paste-last
 else
-  exec hex paste-last
+  text=$(printf '%s' "$text" | tr '\r\n' '  ' | sed -e 's/^ *//' -e 's/ *$//')
+  if [ -n "$text" ]; then
+    if herdr pane send-text "$pane" "$text"; then
+      herdr pane send-keys "$pane" enter
+    else
+      hex paste-last
+    fi
+  fi
 fi
