@@ -78,8 +78,34 @@
             ]
           },
           {
-            "description": "Page Up on external keyboard -> Hex dictation (F18)",
+            "description": "Page Up on external keyboard -> Hex dictation (auto-submit in Paseo, F18 elsewhere)",
             "manipulators": [
+              {
+                "conditions": [
+                  {
+                    "identifiers": [
+                      {
+                        "product_id": 1296,
+                        "vendor_id": 1204
+                      }
+                    ],
+                    "type": "device_if"
+                  },
+                  {
+                    "bundle_identifiers": ["^sh\\.paseo\\.desktop$"],
+                    "type": "frontmost_application_if"
+                  }
+                ],
+                "from": {
+                  "key_code": "page_up"
+                },
+                "to": [
+                  {
+                    "shell_command": "$HOME/bin/hex-caps-tap"
+                  }
+                ],
+                "type": "basic"
+              },
               {
                 "conditions": [
                   {
