@@ -485,6 +485,20 @@
       ],
       "key" : "c",
       "type" : "group"
+    },
+    {
+      "actions" : [
+        {
+          "key" : "n",
+          "label" : "[N]ew thread",
+          "type" : "url",
+          "value" : "hammerspoon://paseo-new-thread"
+        }
+      ],
+      "iconPath" : "bubble.left.and.bubble.right",
+      "key" : "p",
+      "label" : "[P]aseo",
+      "type" : "group"
     }
   ],
   "type" : "group"

@@ -1,4 +1,5 @@
 require("windows")
+require("paseo")
 
 -- local fn = require("fn")
 -- local hyper = require("hyper")
