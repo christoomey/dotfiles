@@ -49,6 +49,14 @@ APPLESCRIPT
 
 mkdir -p "$state_dir"
 
+if [ "$mode" != marked ] && [ -z "${HERDR_PANE_ID:-}" ] && [ -n "${PASEO_AGENT_ID:-}" ]; then
+  if [ "$mode" = close ]; then
+    exec paseo-preview --close
+  else
+    exec paseo-preview "$file"
+  fi
+fi
+
 if [ "$mode" = marked ] || { [ "$mode" = glow ] && [ -z "${HERDR_PANE_ID:-}" ]; }; then
   open -a "Marked 2" "$file"
   grep -qxF -- "$file" "$marked_state" 2>/dev/null || print -r -- "$file" >>"$marked_state"
