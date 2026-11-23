@@ -20,36 +20,36 @@ popup_may_be_open() {
 }
 
 focused_claude_pane() {
-  local front panes_json
-  front=$(lsappinfo info -only bundleid "$(lsappinfo front)" | sed -n 's/.*bundleID="\(.*\)".*/\1/p')
-  if [ "$front" = "com.mitchellh.ghostty" ]; then
-    panes_json=$(herdr pane list)
-    if ! popup_may_be_open "$panes_json"; then
-      printf '%s' "$panes_json" | jq -r '(.result.panes // .panes)[] | select(.focused and .agent == "claude") | .pane_id' | head -n 1
-    fi
+  local panes_json
+  panes_json=$(herdr pane list)
+  if ! popup_may_be_open "$panes_json"; then
+    printf '%s' "$panes_json" | jq -r '(.result.panes // .panes)[] | select(.focused and .agent == "claude") | .pane_id' | head -n 1
   fi
 }
 
-pane_file=$(mktemp)
-trap 'rm -f "$pane_file"' EXIT
+front=$(lsappinfo info -only bundleid "$(lsappinfo front)" | sed -n 's/.*bundleID="\(.*\)".*/\1/p')
+pane=""
+if [ "$front" = "com.mitchellh.ghostty" ]; then
+  pane=$(focused_claude_pane)
+fi
 
-# Routing runs alongside the stop so Hex's recording UI dismisses immediately.
-focused_claude_pane >"$pane_file" &
-routing=$!
+# Never use `hex paste-last` here: --print dictations don't count as "last",
+# so it would paste an older dictation.
+if [ -z "$pane" ]; then
+  if [ "$front" = "sh.paseo.desktop" ]; then
+    # The Paseo inbox plugin presses Enter after this paste if a message box has focus.
+    mkdir -p "$HOME/.cache/paseo-inbox"
+    touch "$HOME/.cache/paseo-inbox/dictation-submit"
+  fi
+  exec hex dictation stop
+fi
 
 text=$(hex dictation stop --print) || exit 0
-wait "$routing"
-pane=$(cat "$pane_file")
-
-if [ -z "$pane" ]; then
-  hex paste-last
-else
-  text=$(printf '%s' "$text" | tr '\r\n' '  ' | sed -e 's/^ *//' -e 's/ *$//')
-  if [ -n "$text" ]; then
-    if herdr pane send-text "$pane" "$text"; then
-      herdr pane send-keys "$pane" enter
-    else
-      hex paste-last
-    fi
+text=$(printf '%s' "$text" | tr '\r\n' '  ' | sed -e 's/^ *//' -e 's/ *$//')
+if [ -n "$text" ]; then
+  if herdr pane send-text "$pane" "$text"; then
+    herdr pane send-keys "$pane" enter
+  else
+    printf '%s' "$text" | pbcopy
   fi
 fi
