@@ -1,6 +1,11 @@
 #!/bin/zsh
-# Print a markdown link that reopens a Claude Code session (or the feature
-# worktree it lives in) through the Moi menubar app:
+# Print a markdown link that reopens a Claude Code session. A session Paseo
+# runs or has imported gets its Paseo thread link:
+#
+#   [Paseo: TITLE](paseo://h/SERVER_ID/agent/AGENT_ID)
+#
+# Anything else reopens (or the feature worktree it lives in) through the Moi
+# menubar app:
 #
 #   [Chat: TITLE](moimenubar://chats/PROJECT/SLUG-SESSION_ID)
 #   [Feature: DIR](moimenubar://features/PROJECT/DIR?chat=SESSION_ID)
@@ -24,6 +29,7 @@
 #   claude-session-link [OPTIONS] [SESSION_ID] [CWD]
 #     --feature       force the feature link for the worktree CWD is in
 #     --chat          force the chat link for this session
+#     --herdr         skip the Paseo lookup and mint a moimenubar:// link
 #     --copy          also put the markdown on the clipboard
 #     --rich          put it on the clipboard as rich text (a real link, for
 #                     Apple Notes and friends) instead of markdown
@@ -35,7 +41,7 @@
 #                     on a project's root tab (see herdr-close-guard).
 set -e
 
-copy="" title="" kind="" rich="" close=""
+copy="" title="" kind="" rich="" close="" herdr=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --copy) copy=1; shift ;;
@@ -44,6 +50,7 @@ while [ $# -gt 0 ]; do
     --title) title="$2"; shift 2 ;;
     --feature) kind=feature; shift ;;
     --chat) kind=chat; shift ;;
+    --herdr) herdr=1; shift ;;
     *) break ;;
   esac
 done
@@ -99,6 +106,40 @@ fi
 cwd="${2:-}"
 [ -n "$session_id" ] && launch=$(claude-session-cwd "$session_id") && cwd="$launch"
 cwd=$(cd "${cwd:-$PWD}" && pwd -P)
+
+# A session Paseo runs (or has imported) gets a paseo:// thread link instead,
+# which the Paseo desktop and iPhone apps both open. Paseo records the Claude
+# session behind each agent as persistence.sessionId; --herdr opts out.
+paseo_home="${PASEO_HOME:-$HOME/.paseo}"
+paseo_agent_file() {
+  local -a files
+  [ -z "$1" ] && return 1
+  files=("$paseo_home"/agents/*/*.json(N))
+  (( ${#files} )) || return 1
+  jq -r --arg sid "$1" 'select(.persistence.sessionId == $sid) | "\(.updatedAt // "") \(input_filename)"' \
+    "${files[@]}" 2>/dev/null | sort -r | head -n1 | cut -d' ' -f2-
+}
+agent_file=""
+if [ -z "$herdr" ] && [ -f "$paseo_home/server-id" ]; then
+  if [ -n "${PASEO_AGENT_ID:-}" ] && [ "$session_id" = "${CLAUDE_CODE_SESSION_ID:-}" ]; then
+    agent_file=("$paseo_home"/agents/*/"$PASEO_AGENT_ID".json(N))
+    agent_file="${agent_file[1]:-}"
+  else
+    agent_file=$(paseo_agent_file "$session_id") || agent_file=""
+  fi
+fi
+if [ -n "$agent_file" ]; then
+  server=$(<"$paseo_home/server-id")
+  agent=$(jq -r .id "$agent_file")
+  [ -z "$title" ] && title=$(jq -r '.title // empty' "$agent_file")
+  [ -z "$title" ] && title="$agent"
+  title=$(printf '%s' "$title" | tr -d '[]' | tr -s ' ')
+  text="Paseo: $title" url="paseo://h/$server/agent/$agent"
+  printf '[%s](%s)\n' "$text" "$url"
+  [ -n "$copy" ] && copy_link "$text" "$url"
+  [ -n "$close" ] && echo "--close: ignored for a Paseo thread (archive it in Paseo)" >&2
+  exit 0
+fi
 
 project_for() {
   local dir="$1" august august_wt

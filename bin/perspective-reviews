@@ -6,7 +6,7 @@
 # turns review requests into actions — so this reads it rather than asking
 # GitHub who requested review.
 #
-# The `session` column is the moimenubar chat link a finished review left in
+# The `session` column is the chat (moimenubar:// or paseo://) link a finished review left in
 # the action's notes (see /review-queue), or "-" when none has run yet: that
 # is how the queue tells a fresh item from one already reviewed.
 #
@@ -50,7 +50,7 @@ filter='
       number: ($url | capture("/pull/(?<n>[0-9]+)").n | tonumber),
       url: $url,
       title: (.title | gsub("^_|_$"; "")),
-      session: ((.notes // "") | capture("(?<u>moimenubar://chats/[^)\\s]+)").u // "-")
+      session: ((.notes // "") | capture("(?<u>(moimenubar://chats|paseo://h)/[^)\\s]+)").u // "-")
     }'
 
 if [ -n "$json" ]; then
