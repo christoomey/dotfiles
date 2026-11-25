@@ -2,6 +2,9 @@
 -- hammerspoon://paseo-new-thread. Paseo has no deep link to plugin screens, so
 -- this focuses the app and presses the plugin's Cmd+Option+N shortcut once any
 -- held modifiers are released.
+--
+-- With ?ifTitle=<thread name> (sent by /tidy), it never steals focus: it only
+-- acts if Paseo is already frontmost and showing that thread.
 
 local M = {}
 
@@ -21,8 +24,21 @@ local function ready()
   return paseoIsFront() and modifiersReleased()
 end
 
-function M.newThread()
-  hs.application.launchOrFocus("Paseo")
+local function focusedTitle()
+  local app = hs.application.get("Paseo")
+  local win = app and app:focusedWindow()
+  return win and win:title()
+end
+
+function M.newThread(_, params)
+  local ifTitle = params and params.ifTitle
+  if ifTitle then
+    if not (paseoIsFront() and focusedTitle() == ifTitle) then
+      return
+    end
+  else
+    hs.application.launchOrFocus("Paseo")
+  end
   local polls = 0
   M.timer = hs.timer.waitUntil(function()
     polls = polls + 1
