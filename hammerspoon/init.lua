@@ -1,5 +1,6 @@
 require("windows")
 require("paseo")
+require("hex")
 
 -- local fn = require("fn")
 -- local hyper = require("hyper")

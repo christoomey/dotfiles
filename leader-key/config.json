@@ -340,126 +340,21 @@
     {
       "actions" : [
         {
-          "key" : "k",
-          "label" : "Agents",
+          "key" : "z",
+          "label" : "Paste last",
           "type" : "command",
-          "value" : "herdr-popup agents"
+          "value" : "hex-paste-last"
         },
         {
-          "key" : "c",
-          "label" : "[C]hats",
-          "type" : "command",
-          "value" : "herdr-popup chats"
-        },
-        {
-          "key" : "f",
-          "label" : "[F]eatures",
-          "type" : "command",
-          "value" : "herdr-popup features"
-        },
-        {
-          "key" : "r",
-          "label" : "[R]esume chat",
-          "type" : "command",
-          "value" : "herdr-popup resume"
-        },
-        {
-          "key" : "s",
-          "label" : "[S]idebar (reorder)",
-          "type" : "command",
-          "value" : "herdr-popup sidebar"
-        },
-        {
-          "key" : "d",
-          "label" : "[D]ebug (Abulafia)",
-          "type" : "command",
-          "value" : "herdr-popup debug"
-        },
-        {
-          "key" : "v",
-          "label" : "Re[v]iew queue",
-          "type" : "command",
-          "value" : "herdr-popup review"
-        },
-        {
-          "actions" : [
-            {
-              "key" : "c",
-              "label" : "Chats (new)",
-              "type" : "command",
-              "value" : "herdr-popup chats moi"
-            },
-            {
-              "key" : "r",
-              "label" : "Resume chat",
-              "type" : "command",
-              "value" : "herdr-popup resume moi"
-            },
-            {
-              "key" : "f",
-              "label" : "Features (new)",
-              "type" : "command",
-              "value" : "herdr-popup features"
-            }
-          ],
-          "key" : "m",
-          "label" : "[M]oi",
-          "type" : "group"
-        },
-        {
-          "actions" : [
-            {
-              "key" : "c",
-              "label" : "Chats (new)",
-              "type" : "command",
-              "value" : "herdr-popup chats august"
-            },
-            {
-              "key" : "r",
-              "label" : "Resume chat",
-              "type" : "command",
-              "value" : "herdr-popup resume august"
-            },
-            {
-              "key" : "f",
-              "label" : "Features (new)",
-              "type" : "command",
-              "value" : "herdr-popup features"
-            }
-          ],
-          "key" : "a",
-          "label" : "[A]ugust",
-          "type" : "group"
-        },
-        {
-          "actions" : [
-            {
-              "key" : "c",
-              "label" : "Chats (new)",
-              "type" : "command",
-              "value" : "herdr-popup chats dotfiles"
-            },
-            {
-              "key" : "r",
-              "label" : "Resume chat",
-              "type" : "command",
-              "value" : "herdr-popup resume dotfiles"
-            },
-            {
-              "key" : "f",
-              "label" : "Features (new)",
-              "type" : "command",
-              "value" : "herdr-popup features"
-            }
-          ],
-          "key" : ".",
-          "label" : "[.] Dotfiles",
-          "type" : "group"
+          "key" : "l",
+          "label" : "[L]ist recent",
+          "type" : "url",
+          "value" : "hammerspoon://hex-history"
         }
       ],
-      "iconPath" : "terminal",
+      "iconPath" : "waveform",
       "key" : "h",
-      "label" : "[H]erdr",
+      "label" : "[H]ex",
       "type" : "group"
     },
     {

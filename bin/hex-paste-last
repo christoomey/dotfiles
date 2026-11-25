@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Paste the most recent Hex dictation into whatever is focused.
+
+hex=/Applications/Hex.app/Contents/MacOS/hex
+if ! output=$("$hex" paste-last 2>&1); then
+  osascript -e "display notification \"${output//\"/\\\"}\" with title \"Hex paste-last failed\""
+  exit 1
+fi
