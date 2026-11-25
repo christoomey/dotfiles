@@ -36,7 +36,7 @@ fi
 
 for aid in ${(s:,:)actions}; do
   cur=$(curl -sf "$moi/api/agent/actions/$aid" -H "$auth" | jq -r '.action.notes // ""')
-  if [[ "$cur" == *"$sid"* ]]; then
+  if [[ "$cur" == *"$sid"* || ( -n "${PASEO_AGENT_ID:-}" && "$cur" == *"$PASEO_AGENT_ID"* ) ]]; then
     echo "action $aid already links this session"
     continue
   fi
