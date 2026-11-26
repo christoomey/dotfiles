@@ -408,11 +408,19 @@ export const register: Register = on => {
   on('prompt.compose', async ($, e, next) => {
     const result = await next(e)
 
-    if (!e.surfaces.includes('terminal') || !(await read($, isEnabled))) {
+    const inPaseo = (await $.env.get('PASEO_AGENT_ID')) !== undefined
+
+    if (!(e.surfaces.includes('terminal') || inPaseo) || !(await read($, isEnabled))) {
       return result
     }
 
-    return { sections: [...result.sections, { id: 'emphasis:reply-style', text: guidance(), scope: 'session' as const }] }
+    const sections = [...result.sections, { id: 'emphasis:reply-style', text: guidance(), scope: 'session' as const }]
+
+    if (inPaseo) {
+      sections.push({ id: 'emphasis:collapsible', text: collapsibleGuidance(), scope: 'session' as const })
+    }
+
+    return { sections }
   })
 
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
@@ -546,7 +554,7 @@ function guidance(): string {
 
   return `# Reply style: pills
 
-The terminal draws \`[[Word]]\` as a colored pill with an icon. Use pills to make status scannable; don't decorate every line.
+The UI draws \`[[Word]]\` as a colored pill with an icon. Use pills to make status scannable; don't decorate every line.
 
 - Red (wrong): ${byTone('red')}
 - Yellow (look here): ${byTone('yellow')}
@@ -562,4 +570,17 @@ Rules:
 - Write plain words; the renderer adds icons. Never put a pill inside a table or a code block.
 - Bold lead labels (**Fix:**, **Cause:**, **Next:**, **Check:**, **Do:**) and ✓ ✗ -> are styled too; use them where natural.
 - These pills replace nothing else in the user's own formatting rules; follow those as before.`
+}
+
+function collapsibleGuidance(): string {
+  return `# Reply style: collapsible detail
+
+Paseo draws \`<details><summary>Title</summary>body</details>\` as a tap-to-expand block, collapsed by default.
+
+What shows before any tap should read in about 10 seconds on a phone: the answer, the outcome, or the decision needed. Supporting material goes in \`<details>\`: evidence, file refs, reasoning, diffs, long lists, command output.
+
+- Short replies (under ~10 lines) need no structure. Just answer.
+- Longer replies: lead with the top-level points, as many as the content really has (usually 1 to 3), each one line with a bold label. Put each point's depth in a \`<details>\` right after it, with a few-word summary ("Why", "Evidence", "Diff").
+- Never collapse a question, a decision, an ask of the user, or a "What I need from you" block. Those stay visible.
+- Blank line after \`</summary>\` and before \`</details>\`; no nesting.`
 }
